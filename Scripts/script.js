@@ -356,7 +356,7 @@ function attachCommentInteractions() {
    
 
     let meta = comment.getElementsByClassName('meta')[0];
-    let attrs = meta.getElementsByClassName('CMDI073')[0];
+    let attrs = meta.getElementsByClassName('CMDI073')[0]; //for encryption
 
     const CommentID = attrs.getAttribute('cid');
 
