@@ -55,107 +55,130 @@ function createPostHTML(post) {
 }
 
 
-function createCommentHTML(comment){
-  console.log(comment);
+function createCommentHTML(comment,type=1){
+  //type 1: comment, type 2: reply
   if(comment.liked){
     likeIcon = 'Imgs/Icons/liked.svg';
   }else{
     likeIcon = 'Imgs/Icons/like.svg';
   }
 
-  if(comment.ReplyCounter ==0){
+  if(comment.ReplyCounter > 0){
     ViewRepliesButton = `<div class="ViewRepliesBtn">${comment.ReplyCounter} Replies</div>`;
   }else{
     ViewRepliesButton = '';
   }
 
-  return `             
-    <div class="CommentContainer">
+  if(type==1){
+    return `             
+      <div class="CommentContainer">
 
-      <div class="CI_2">
-        <div class="comment-readonly">
-            <div class="meta">
-              <span class="CMDI073" cid="${comment.CID}" uid="${comment.UID}"></span>
-            </div>
+        <div class="CI_2">
+          <div class="comment-readonly">
+              <div class="meta">
+                <span class="CMDI073" cid="${comment.CID}" uid="${comment.UID}"></span>
+              </div>
+          </div>
         </div>
-      </div>
 
-      <div class="ModalComment">
-        <div class="ModalCommentHeader">
-          <img src="Imgs/Icons/unknown.png" alt="">
-          <p>${comment.name}</p>
+        <div class="ModalComment">
+          <div class="ModalCommentHeader">
+            <img src="Imgs/Icons/unknown.png" alt="">
+            <p>${comment.name}</p>
+          </div>
+          <div class="ModalCommentContent">
+            <p>${comment.comment}</p>
+          </div>
         </div>
-        <div class="ModalCommentContent">
-          <p>${comment.comment}</p>
-        </div>
-      </div>
 
-      <div class="FeedPostInteractions">
-        <div class="Interaction FeedPostLike">
-            <img src="${likeIcon}">
-            <p class="CommentLikesCNT">${comment.LikeCounter}</p>
+        <div class="FeedPostInteractions">
+          <div class="Interaction FeedPostLike">
+              <img src="${likeIcon}">
+              <p class="CommentLikesCNT">${comment.LikeCounter}</p>
+          </div>
+          
+          <div class="Interaction FeedPostComment">
+              <img src="Imgs/Icons/comment.svg">
+              Reply
+          </div>
+
+
+                  
+
+
         </div>
+
         
-        <div class="Interaction FeedPostComment">
-            <img src="Imgs/Icons/comment.svg">
-            Reply
-        </div>
+        ${ViewRepliesButton}
+        
+        <span class="username-readonly hidden">${comment.Username}</span>
+
+        <div class="RepliesContainer hidden">
 
 
-                
-
-
-      </div>
-
-      
-      ${ViewRepliesButton}
-      
-      <span class="username-readonly hidden">${comment.Username}</span>
-
-      <div class="RepliesContainer hidden">
-
-        <div class="CommentContainer Reply" >
-
-          <div class="CI_2">
-            <div class="comment-readonly">
-                <div class="meta">
-                  <span class="CMDI073" cid="${comment.CID}" uid="${comment.UID}"></span>
-                </div>
-            </div>
-          </div>
-
-          <div class="ModalComment">
-            <div class="ModalCommentHeader">
-              <img src="Imgs/Icons/unknown.png" alt="">
-              <p>${comment.name}</p>
-            </div>
-            <div class="ModalCommentContent">
-              <p>${comment.comment}</p>
-            </div>
-          </div>
-
-          <div class="FeedPostInteractions">
-            <div class="Interaction FeedPostLike">
-                <img src="${likeIcon}">
-                <p class="CommentLikesCNT">${comment.LikeCounter}</p>
-            </div>
-            
-            <div class="Interaction FeedPostComment">
-                <img src="Imgs/Icons/comment.svg">
-                Comment
-            </div>
-
-
-
-          </div>
-          <span class="username-readonly hidden">${comment.Username}</span>
 
         </div>
 
       </div>
+      `;
 
-  </div>
-`;
+  }else if(type ==2){
+
+      if(comment.TaggedUser){
+        TaggedUser = `<span class="ReplyTag">@${comment.TaggedUser}</span>`;
+      }else{
+        TaggedUser = '';
+      }
+
+
+        return `             
+      <div class="CommentContainer Reply">
+
+        <div class="CI_2">
+          <div class="comment-readonly">
+              <div class="meta">
+                <span class="CMDI073" crid="${comment.CRID}" uid="${comment.UID}"></span>
+              </div>
+          </div>
+        </div>
+
+        <div class="ModalComment">
+          <div class="ModalCommentHeader">
+            <img src="Imgs/Icons/unknown.png" alt="">
+            <p>${comment.Sender}</p>
+          </div>
+          <div class="ModalCommentContent">
+             ${TaggedUser} <p>${comment.Reply}</p>
+          </div>
+        </div>
+
+        <div class="FeedPostInteractions">
+          <div class="Interaction FeedPostLike">
+              <img src="${likeIcon}">
+              <p class="CommentLikesCNT">${comment.LikeCounter}</p>
+          </div>
+          
+          <div class="Interaction FeedPostComment">
+              <img src="Imgs/Icons/comment.svg">
+             Reply
+          </div>
+
+
+                  
+
+
+        </div>
+
+
+        <span class="username-readonly hidden">${comment.SenderUsername}</span>
+
+
+        
+
+      </div>
+      `;
+
+  }
   
 }
 
@@ -359,6 +382,7 @@ function attachCommentInteractions() {
     let attrs = meta.getElementsByClassName('CMDI073')[0]; //for encryption
 
     const CommentID = attrs.getAttribute('cid');
+    const UserID = attrs.getAttribute('uid');
 
     likeButton.addEventListener('click', () => {
       const formData = new FormData();
@@ -385,7 +409,7 @@ function attachCommentInteractions() {
       let CreateReply= comment.getElementsByClassName('CreateCommentReply')[0];
       if(!CreateReply){
           comment.insertAdjacentHTML('beforeend', ` 
-            <form class="CreateModalComment CreateCommentReply">
+            <form class="CreateModalComment CreateCommentReply" >
                   <div contenteditable="true" class="CommentInput" placeholder="Reply to comment" rows="1"></div>
                   <input type="submit" value="" class="BrandBtn CommentSubmitBtn">
 
@@ -421,96 +445,100 @@ function attachCommentInteractions() {
             let RepliesContainer = comment.getElementsByClassName('RepliesContainer')[0];
             RepliesContainer.classList.remove('hidden');
 
+            data.forEach(reply => {
+              RepliesContainer.insertAdjacentHTML('beforeend', createCommentHTML(reply,2));
+              //get last inserted reply
+              const lastInsertedReply = RepliesContainer.getElementsByClassName('CommentContainer')[RepliesContainer.getElementsByClassName('CommentContainer').length - 1];
+              attachReplyInteractions(lastInsertedReply, comment);
+
+            });
+
           })
         
       })
     }
 
-    //check if the parent comment has replies
-    const RepliesContainer = comment.getElementsByClassName('RepliesContainer')[0];
-    const Replies = RepliesContainer.getElementsByClassName('CommentContainer');
 
-    if (Replies.length > 0) {
-      [...Replies].forEach(reply => {
-        const likeButton = reply.getElementsByClassName("FeedPostLike")[0];
-        const commentButton = reply.getElementsByClassName("FeedPostComment")[0];
-
-        const ReplyID = reply.getAttribute("crid");
-
-        likeButton.addEventListener("click", () => {
-          const formData = new FormData();
-          formData.append("ReqType", 7);
-          formData.append("CommentID", ReplyID);
-
-          fetch("Server.php", { method: "POST", body: formData })
-            .then((response) => response.json())
-            .then((data) => {
-              if (data.success) {
-                const likesCountElement =
-                reply.getElementsByClassName("CommentLikesCNT")[0];
-                let likesCount = parseInt(likesCountElement.innerHTML);
-                likesCount += parseInt(data.Insertion);
-                likesCountElement.innerHTML = likesCount;
-                const likeIcon = likeButton.getElementsByTagName("img")[0];
-                likeIcon.src = data.liked
-                  ? "Imgs/Icons/liked.svg"
-                  : "Imgs/Icons/like.svg";
-              }
-            })
-            .catch((error) => console.error("Error:", error));
-        });
-
-
-        commentButton.addEventListener("click", () => {
-          //check if the reply form is already created on parent
-          let CreateReply =comment.getElementsByClassName("CreateCommentReply")[0];
-
-          //get the username of the user bieng replied to
-          let ReplyTo = reply.getElementsByClassName("username-readonly")[0].innerHTML;
-
-          if (!CreateReply) {
-            comment.insertAdjacentHTML("beforeend",
-            ` 
-            <form class="CreateModalComment CreateCommentReply">
-                  <div contenteditable="true" class="CommentInput" rows="1">
-                  <span class="ReplyTag" contenteditable="false">@${ReplyTo}</span>
-
-                  </div>
-                  <input type="submit" value="" class="BrandBtn CommentSubmitBtn">
-
-            </form>
-        
-            `
-            );
-          }else{
-            //just append the tag to the existing reply form
-            let CreateCommentReply = comment.getElementsByClassName("CreateCommentReply")[0];
-            let CommentInput = CreateCommentReply.getElementsByClassName("CommentInput")[0];
-
-            //reset placeholder in CommentInput
-            CommentInput.setAttribute("placeholder", "");
-
-
-            //check if a tag already exists
-            let ReplyTag = CommentInput.getElementsByClassName("ReplyTag")[0];
-            if(ReplyTag){
-              //reset
-              ReplyTag.innerHTML = "@" + ReplyTo;
-            }else{
-
-             CommentInput.insertAdjacentHTML("beforeend", `<span class="ReplyTag" contenteditable="false">@${ReplyTo}</span>`)
-            }
-          }
-
-          const formData = new FormData();
-          formData.append("ReqType", 8);
-          formData.append("CommentID", CommentID);
-        });
-
-      });
-    }
-    
   })
+}
+
+function attachReplyInteractions(reply, parentComment) {
+    const likeButton = reply.getElementsByClassName("FeedPostLike")[0];
+    const commentButton = reply.getElementsByClassName("FeedPostComment")[0];
+
+    //meta data
+    let meta = reply.getElementsByClassName('meta')[0];
+    let attrs = meta.getElementsByClassName('CMDI073')[0]; //for encryption
+
+    const ReplyID = attrs.getAttribute('crid');
+    const UserID = attrs.getAttribute('uid');
+
+    likeButton.addEventListener("click", () => {
+      const formData = new FormData();
+      formData.append("ReqType", 7);
+      formData.append("CommentID", ReplyID);
+
+      fetch("Server.php", { method: "POST", body: formData })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            const likesCountElement =
+            reply.getElementsByClassName("CommentLikesCNT")[0];
+            let likesCount = parseInt(likesCountElement.innerHTML);
+            likesCount += parseInt(data.Insertion);
+            likesCountElement.innerHTML = likesCount;
+            const likeIcon = likeButton.getElementsByTagName("img")[0];
+            likeIcon.src = data.liked
+              ? "Imgs/Icons/liked.svg"
+              : "Imgs/Icons/like.svg";
+          }
+        })
+        .catch((error) => console.error("Error:", error));
+    });
+
+
+    commentButton.addEventListener("click", () => {
+      //check if the reply form is already created on parent
+      let CreateReply = parentComment.getElementsByClassName("CreateCommentReply")[0];
+
+      //get the username of the user bieng replied to
+      let ReplyTo = reply.getElementsByClassName("username-readonly")[0].innerHTML;
+
+      if (!CreateReply) {
+        parentComment.insertAdjacentHTML("beforeend",
+        ` 
+        <form class="CreateModalComment CreateCommentReply" ">
+              <div contenteditable="true" class="CommentInput" rows="1">
+              <span class="ReplyTag" contenteditable="false" replyto="${UserID}">@${ReplyTo}</span>
+
+              </div>
+              <input type="submit" value="" class="BrandBtn CommentSubmitBtn">
+
+        </form>
+    
+        `
+        );
+      }else{
+        //just append the tag to the existing reply form
+        let CreateCommentReply = parentComment.getElementsByClassName("CreateCommentReply")[0];
+        let CommentInput = CreateCommentReply.getElementsByClassName("CommentInput")[0];
+
+        //reset placeholder in CommentInput
+        CommentInput.setAttribute("placeholder", "");
+
+
+        //check if a tag already exists
+        let ReplyTag = CommentInput.getElementsByClassName("ReplyTag")[0];
+        if(ReplyTag){
+          //reset
+          ReplyTag.innerHTML = "@" + ReplyTo;
+          ReplyTag.setAttribute("replyto", UserID);
+        }else{
+
+         CommentInput.insertAdjacentHTML("beforeend", `<span class="ReplyTag" contenteditable="false" replyto="${UserID}">@${ReplyTo}</span>`)
+        }
+      }
+    });
 }
 
 
@@ -891,15 +919,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check if the event originated from a .CommentInput element
     if (targetElement && targetElement.classList.contains('CommentInput')) {
-       const cleanedText = targetElement.textContent.replace(/\u00A0/g, '').trim();
-        // Now, you're working with the specific element that was changed
-        if (cleanedText === '') {
 
-            targetElement.innerHTML = '';
-            targetElement.classList.remove('has-content');
-        } else {
-            targetElement.classList.add('has-content');
-        }
+/*       //get parent element of the target element
+      const Form = targetElement.parentElement;
+      const hasReplyTag = targetElement.getElementsByClassName('ReplyTag')[0]; //reply tag in comment input
+      if (!hasReplyTag) {
+        Form.removeAttribute('replyto');
+      } else {
+        const uid = hasReplyTag.getAttribute('data-uid');
+        Form.setAttribute('data-reply-to', uid);
+      } */
+
+
+
+      const cleanedText = targetElement.textContent.replace(/\u00A0/g, '').trim();
+      // Now, you're working with the specific element that was changed
+      if (cleanedText === '') {
+
+          targetElement.textContent  = '';
+          targetElement.classList.remove('has-content');
+      } else {
+          targetElement.classList.add('has-content');
+      }
     }
   });
 

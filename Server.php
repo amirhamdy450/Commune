@@ -609,6 +609,54 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }else if($_POST["ReqType"]== 8){ //replying to a comment
 
     }else if ($_POST["ReqType"]== 9){ //fetch comment replies
+        $EncCommentAtr=$_POST['CommentID']; //Enc stands for encrypted and atr stands for atribute
+        $CommentAtr= openssl_decrypt(base64_decode($EncCommentAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv); 
+   
+        // Find the position of the 'I' to retrieve the  comment id bieng liked
+        $CommentIDPosition = strpos($CommentAtr, 'I');
+        $CommentID=(int)substr($CommentAtr, $CommentIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+
+        if(!RowExists('comments','id',$CommentID)){
+            echo json_encode([
+                'success' => false,
+                'message' => "Comment not found",
+            ]);
+            die();
+        }
+
+        //get al replies to that comment
+        $sql="SELECT CR.id AS CRID, CR.UID,CR.Reply,CR.LikeCounter, CR.Date,Sender.Name AS Sender,Sender.Username AS SenderUsername,Tagged.Username AS TaggedUser 
+        FROM comments_replies CR
+        INNER JOIN users Sender ON CR.UID=Sender.id
+        LEFT JOIN users Tagged ON CR.Tagged=Tagged.id
+        WHERE CommentID=? ORDER BY CR.id ASC";
+        $stmt=$pdo->prepare($sql);
+        $stmt->execute([$CommentID]);
+
+
+        $Replies=$stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+        foreach($Replies as &$Reply){
+            //convert Date to a Unix timestamp
+            $timestamp = strtotime($Reply['Date']);
+            $FormattedID = 'D'.$timestamp.'I'.$Reply['CRID'];
+
+            $encrypted = openssl_encrypt($FormattedID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
+            $Reply['CRID'] = base64_encode($encrypted); // Makes it JSON-safe
+
+
+            //encrypt the user id (UID)
+            $FormattedID = 'D'.$timestamp.'I'.$Reply['UID'];
+
+            $encrypted = openssl_encrypt($FormattedID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
+            $Reply['UID'] = base64_encode($encrypted); // Makes it JSON-safe
+        }
+        unset($Reply);
+
+        echo json_encode($Replies);
+
+   
     }
     
 
