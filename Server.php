@@ -231,7 +231,6 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     
                 }
     
-                echo "found image";
     
             }
     
@@ -254,10 +253,62 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
     
         $data=[$PostContent,$type,$FolderPath,date("Y-m-d H:i:s"),1,$UID];
-        print_r($data);
-        $sql = "INSERT INTO posts (Content,Type, Mediafolder, Date,Status,UID)  VALUES (?,?,?,?,?,?)";
+        //print_r($data);
+                $sql = "INSERT INTO posts (Content,Type, Mediafolder, Date,Status,UID)  VALUES (?,?,?,?,?,?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute($data);
+        if(!$stmt->execute($data)){
+            echo json_encode([
+                'success' => false,
+                'message' => "Error: Failed to insert data into the database"
+            ]);
+            die();
+        }
+
+        $lastInsertId = $pdo->lastInsertId();
+
+        // Fetch the new post
+        $sql = 'SELECT posts.id AS PID, posts.*, users.*, FALSE AS liked
+                FROM posts
+                INNER JOIN users ON posts.UID = users.id
+                WHERE posts.id = ?';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$lastInsertId]);
+        $newPost = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Prepare the post data for the client
+        $timestamp = strtotime($newPost['Date']);
+        $feedPostID = 'D' . $timestamp . 'I' . $newPost['PID'];
+        $encryptedFeedPostID = base64_encode(openssl_encrypt($feedPostID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv));
+
+        $media = [];
+        if (is_dir($FolderPath)) {
+            $mediaFiles = scandir($FolderPath);
+            foreach ($mediaFiles as $file) {
+                if ($file !== '.' && $file !== '..') {
+                    $media[] = ['name' => $file, 'path' => $FolderPath . '/' . $file];
+                }
+            }
+        }
+
+        $responsePost = [
+            'PID' => $encryptedFeedPostID,
+            'name' => $newPost['name'],
+            'Content' => $newPost['Content'],
+            'LikeCounter' => $newPost['LikeCounter'],
+            'CommentCounter' => $newPost['CommentCounter'],
+            'MediaFolder' => $media,
+            'MediaType' => (int)$newPost['Type'],
+            'CurrentUserPrivilege' => (int)$UserData['Privilege'],
+            'liked' => false
+        ];
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Post added successfully",
+            'post' => $responsePost
+        ]);
+        die();
+    
 
         //send back the post
 /*         $response[] = [
@@ -414,12 +465,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             CASE WHEN CL.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
             FROM comments 
             INNER JOIN users ON comments.UID=users.id 
-            LEFT JOIN comments_likes CL ON comments.id=CL.CommentID
+            LEFT JOIN comments_likes CL ON comments.id=CL.CommentID AND CL.UID=?       
             WHERE comments.PostID=? ';
 
         $stmt = $pdo->prepare($sql);
 
-        if($stmt->execute([$FeedPostID])){
+        if($stmt->execute([$UID,$FeedPostID])){
 
             $Comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
             //encrypt the comment ids (CID)
@@ -565,7 +616,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $stmt=$pdo->prepare($sql);
 
             if($stmt->execute([$CommentID,$UID])){
-                 $sql="UPDATE comments SET LikeCounter=LikeCounter+1 WHERE id=?";
+                $sql="UPDATE comments SET LikeCounter=LikeCounter+1 WHERE id=?";
                 $stmt=$pdo->prepare($sql);
                 if($stmt->execute([$CommentID])){
                     echo json_encode([
@@ -607,8 +658,140 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
    
     }else if($_POST["ReqType"]== 8){ //replying to a comment
+        
+        $EncCommentAtr=$_POST['CommentID']; //Enc stands for encrypted and atr stands for atribute
+        $CommentAtr= openssl_decrypt(base64_decode($EncCommentAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
 
-    }else if ($_POST["ReqType"]== 9){ //fetch comment replies
+        // Find the position of the 'I' to retrieve the  post id bieng liked
+        $CommentIDPosition = strpos($CommentAtr, 'I');
+        $CommentID=(int)substr($CommentAtr, $CommentIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+
+        if(!RowExists('comments','id',$CommentID)){
+            echo json_encode([
+                'success' => false,
+                'message' => "Comment not found",
+            ]);
+            die();
+        }
+
+
+        if(isset($_POST['ReplyTo'])){
+            $EncUserAtr=$_POST['ReplyTo']; //Enc stands for encrypted and atr stands for atribute
+            $UserAtr= openssl_decrypt(base64_decode($EncUserAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv); 
+   
+            // Find the position of the 'I' to retrieve the  comment id bieng liked
+            $UserIDPosition = strpos($UserAtr, 'I');
+            $UserID=(int)substr($UserAtr, $UserIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+
+            if(!RowExists('users','id',$UserID)){
+                echo json_encode([
+                    'success' => false,
+                    'message' => "User not found",
+                ]);
+                die();
+            }
+
+            $TaggedUser=$UserID;
+        }else{
+            $TaggedUser=NULL;
+        }
+
+        $Date=date('Y-m-d H:i:s');
+        $Reply= $_POST['Reply'];
+
+        $sql="INSERT INTO comments_replies (CommentID,UID,Reply,Tagged,`Date`) VALUES (?,?,?,?,?)";
+        $stmt=$pdo->prepare($sql);
+        if(!$stmt->execute([$CommentID,$UID,$Reply,$TaggedUser,$Date])){
+            echo json_encode([
+                'success' => false,
+                'message' => "Error inserting reply",
+            ]);
+        }
+
+
+        //Increment the reply counter in comments table
+        $sql="UPDATE comments SET ReplyCounter=ReplyCounter+1 WHERE id=?";
+        $stmt=$pdo->prepare($sql);
+        if(!$stmt->execute([$CommentID])){
+            echo json_encode([
+                'success' => false,
+                'message' => "Error incrementing reply counter",
+            ]);
+        }
+
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Reply inserted",
+        ]);
+
+
+    }else if($_POST['ReqType']==9){ //like a reply
+        $EncReplyAtr=$_POST['ReplyID']; //Enc stands for encrypted and atr stands for atribute
+        $ReplyAtr= openssl_decrypt(base64_decode($EncReplyAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv); 
+   
+        // Find the position of the 'I' to retrieve the  comment id bieng liked
+        $ReplyIDPosition = strpos($ReplyAtr, 'I');
+        $ReplyID=(int)substr($ReplyAtr, $ReplyIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+
+        if(!RowExists('comments_replies','id',$ReplyID)){
+            echo json_encode([
+                'success' => false,
+                'message' => "Comment not found",
+            ]);
+            die();
+        }
+
+
+        //first we need to check if he liked  the comment before in table `comments_likes`
+        $sql="SELECT Count(*) FROM comments_replies_likes WHERE ReplyID=? AND UID=?";
+        $stmt=$pdo->prepare($sql);
+        $stmt->execute([$ReplyID,$UID]);
+
+        if($stmt->fetchColumn() == 0){
+            $sql='INSERT INTO comments_replies_likes(ReplyID,UID) VALUES (?,?)';
+            $stmt=$pdo->prepare($sql);
+
+            if($stmt->execute([$ReplyID,$UID])){
+                $sql="UPDATE comments_replies SET LikeCounter=LikeCounter+1 WHERE id=?";
+                $stmt=$pdo->prepare($sql);
+                if($stmt->execute([$ReplyID])){
+                    echo json_encode([
+                        'success' => true,
+                        'message' => "Comment Liked",
+                        'liked'=> true,
+                        'Insertion'=> 1  
+                    ]);
+                }
+
+            }
+
+
+
+        }else{
+            $sql = "DELETE FROM comments_replies_likes WHERE ReplyID = ? AND UID = ?";
+            $stmt = $pdo->prepare($sql);
+            if($stmt->execute([$ReplyID, $UID])){
+                $sql="UPDATE comments_replies SET LikeCounter=LikeCounter-1 WHERE id=?";
+                $stmt=$pdo->prepare($sql);
+                if($stmt->execute([$ReplyID])){
+                    echo json_encode([
+                        'success' => true,
+                        'message' => "Comment Unliked",
+                        'liked'=> false,
+                        'Insertion'=> -1  
+                    ]);
+                }
+            }
+
+         }
+
+
+
+
+
+
+    }else if ($_POST["ReqType"]== 10){ //fetch comment replies
         $EncCommentAtr=$_POST['CommentID']; //Enc stands for encrypted and atr stands for atribute
         $CommentAtr= openssl_decrypt(base64_decode($EncCommentAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv); 
    
@@ -625,13 +808,16 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
 
         //get al replies to that comment
-        $sql="SELECT CR.id AS CRID, CR.UID,CR.Reply,CR.LikeCounter, CR.Date,Sender.Name AS Sender,Sender.Username AS SenderUsername,Tagged.Username AS TaggedUser 
+        $sql="SELECT CR.id AS CRID, CR.UID,CR.Reply,CR.LikeCounter, CR.Date,Sender.Name AS Sender,
+        Sender.Username AS SenderUsername,Tagged.Username AS TaggedUser ,
+        CASE WHEN CRL.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
         FROM comments_replies CR
         INNER JOIN users Sender ON CR.UID=Sender.id
         LEFT JOIN users Tagged ON CR.Tagged=Tagged.id
+        LEFT JOIN comments_replies_likes CRL ON CRL.ReplyID=CR.id AND CRL.UID=?
         WHERE CommentID=? ORDER BY CR.id ASC";
         $stmt=$pdo->prepare($sql);
-        $stmt->execute([$CommentID]);
+        $stmt->execute([$UID,$CommentID]);
 
 
         $Replies=$stmt->fetchAll(PDO::FETCH_ASSOC);
