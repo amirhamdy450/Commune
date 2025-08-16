@@ -17,6 +17,26 @@ if (urlParams.has('pid')) {
   currentPostID = urlParams.get('pid');
 }
 
+async function Submit( ReqMethod, ReqTarget, formData) {
+
+    try {
+      const response = await fetch(`${ReqTarget}`, {
+        method: `${ReqMethod}`,
+        body: formData,
+      });
+
+      const data = await response.json();
+      return { success: data.success, data: data };
+    } catch (error) {
+
+      console.error("Error:", error);
+      // Handle fetch errors here (optional)
+      return { success: false, message: "Error submitting form" }; // Example error handling
+    }
+  
+}
+
+
 // Creates HTML for a single post
 function createPostHTML(post) {
   const mediaContent = generateMediaContent(post);
@@ -210,11 +230,22 @@ function generateMediaContent(post) {
 // Fetches posts when scrolling to bottom
 function fetchMorePosts() {
   let isFetching = false;
+  let noMorePosts = false;
+  const loader = document.getElementsByClassName('FeedLoader')[0];
+  const feedContainer = document.getElementsByClassName('FeedContainer')[0];
+
   return () => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight && !isFetching) {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 && !isFetching && !noMorePosts) {
       isFetching = true;
+      loader.classList.remove('hidden');
+
       setTimeout(() => {
         const allFeedPosts = document.getElementsByClassName('FeedPost');
+        if (allFeedPosts.length === 0) {
+          loader.classList.add('hidden');
+          isFetching = false;
+          return;
+        }
         const lastPostPID = allFeedPosts[allFeedPosts.length - 1].getAttribute('pid');
         const formData = new FormData();
         formData.append('ReqType', 5);
@@ -223,15 +254,28 @@ function fetchMorePosts() {
         fetch('Server.php', { method: 'POST', body: formData })
           .then(response => response.json())
           .then(data => {
-            const feedContainer = document.getElementsByClassName('FeedContainer')[0];
-            data.forEach(post => {
-              feedContainer.insertAdjacentHTML('beforeend', createPostHTML(post));
-              attachPostInteractions(allFeedPosts[allFeedPosts.length - 1]);
-            });
-            isFetching = false;
+            if (data.length > 0) {
+              data.forEach(post => {
+                const postHTML = createPostHTML(post);
+                feedContainer.insertAdjacentHTML('beforeend', postHTML);
+                const newPostElement = feedContainer.lastElementChild;
+                attachPostInteractions(newPostElement);
+              });
+              feedContainer.appendChild(loader);
+            } else {
+              noMorePosts = true;
+              loader.classList.add('hidden');
+              const noMorePostsMessage = document.createElement('div');
+              noMorePostsMessage.className = 'NoMorePosts';
+              noMorePostsMessage.textContent = 'No more posts to load.';
+
+              feedContainer.appendChild(noMorePostsMessage);
+            }
           })
           .catch(error => {
             console.error('Error:', error);
+          })
+          .finally(() => {
             isFetching = false;
           });
       }, 500);
@@ -295,7 +339,7 @@ function attachPostInteractions(post) {
 
         }else{
           commentsContainer.insertAdjacentHTML('beforeend', `
-                <div class="InfoBox">
+                <div class="NoComments">
                     <p>No Comments Found !</p>
                 </div>
           `);
@@ -358,6 +402,7 @@ function attachPostInteractions(post) {
 }
 
 
+
 function attachCommentInteractions() {
   let CommentSectionModal= document.getElementsByClassName('CommentSection')[0];
 
@@ -416,16 +461,32 @@ function attachCommentInteractions() {
             </form>
             
           `);
-        
+
+        //reselect CreateCommentReply for the newly created form
+          CreateReply= comment.getElementsByClassName('CreateCommentReply')[0];
+          
 
       }
 
 
+      CreateReply.addEventListener('submit',  (e) => {
+        e.preventDefault();
+        
+
+        Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
+        const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML.trim();
+
+        const formData = new FormData();
+        formData.append('ReqType', 8);
+        formData.append('CommentID', CommentID);
+        formData.append('Reply', Reply);
+
+        Submit('POST', 'Server.php', formData);
+
+        //createReply(comment,);
+      })
 
 
-      const formData = new FormData();
-      formData.append('ReqType', 8);
-      formData.append('CommentID', CommentID);
     });
 
 
@@ -436,7 +497,7 @@ function attachCommentInteractions() {
             RepliesContainer.classList.remove('hidden');
 
         const formData = new FormData();
-        formData.append('ReqType', 9);
+        formData.append('ReqType', 10);
         formData.append('CommentID', CommentID);
 
         fetch('Server.php', { method: 'POST', body: formData })
@@ -471,12 +532,12 @@ function attachReplyInteractions(reply, parentComment) {
     let attrs = meta.getElementsByClassName('CMDI073')[0]; //for encryption
 
     const ReplyID = attrs.getAttribute('crid');
-    const UserID = attrs.getAttribute('uid');
+    const ReplyUserID = attrs.getAttribute('uid');
 
     likeButton.addEventListener("click", () => {
       const formData = new FormData();
-      formData.append("ReqType", 7);
-      formData.append("CommentID", ReplyID);
+      formData.append("ReqType", 9);
+      formData.append("ReplyID", ReplyID);
 
       fetch("Server.php", { method: "POST", body: formData })
         .then((response) => response.json())
@@ -504,12 +565,13 @@ function attachReplyInteractions(reply, parentComment) {
       //get the username of the user bieng replied to
       let ReplyTo = reply.getElementsByClassName("username-readonly")[0].innerHTML;
 
+      
       if (!CreateReply) {
         parentComment.insertAdjacentHTML("beforeend",
         ` 
         <form class="CreateModalComment CreateCommentReply" ">
               <div contenteditable="true" class="CommentInput" rows="1">
-              <span class="ReplyTag" contenteditable="false" replyto="${UserID}">@${ReplyTo}</span>
+              <span class="ReplyTag" contenteditable="false" replyto="${ReplyUserID}">@${ReplyTo}</span>
 
               </div>
               <input type="submit" value="" class="BrandBtn CommentSubmitBtn">
@@ -518,10 +580,13 @@ function attachReplyInteractions(reply, parentComment) {
     
         `
         );
+
+        //reselect CreateCommentReply for the newly created form
+        CreateReply = parentComment.getElementsByClassName("CreateCommentReply")[0];
+
       }else{
         //just append the tag to the existing reply form
-        let CreateCommentReply = parentComment.getElementsByClassName("CreateCommentReply")[0];
-        let CommentInput = CreateCommentReply.getElementsByClassName("CommentInput")[0];
+        let CommentInput = CreateReply.getElementsByClassName("CommentInput")[0];
 
         //reset placeholder in CommentInput
         CommentInput.setAttribute("placeholder", "");
@@ -532,12 +597,39 @@ function attachReplyInteractions(reply, parentComment) {
         if(ReplyTag){
           //reset
           ReplyTag.innerHTML = "@" + ReplyTo;
-          ReplyTag.setAttribute("replyto", UserID);
+          ReplyTag.setAttribute("replyto", ReplyUserID);
         }else{
 
-         CommentInput.insertAdjacentHTML("beforeend", `<span class="ReplyTag" contenteditable="false" replyto="${UserID}">@${ReplyTo}</span>`)
+         CommentInput.insertAdjacentHTML("beforeend", `<span class="ReplyTag" contenteditable="false" replyto="${ReplyUserID}">@${ReplyTo}</span>`)
         }
       }
+
+
+      CreateReply.addEventListener('submit',  (e) => {
+        e.preventDefault();
+        
+        let meta = parentComment.getElementsByClassName('meta')[0];
+        let attrs = meta.getElementsByClassName('CMDI073')[0]; //for encryption
+        const CommentID = attrs.getAttribute('cid');
+
+
+        //comment
+        Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
+
+        const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML.trim();
+        
+
+        const formData = new FormData();
+        formData.append('ReqType', 8);
+        formData.append('CommentID', CommentID);
+        formData.append('Reply', Reply);
+        formData.append('ReplyTo', ReplyUserID);
+
+        Submit('POST', 'Server.php', formData);
+
+        //createReply(comment,);
+      })
+
     });
 }
 
@@ -557,58 +649,41 @@ function toggleModal(modal, show) {
 
 }
 
+function showInfoBox(message,Type=0) {
+  let InfoTypeDiv= '';
 
-
-/* function ShowConfirmModal(Options){
-    let modal = document.getElementsByClassName('Modal Confirm')[0];
-  modal.classList.remove('hidden');
-  document.body.classList.add("ModalOpen");
-
-  CurrentConfirmModalFunction = Options.onConfirm;
-  let ModalTitle = modal.getElementsByClassName('ModalTitle')[0];
-  let ConfirmBtn = modal.getElementsByClassName('ConfirmBtn')[0];
-  const cancelBtnAlt = modal.getElementsByClassName('ModalCancelBtn')[0];
-  if(ModalTitle){
-    ModalTitle.innerHTML = Options.Title;
-  }
-
-  if(ConfirmBtn){
-    ConfirmBtn.innerHTML = Options.ConfirmText;
-  }
-
-  ConfirmBtn.addEventListener('click', HandleModalConfirm);
-
-  cancelBtnAlt.addEventListener('click', CancelConfirmModal);
-
-
-
-  function HandleModalConfirm() {
-    if(CurrentConfirmModalFunction){
-      CurrentConfirmModalFunction();
-    }
-
-    let Action = Options.Action || 'Close';
-    Action = Action.toLowerCase();
-    if (Action === 'close') {
-      CancelConfirmModal();
-    }  else if (Action === 'refresh') {
-      window.location.reload();
-    }
-
-    
-
-
-  }
-
-  function CancelConfirmModal() {
-    CurrentConfirmModalFunction = null;
-    modal.classList.add('hidden');
-    document.body.classList.remove("ModalOpen");
+  switch (Type) {
+    case 1:
+      InfoTypeDiv = 'Success';
+      break;
+    case 2:
+      InfoTypeDiv = 'Error';
+      break;
 
   }
 
 
-} */
+  const infoBox = document.createElement('div');
+  infoBox.className = 'InfoBox ' + InfoTypeDiv;
+  infoBox.textContent = message;
+  document.body.appendChild(infoBox);
+
+  setTimeout(() => {
+    infoBox.classList.add('Show');
+  }, 100);
+
+  setTimeout(() => {
+    infoBox.classList.remove('Show');
+    setTimeout(() => {
+      document.body.removeChild(infoBox);
+    }, 500);
+  }, 3000);
+}
+
+
+
+
+
 
 function DeletePostUploadedFiles(Btn,Type=1){
 
@@ -846,6 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // Post submission
+  // Post submission
   const postForm = document.getElementsByClassName('CPost')[0];
   const postContent = document.getElementById('CPostContent');
   postForm.addEventListener('submit', e => {
@@ -864,17 +940,40 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    const submitBtn = postForm.getElementsByClassName('PostSubmitBtn')[0];
+    const loader = postForm.getElementsByClassName('Loader')[0];
+
+    submitBtn.disabled = true;
+    loader.classList.remove('hidden');
+
     fetch('Server.php', { method: 'POST', body: formData })
       .then(response => response.json())
       .then(data => {
-        console.log(data);
-        validSelectedFiles = [];
-        postDocumentUpload.value = '';
-        postImageUpload.value = '';
-        postContent.value = '';
-        toggleModal('CPostContainer', false);
+        if (data.success) {
+          const feedContainer = document.getElementsByClassName('FeedContainer')[0];
+          const newPostHTML = createPostHTML(data.post);
+          feedContainer.insertAdjacentHTML('afterbegin', newPostHTML);
+          const newPostElement = feedContainer.firstElementChild;
+          attachPostInteractions(newPostElement);
+
+          validSelectedFiles = [];
+          postDocumentUpload.value = '';
+          postImageUpload.value = '';
+          postContent.value = '';
+          toggleModal(createPostModal, false);
+          showInfoBox('Post created successfully!',1);
+        } else {
+          alert(data.message || 'An error occurred.');
+        }
       })
-      .catch(error => console.error('Error:', error));
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An unexpected error occurred. Please try again.');
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+        loader.classList.add('hidden');
+      });
   });
 
   // Comment submission
