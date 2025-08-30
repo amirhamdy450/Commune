@@ -1,0 +1,535 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+:root{
+    --accent-color: #2c79e8;
+    --accent-color-hover:#3065d0;
+
+    --accent-dark: rgb(48, 48, 48);
+    --accent-dark-hover: #202020 ;
+
+    --background-alert:rgb(236 17 17);
+    --hover-alert: rgb(201, 17, 17);
+
+
+}
+
+/* Global */
+* {
+    box-sizing: border-box;
+    font-optical-sizing: auto;
+    font-style: normal;
+    outline: none !important;
+    font-family: 'Poppins', sans-serif;
+    margin: 0px;
+}
+
+
+h1,h2,h3,h4,h5,h6,p{
+    margin: 0;
+    padding: 0;
+}
+
+
+.Disabled{
+    pointer-events: none;
+}
+
+.BrandBtn {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 14px 43px;
+    cursor: pointer;
+    -khtml-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    user-select: none;
+    border: none;
+    /* border: 1px solid black; */
+    font-weight: 500;
+    outline: none;
+    text-align: center;
+}
+
+.BrandBtn:hover {
+    background-color: var(--accent-color-hover);
+    transition: all 0.2s ease-in-out;
+}
+
+.BrandBtn.Dark{
+    background-color:var( --accent-dark);
+}
+.BrandBtn.Dark:hover{
+    color: #f1f1f1;
+    background-color:var(--accent-dark-hover);
+}
+
+.BrandBtn.Delete{
+    background-color: var(--background-alert);
+}
+.BrandBtn.Delete:hover{
+    background-color: var(--hover-alert);
+}
+
+
+.BrandBtn img{
+    width: 20px;
+    height: 20px;
+}
+
+.BrandBtn.Round {
+    border-radius: 500px;
+    padding: 10px 15px;
+    background-color: rgb(235 235 235);
+}
+
+.BrandBtn.Round img{
+    width: 22px;
+    height: 22px;
+}
+
+
+.hidden{
+    display: none !important;
+}
+
+.Modal {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+    align-items: center;
+    backdrop-filter: blur(2px);
+    /* overflow: hidden; */
+}
+
+.ModalContent {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 685px;
+    align-items: center;
+    background: white;
+    /* max-height: 500px; */
+    padding: 20px;
+    border-radius: 10px;
+    position: relative;
+}
+
+.Modal.Confirm{
+    z-index: 9999999;
+}
+
+.Modal .ConfirmBox .BrandBtn {
+    padding: 10px 55px;
+    font-size: 16px;
+}
+.Modal.Confirm form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.Modal.Confirm .ModalContent{
+    max-width: 550px;
+}
+
+.Modal .ConfirmBox {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 350px;
+    padding-top: 15px;
+}
+
+body.ModalOpen {
+    overflow: hidden;
+}
+
+
+.Loader {
+    border: 4px solid #1967d2;
+    border-left-color: transparent;
+    width: 85px;
+    height: 85px;
+    animation: spin 1s linear infinite;
+    border-radius: 50%;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* NavBar */
+
+.NavBar {
+    width: 100%;
+    display: flex;
+    height: 70px;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    background: #26373f;
+    padding: 15px;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.NavBar .Logo {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: white;
+    text-decoration: auto;
+}
+
+.NavBar .Logo img{
+    width: 30px;
+    height: 30px;
+}
+
+.NavBar .WideSearch {
+    width: 60%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.NavBar .WideSearch input {
+    /* padding: 6px 23px; */
+    width: 100%;
+    max-width: 500px;
+    padding: 8px 12px;
+    border: 1px solid #acacac;
+    border-radius: 20px;
+}
+
+.CreatePostBtn {
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 1px;
+    text-wrap: nowrap;
+}
+
+.CreatePostBtn:hover {
+    transform: scale(1.05);
+}
+
+.ActionBar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+
+/* Create_Posts */
+
+.CPost {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 685px;
+    align-items: center;
+    background: #f5f5f5;
+    /* max-height: 500px; */
+    padding: 20px;
+    /* margin: 0 auto; */
+    border-radius: 20px;
+    position: relative;
+}
+
+
+.CPostContainer .ModalCancel {
+    position: absolute;
+    top: 27px;
+    right: 20px;
+    cursor: pointer;
+    width: 20px;
+    height: 25px;
+}
+.CPostContainer .ModalCancel:before {
+  content: '';
+  background-color: #2f2f2f;
+  display: block;
+  width: 3px;
+  height: 20px;
+  transform: rotate(-45deg);
+  position: absolute;
+  top: 0;
+  right: 6px;
+}
+
+.CPostContainer .ModalCancel:after {
+  content: '';
+  background-color: #2f2f2f;
+  display: block;
+  width: 3px;
+  height: 20px;
+  transform: rotate(45deg);
+  position: absolute;
+  top: 0;
+  right: 6px;
+}
+
+.FileUpload {
+    padding: 12px 10px;
+    display: flex;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 520px;
+    /* justify-content: space-between; */
+    gap: 8px;
+    position: relative;
+}
+
+.FileUpload  input {
+    opacity: 0;
+    padding: 0;
+    width: 0;
+    height: 0;
+}
+
+.FileUpload label {
+    max-width: 150px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    background: #ffffff;
+    font-size: 15px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    /* box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px; */
+    /* box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px; */
+    /* box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px; */
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 7px 5px -5px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+    /* box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px; */
+    /* box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 4px, rgba(0, 0, 0, 0.3) 0px 4px 4px -1px, rgba(0, 0, 0, 0.2) 0px -2px 1px inset; */
+}
+.FileUpload label:hover {
+    background: #f0f0f0;
+    transition: all 0.2s ease-in-out;
+    transform: scale(1.05);
+}
+
+
+.FileUpload label img {
+    width: 25px;
+    height: 25px;
+}
+
+.UploadOverview {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.CPost .UploadedFiles {
+    display: flex;
+    gap: 15px;
+}
+
+
+.CPost .UploadedFile {
+    padding: 12px 10px;
+    /* max-width: 224px; */
+}
+
+.CPost .UploadedFile .FileName {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.CPost .UploadedFile .RemoveUploadedFile{
+    cursor: pointer;
+    font-weight: 100;
+    color: #9f3535;
+    /* margin-left: 8px; */
+    font-size: 30px;
+}
+
+
+
+.DeleteBtn {
+    position: absolute;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    background: #ef1818;
+    color: white;
+    font-weight: 600;
+    right: -60px;
+    top: 3px;
+    border: 2px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.DeleteBtn img {
+    width: 25px;
+    height: 25px;
+}
+
+.DeleteBtn:hover {
+    background: #d40f0f;
+}
+.FeedPostHeader .PostDeleteBtn{
+
+    top: 3px;
+    border: 2px solid black;
+    right: 0;
+
+}
+.FeedPostHeader .PostDeleteBtn img{
+    width: 20px;
+    height: 20px;
+}
+
+
+
+.PostArea {
+    width: 100%;
+    background: white;
+    border: 1px #d4d4d4 solid;
+    border-radius: 20px;
+    position: relative;
+    padding: 10px;
+        transition: border-color cubic-bezier(0.4, 0, 0.2, 1) 150ms;
+
+    /* height: 387px; */
+}
+
+.PostArea:focus-within {
+    border: 0.1pc solid #bcbcbc;
+}
+
+.PostArea:focus-within {
+    border: 0.1pc solid #9ab5d7;
+}
+#CPostContent {
+    width: 100%;
+    font-size: 24px;
+    padding: 20px;
+    max-width: 620px;
+    resize: none;
+    border: none;
+    border-radius: 15px;
+    height: 230px;
+}
+#CPostContent::placeholder {
+    word-spacing: 2px;
+
+}
+.PostSubmitBtn {
+    width: 100%;
+    max-width: 215px;
+    padding: 18px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* textfields */
+.TextField {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    /* max-width: 400px; */
+    position: relative;
+}
+
+.TextField label {
+    font-weight: 600;
+}
+
+.TextField input {
+    padding: 15px 20px;
+    border: 1px solid #dfe4ea;
+    border-radius: 5px;
+    /* width: 100%; */
+}
+
+
+.TextField input {
+    padding: 15px 20px;
+    border: 1px solid #dfe4ea;
+    border-radius: 5px;
+    /* width: 100%; */
+}
+
+
+.TextField .IconCont{
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    border: 1px solid #dfe4ea;
+    border-radius: 5px;
+    /* padding: 13px; */
+    padding: 5px 20px;
+}
+
+
+.TextField .IconCont input{
+    width: 90%;
+    /* padding: 0px 20px; */
+    border: none;
+    padding: 10px;
+}
+
+.TextField .IconCont img{
+    width: 20px;
+    height: 20px;
+}
+
+.TextField.Pass .IconCont img{
+    width: 20px;
+    height: 20px;
+}
+
+
+.TextField.Error input, .TextArea.Error textarea {
+    border: 2px solid #F23030;
+}
+
+.TextField.Error .IconCont{
+    border: 2px solid #F23030;
+}
+
+.TextField.Error .IconCont input{
+    border: none;
+}
+
+
+
+.FieldError>p {
+    color: #F23030;
+    margin: 8px 0 4px;
+}

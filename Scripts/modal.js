@@ -49,3 +49,21 @@ function ShowConfirmModal(Options){
 
 
 }
+
+
+
+// Toggles modal visibility
+
+function toggleModal(modal, show) {
+
+  if(show) {
+    modal.classList.remove('hidden');
+    document.body.classList.add("ModalOpen");
+
+  }else{
+    modal.classList.add('hidden');
+    document.body.classList.remove("ModalOpen");
+  }
+
+
+}

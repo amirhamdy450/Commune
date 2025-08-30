@@ -1,0 +1,113 @@
+.AuthContainer {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    align-items: center;
+    /* justify-content: space-between; */
+    gap: 40px;
+    /* max-width: 800px; */
+    justify-content: space-around;
+    gap: 20px;
+    /* padding: 0 60px; */
+    /* overflow: auto; */
+}
+.AuthContainer .Logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-size: 46px;
+    /* width: 100%; */
+    gap: 4px;
+    letter-spacing: 2px;
+}
+
+.AuthContainer .Logo img {
+    width: 70px;
+    height: 70px;
+}
+
+
+.BrandPanel {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+    background: linear-gradient(45deg, #43688a, #47518c);
+}
+
+.HeroContainer {
+    padding-left: 14%;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 600px;
+}
+
+.HeroContainer p{
+    font-size: 20px;
+}
+
+.AuthBox {
+    width: 100%;
+    max-width: 550px;
+    padding: 35px;
+    /* max-width: 200px; */
+    /* display: flex; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* justify-content: center; */
+    max-height: 650px;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.AuthBox.Reg{
+    padding: 0px 35px;
+}
+.AuthBox form {
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center; */
+    gap: 25px;
+    width: 100%;
+    max-width: 360px;
+    /* height: 100vh; */
+    /* overflow: auto; */
+    justify-self: center;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.AuthBox.AuthBox.Reg form{
+    gap: 20px;
+}
+
+.AuthBox input.BrandBtn {
+    margin-top: 15px;
+}
+
+
+
+.AuthBox .SecondaryAction a{
+    text-decoration: none;
+    color: #26373f;
+    font-weight: 600;
+}
+
+.AuthBox .SecondaryAction a:hover{
+    text-decoration: underline;
+}
+
+
+
+.AuthBox .ResponseError { /* might be moved to Global in the future */
+    background: #f9cbcb;
+    padding: 12px 20px;
+    border-radius: 15px;
+    margin-top: 10px;
+    /* width: 100%; */
+    /* font-size: 16px; */
+}

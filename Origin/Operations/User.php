@@ -1,5 +1,6 @@
 <?php 
-include 'Includes/UserValidation.php';  //include validation to get user data
+$PATH="../../";
+include $PATH.'Includes/UserValidation.php';  //include validation to get user data
 
 
 function RowExists($Table,$Column,$Value){ //check if row exists
@@ -55,8 +56,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         //echo $content;
     
     
-        //we will use this later in folder creation and then the DB insertion
-        $FolderPath='';
+        
+        $FolderPath=''; //folder path relative to the current file (Operations/User.php)
+        $RootMediaFolderPath=''; //root folder path to the post relative to index (use it for DB Insertion)
     
     
     
@@ -84,8 +86,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     
     
             //create a folder to contain the files of either documents or images
-            $FolderPath="MediaFolders/". $CreationTime.$UID.uniqid(); //create the new folder path in a variable because we will use it later
-    
+            $FolderName=$CreationTime.$UID.uniqid();
+            $FolderPath=$PATH."MediaFolders/posts/". $FolderName; //create the new folder path in a variable because we will use it later
+            $RootMediaFolderPath="MediaFolders/posts/". $FolderName; // root path
+
             mkdir($FolderPath, 0777, TRUE); //make new folder
     
     
@@ -252,7 +256,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $type=1;
         }
     
-        $data=[$PostContent,$type,$FolderPath,date("Y-m-d H:i:s"),1,$UID];
+        $data=[$PostContent,$type,$RootMediaFolderPath,date("Y-m-d H:i:s"),1,$UID];
         //print_r($data);
                 $sql = "INSERT INTO posts (Content,Type, Mediafolder, Date,Status,UID)  VALUES (?,?,?,?,?,?)";
         $stmt = $pdo->prepare($sql);
@@ -528,17 +532,18 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $FeedPostID = 'D'.$timestamp.'I'.$FeedPost['PID'];
             $encryptedFeedPostID = base64_encode(openssl_encrypt($FeedPostID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv));
             
-            $MediaFolder = $FeedPost['MediaFolder'];
+            $MediaFolder = $PATH.$FeedPost['MediaFolder'];
             $media = [];
             if (is_dir($MediaFolder)) {
                 $MediaFiles = scandir($MediaFolder);
+               // echo $MediaFiles.'\n';
                 foreach ($MediaFiles as $file) {
                     if (in_array(strtolower($file), ['.', '..'])) { //this to ignore dots that are treated as files in scandir , (.) represents current directory and (..) represents parent directory
 
                         continue;  //skip this iteration
                     }
 
-                    $filePath = $MediaFolder . '/' . $file;
+                    $filePath = $FeedPost['MediaFolder'] . '/' . $file;
 
                     $media[] = [
                         'name'=>$file,
@@ -546,7 +551,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                     ];
                     
                 }
-            }
+            }/* else{
+                echo "Media Folder Not Found\n";
+            } */
         
             // Add post details to the response array
             $response[] = [

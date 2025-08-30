@@ -1,4 +1,5 @@
 
+import { Submit } from "./Forms.js";
 //GLOBALS
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB in bytes
 const MAX_FILE_COUNT = 2;
@@ -17,24 +18,6 @@ if (urlParams.has('pid')) {
   currentPostID = urlParams.get('pid');
 }
 
-async function Submit( ReqMethod, ReqTarget, formData) {
-
-    try {
-      const response = await fetch(`${ReqTarget}`, {
-        method: `${ReqMethod}`,
-        body: formData,
-      });
-
-      const data = await response.json();
-      return { success: data.success, data: data };
-    } catch (error) {
-
-      console.error("Error:", error);
-      // Handle fetch errors here (optional)
-      return { success: false, message: "Error submitting form" }; // Example error handling
-    }
-  
-}
 
 
 // Creates HTML for a single post
@@ -76,6 +59,7 @@ function createPostHTML(post) {
 
 
 function createCommentHTML(comment,type=1){
+  let likeIcon,ViewRepliesButton;
   //type 1: comment, type 2: reply
   if(comment.liked){
     likeIcon = 'Imgs/Icons/liked.svg';
@@ -143,7 +127,7 @@ function createCommentHTML(comment,type=1){
       `;
 
   }else if(type ==2){
-
+      let TaggedUser;
       if(comment.TaggedUser){
         TaggedUser = `<span class="ReplyTag">@${comment.TaggedUser}</span>`;
       }else{
@@ -251,7 +235,7 @@ function fetchMorePosts() {
         formData.append('ReqType', 5);
         formData.append('LastFeedPostPID', lastPostPID);
 
-        fetch('Server.php', { method: 'POST', body: formData })
+        fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
           .then(response => response.json())
           .then(data => {
             if (data.length > 0) {
@@ -296,7 +280,7 @@ function attachPostInteractions(post) {
     formData.append('ReqType', 2);
     formData.append('FeedPostID', postId);
 
-    fetch('Server.php', { method: 'POST', body: formData })
+    fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
       .then(response => response.json())
       .then(data => {
         if (data.success) {
@@ -318,7 +302,7 @@ function attachPostInteractions(post) {
 
     let likeIcon = 'Imgs/Icons/like.svg'; 
 
-    fetch('Server.php', { method: 'POST', body: formData })
+    fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
       .then(response => response.json())
       .then(data => {
         const commentsContainer = document.getElementsByClassName('ModalCommentsContainer')[0];
@@ -434,7 +418,7 @@ function attachCommentInteractions() {
       formData.append('ReqType', 7);
       formData.append('CommentID', CommentID);
 
-      fetch('Server.php', { method: 'POST', body: formData })
+      fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -473,7 +457,7 @@ function attachCommentInteractions() {
         e.preventDefault();
         
 
-        Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
+        let Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
         const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML.trim();
 
         const formData = new FormData();
@@ -481,7 +465,7 @@ function attachCommentInteractions() {
         formData.append('CommentID', CommentID);
         formData.append('Reply', Reply);
 
-        Submit('POST', 'Server.php', formData);
+        Submit('POST', 'Origin/Operations/User.php', formData);
 
         //createReply(comment,);
       })
@@ -500,7 +484,7 @@ function attachCommentInteractions() {
         formData.append('ReqType', 10);
         formData.append('CommentID', CommentID);
 
-        fetch('Server.php', { method: 'POST', body: formData })
+        fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
           .then(response => response.json())
           .then(data => {
             let RepliesContainer = comment.getElementsByClassName('RepliesContainer')[0];
@@ -539,7 +523,7 @@ function attachReplyInteractions(reply, parentComment) {
       formData.append("ReqType", 9);
       formData.append("ReplyID", ReplyID);
 
-      fetch("Server.php", { method: "POST", body: formData })
+      fetch("Origin/Operations/User.php", { method: "POST", body: formData })
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
@@ -614,7 +598,7 @@ function attachReplyInteractions(reply, parentComment) {
 
 
         //comment
-        Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
+        let Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
 
         const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML.trim();
         
@@ -625,7 +609,7 @@ function attachReplyInteractions(reply, parentComment) {
         formData.append('Reply', Reply);
         formData.append('ReplyTo', ReplyUserID);
 
-        Submit('POST', 'Server.php', formData);
+        Submit('POST', 'Origin/Operations/User.php', formData);
 
         //createReply(comment,);
       })
@@ -816,7 +800,7 @@ async function DeletePost(){
   formData.append('ReqType', 6);
   formData.append('FeedPostID', currentPostID);
 
-  fetch('Server.php', { method: 'POST', body: formData })
+  fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
@@ -946,7 +930,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
     loader.classList.remove('hidden');
 
-    fetch('Server.php', { method: 'POST', body: formData })
+    fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
       .then(response => response.json())
       .then(data => {
         if (data.success) {
@@ -987,7 +971,7 @@ document.addEventListener('DOMContentLoaded', () => {
     formData.append('FeedPostID', currentPostID);
     formData.append('CommentContent', commentContent);
 
-    fetch('Server.php', { method: 'POST', body: formData })
+    fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
       .then(response => response.json())
       .then(() => {
         commentForm.getElementsByClassName('CommentInput')[0].value = '';

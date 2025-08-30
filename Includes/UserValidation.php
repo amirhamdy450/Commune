@@ -1,7 +1,7 @@
 <?php
 include "DB.php";
 
-
+$LoggedIn = false;
 
 
 
@@ -40,12 +40,16 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
 
         $AllowedImagesExtensions=['xbm', 'tif', 'jfif', 'ico', 'tiff', 'gif', 'svg', 'webp', 'svgz', 'jpg', 'jpeg', 'png', 'bmp', 'pjp', 'apng', 'pjpeg', 'avif'];
 
+        $LoggedIn = true;
        
     }
 
 
 }else{
-    header("Location: login.php");
+    $LoggedIn = false;
+   // header("Location: Includes/Access/Login.php");
+    include "Includes/Access/Login.php";
+    exit();
 }
 
 

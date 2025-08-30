@@ -10,7 +10,7 @@
             <div class="ModalCommentsContainer">
 
                 <!-- Show If no comments are found -->
-                <div class="InfoBox">
+                <div class="NoComments">
                     <p>No Comments Found !</p>
                 </div>
             </div>

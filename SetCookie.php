@@ -11,7 +11,7 @@ function generateToken() {
 }
 
 function setTokenCookie($token,$token2) {
-    $expiry = time() + (60 * 60 * 24 * 60); // 60 days (2 months × 30 days)
+    $expiry = time() + (60 * 60 *5); // 5 hours 
     setcookie("user_token", $token, $expiry, "/", "localhost", false, true); // Secure and HttpOnly
     setcookie("user_token2", $token2, $expiry, "/", "localhost", false, true); // Secure and HttpOnly
 

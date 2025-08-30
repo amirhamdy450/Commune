@@ -1,16 +1,18 @@
 <?php
+$PATH = '';  //root path
 
-//check if url has a pid param to show a specific post
+
+/* //check if url has a pid param to show a specific post
 if (isset($_GET['pid'])) {
     $PostID = $_GET['pid'];
     include 'post.php';
     die();
 }
+ */
 
-
-include 'Includes/UserValidation.php';
+include $PATH.'Includes/RouteController.php';
+include $PATH.'Includes/UserValidation.php';
 $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
-
 
 
 ?>
@@ -22,7 +24,8 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="Styles/Global.css">
+    <link rel="stylesheet" href="Styles/Feed.css">
     <title>Community</title>
 
 </head>
@@ -152,7 +155,13 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
             ?>
 
+            <div class="FeedLoader">
+                <div class="Loader"></div>
+            </div> 
         </div>
+
+
+
 
 
 
@@ -160,6 +169,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
     </div>
 
 
+    <div class="InfoBox"></div>
 
     <?php include 'Includes/Modals/CreatePost.php'; ?>
     <?php include 'Includes/Modals/CommentSection.php'; ?>
@@ -169,7 +179,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
 
     <script src="Scripts/modal.js"></script>
-    <script src="Scripts/script.js"></script>
+    <script type="module" src="Scripts/script.js"></script>
 </body>
 
 </html>

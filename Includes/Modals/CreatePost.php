@@ -9,7 +9,7 @@
         <div class="ModalCancel"></div>
 
         <div class="PostArea">
-            <textarea id="CPostContent" name="content" rows="6" required=""></textarea>
+            <textarea id="CPostContent" name="content" rows="6" required="" placeholder="What's on your mind?"></textarea>
 
 
             <div class="FileUpload">
@@ -44,6 +44,8 @@
 
 
         <input type="submit" class="BrandBtn PostSubmitBtn">
+
+        <div class="Loader hidden"></div>
 
     </form>
 
