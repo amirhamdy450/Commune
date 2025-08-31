@@ -3,7 +3,7 @@ session_start();
 $PATH="../../";
 include_once $PATH.'Includes/DB.php';
 include_once $PATH.'Origin/Validation.php';
-
+include_once $PATH.'Origin/Auth/Tokens.php';
 
 
 //Error codes:
@@ -25,42 +25,6 @@ function UsernameExists($Username){
 }
 
 
-function generateToken() {
-    $token=bin2hex(random_bytes(32));
-    $secretKey="Commune2024";
-    $HashedToken=hash_hmac('sha256', $token, $secretKey); // Generates HMAC
-
-    return $HashedToken;
-}
-
-function setTokenCookie($token,$token2) {
-    $expiry = time() + (60 * 60 *5); // 5 hours 
-    setcookie("user_token", $token, $expiry, "/", "localhost", false, true); // Secure and HttpOnly
-    setcookie("user_token2", $token2, $expiry, "/", "localhost", false, true); // Secure and HttpOnly
-
-}
-
-function InsertTokens($token, $token2, $UID) {
-    global $pdo;
-    try{
-        $sql="INSERT INTO Tokens (Token,Token_2,UID) VALUES(:token,:token2,:UID) ";
-        $stmt=$pdo->prepare($sql);
-        $stmt->bindParam(':token', $token, PDO::PARAM_STR);
-        $stmt->bindParam(':token2', $token2, PDO::PARAM_STR);
-
-        $stmt->bindParam(':UID', $UID, PDO::PARAM_INT);
-        $stmt->execute();
-    } catch (PDOException $e) {
-        // Handle database error (log, display a generic message, etc.)
-        echo json_encode([
-            'status' => false,
-            'code' => 61, // Database error
-            'message' => 'Error: Login failed. Please try again later.'
-        ]);
-        error_log("Database error: " . $e->getMessage(), 0); // Log the error for debugging
-        exit;
-      }
-}
 
 
 if($_SERVER['REQUEST_METHOD']==='POST'){
