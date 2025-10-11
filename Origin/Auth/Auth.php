@@ -29,7 +29,6 @@ function UsernameExists($Username){
 
 if($_SERVER['REQUEST_METHOD']==='POST'){
 
-    //$UID=$UserData['id'];
 
 
     if($_POST['ReqType'] == 1){ //Register User
@@ -84,7 +83,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 
         //Cocatenate the first and last name into a single string
-        $FullName = $FirstName . ' ' . $LastName;
+        //$FullName = $FirstName . ' ' . $LastName;
 
         //generate a random username
         $base = strtolower($FirstName .'_'. $LastName);
@@ -101,9 +100,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 
         //insert into DB
-        $sql = "INSERT INTO `users` (`name`,`Username`, `Email`, `Birthday`, `Password`) VALUES ( ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO `users` (`Fname`, `Lname`,`Username`, `Email`, `Birthday`, `Password`) VALUES ( ?, ? , ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$FullName, $Suggested_Username, $Email, $Birthday, $Password]);
+        $stmt->execute([$FirstName, $LastName, $Suggested_Username, $Email, $Birthday, $Password]);
 
         echo json_encode([
             'status' => true,

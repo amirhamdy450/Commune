@@ -1,0 +1,260 @@
+body{
+    
+    background: #F2F4F7;
+
+}
+/* Profile Page Styling */
+.ProfileContainer {
+    padding-top: 70px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* gap: 20px; */
+}
+.ProfileHeader {
+    position: relative;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* margin-bottom: 20px; */
+    width: 100%;
+}
+
+/* Cover Photo Styling */
+.CoverPhotoContainer {
+    position: relative;
+    height: 300px;
+
+    overflow: hidden;
+}
+
+.CoverPhoto {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex; /* For overlay centering */
+    align-items: center;
+    justify-content: center;
+    transition: filter 0.3s ease;
+}
+
+.CoverPhoto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.CoverPhoto.Default {
+    background-color: #f0f2f5;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Overlay for hover effects on cover and profile picture */
+.CoverPhotoContainer .Overlay, .ProfilePictureContainer .Overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* font-size: 1.1em; */
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+    pointer-events: none;
+}
+.CoverPhotoContainer:hover .Overlay,
+.ProfilePictureContainer:hover .Overlay {
+    opacity: 1;
+    pointer-events: auto; /* Enable clicks when hovered */
+}
+
+.CoverPhotoContainer:hover .CoverPhoto img {
+    filter: brightness(70%); /* Darken image on hover */
+}
+
+
+/* Profile Bottom Header - Contains profile pic, info, stats, and edit button */
+.ProfileBottomHeader {
+    display: flex;
+    padding: 0 30px 25px 30px;
+    position: relative;
+    z-index: 2;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.Initial {
+    /* margin-top: -29px; */
+    display: flex;
+    gap: 0px;
+    align-items: center;
+    justify-content: center;
+}
+.ProfilePictureContainer {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    margin-right: 20px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background-color: #fff;
+    margin-top: -50px;
+}
+
+.ProfilePictureContainer img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    transition: filter 0.3s ease;
+}
+
+/* Ensure overlay has correct border-radius */
+.ProfilePictureContainer .Overlay {
+    border-radius: 50%;
+}
+
+
+.ProfileInfoStats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 70px;
+}
+.ProfileInfo {
+    text-align: left;
+}
+
+.ProfileInfo .UserName {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.ProfileInfo .UserUsername {
+    font-size: 18px;
+    color: #657786;
+}
+
+.ProfileStats {
+    display: flex;
+    gap: 30px;
+
+}
+
+.Stat {
+    text-align: center;
+}
+
+.Stat .StatNumber {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.Stat .StatTitle {
+    font-size: 14px;
+    color: #657786;
+}
+
+.EditProfileButton {
+    padding: 10px 25px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 16px;
+    background-color: var(--accent-color);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap; /* Prevent button text from wrapping */
+}
+
+.EditProfileButton:hover {
+    background-color: var(--accent-color-hover);
+}
+
+/* Profile Navigation */
+.TabsNav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 20px;
+    background-color: #fff;
+    /* border-radius: 15px; */
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
+    border-top: 2px solid #efefef;
+    width: 100%;
+    /* max-width: 259px; */
+}
+.NavItem {
+    font-size: 17px;
+    font-weight: 600; /* Slightly less bold */
+    color: #657786;
+    text-decoration: none;
+    padding: 8px 18px; /* Slightly smaller padding */
+    border-radius: 20px; /* Slightly less rounded */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.NavItem:hover {
+    background-color: #e6ecf0; /* Lighter hover background */
+    color: #333;
+}
+
+.NavItem.Active {
+    /* background-color: var(--brand-color); */
+    background-color: var(--accent-color);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.NavItem.Active:hover {
+    background-color: var(--accent-color-hover);
+    color: #fff;
+}
+
+/* Profile Content */
+.ProfileContent {
+    margin-top: 20px;
+    width: 100%;
+    padding: 20px 30px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+
+
+
+.TabContent.Posts {
+    padding: 20px 0;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+
+
+
+
+
+
+/* wewewewewe */

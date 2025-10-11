@@ -85,7 +85,7 @@ $PostID=(int)substr($PostID_Token, $PostIDPosition + 1);
                         <div class="FeedPostHeader">
                             <img src="Imgs/Icons/unknown.png" alt="">
                             <p>' . $FeedPost['name'] . '</p>';
-                            if((int)$UserData['Privilege']===1){
+                            if((int)$User['Privilege']===1){
                                 echo '<div class="DeleteBtn PostDeleteBtn">
                                 <img src="Imgs/Icons/trash.png" alt="">
                                 </div>';
@@ -292,7 +292,7 @@ $PostID=(int)substr($PostID_Token, $PostIDPosition + 1);
 
 
     <script src="Scripts/modal.js"></script>
-    <script src="Scripts/script.js"></script>
+    <script src="Scripts/Feed.js"></script>
 </body>
 
 </html>

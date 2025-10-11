@@ -15,6 +15,17 @@ if (isset($_GET['redirect'])) {
 
     }
 
+    if($Redirect == "self"){
+        include $PATH.'Includes/Profile/Profile.php';
+        die();
+    }
+
+
+    if($Redirect == "logout"){
+        include $PATH.'Includes/Access/Logout.php';
+        die();
+    }
+
 }
 
 

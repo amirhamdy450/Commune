@@ -102,7 +102,7 @@ h1,h2,h3,h4,h5,h6,p{
     left: 0;
     top: 0;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index: 1;
+    z-index: 1000;
     align-items: center;
     backdrop-filter: blur(2px);
     /* overflow: hidden; */
@@ -185,7 +185,7 @@ body.ModalOpen {
     padding: 15px;
     top: 0;
     left: 0;
-    z-index: 1;
+    z-index: 999;
 }
 
 .NavBar .Logo {
@@ -532,4 +532,44 @@ body.ModalOpen {
 .FieldError>p {
     color: #F23030;
     margin: 8px 0 4px;
+}
+
+
+
+
+
+
+
+
+.ProfileMenuContainer {
+    position: relative;
+    display: inline-block;
+}
+
+#NavMenuDrop {
+    position: absolute;
+    top: 45px;
+    right: -8px;
+    background-color: #ffffff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 10;
+    border-radius: 10px;
+    padding: 8px 0;
+    overflow: hidden;
+    width: 100%;
+    /* backdrop-filter: blur(30px); */
+    /* width: 100%; */
+}
+
+.DropdownItem {
+    color: black;
+    padding: 14px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 16px;
+    /* background: #ebebeb; */
+}
+.DropdownItem:hover {
+    background-color: #f1f1f1;
 }

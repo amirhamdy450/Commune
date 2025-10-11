@@ -72,8 +72,8 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                 echo '<div class="FeedPost" PID=' . $encryptedFeedPostID . '>
                     <div class="FeedPostHeader">
                         <img src="Imgs/Icons/unknown.png" alt="">
-                        <p>' . $FeedPost['name'] . '</p>';
-                if ((int)$UserData['Privilege'] === 1) {
+                        <p>' . $FeedPost['Fname'] . ' ' . $FeedPost['Lname'] . '</p>';
+                if ((int)$User['Privilege'] === 1) {
                     echo '<div class="DeleteBtn PostDeleteBtn">
                             <img src="Imgs/Icons/trash.png" alt="">
                             </div>';
@@ -179,7 +179,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
 
     <script src="Scripts/modal.js"></script>
-    <script type="module" src="Scripts/script.js"></script>
+    <script type="module" src="Scripts/Feed.js"></script>
 </body>
 
 </html>
