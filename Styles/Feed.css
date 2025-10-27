@@ -17,8 +17,8 @@
 
 .FeedPost {
     width: 100%;
-    background: #ebebeb;
-    padding: 20px;
+    background: #fffffffa;
+    padding: 13px 20px;
     display: flex;
     flex-direction: column;
     /* justify-content: center; */
@@ -29,20 +29,162 @@
     0px 0px 2px rgba(3, 3, 3, 0.05),
     0px 0px 3px rgba(3, 3, 3, 0.08),
     0px 0px 6px rgba(3, 3, 3, 0.10);
-
 }
-
 .FeedPostHeader {
-	display: flex;
-	gap: 20px;
-	align-items: center;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
     position: relative;
+    font-size: 600;
+    font-weight: 600;
+    /* size: letter; */
+    font-weight: 600;
+    font-size: 16px;
+    position: relative; 
+
 }
 
 .FeedPostHeader img {
 	width: 40px;
 	height: 40px;
 	border-radius: 50%;
+}
+
+
+.FeedPostHeader .FeedPostAuthorContainer{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.FeedPostAuthor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    color: black;
+}
+
+.FeedPostAuthor:hover {
+    /* background-color: #f7f7f7; */
+    text-decoration: underline;
+    font-weight: 700;
+    /* text-decoration-style: inherit; */
+    /* border-radius: 20px; */
+}
+
+
+.FollowBtn.BrandBtn{
+    background-color: #3d99df;
+    padding: 8px 20px;
+
+    font-weight: 600;
+
+
+
+}
+.FollowBtn.BrandBtn:hover {
+    background-color: #2c74aa;
+}
+
+.BrandBtn.Followed {
+    background: white;
+    color: #3d99df;
+    border: 2px solid;
+    font-weight: 600;
+}
+
+.BrandBtn.Followed:hover {
+    /* background-color: #052a3f; */
+    background: white;
+    color: #e22121;
+}
+.BrandBtn.Unfollow {
+    background-color: #d21526;
+    padding: 8px 20px;
+
+    font-weight: 600;
+}
+
+.BrandBtn.Unfollow:hover {
+    background-color: #a81926;
+}
+
+
+.FeedPostHeader .FollowBtn.BrandBtn ,
+.FeedPostHeader .BrandBtn.Followed {
+    margin-left: 2px;
+    padding: 2px 12px;
+    font-weight: 500;
+    /* font-size: 13px; */
+}
+
+.FeedPostHeader .ActionBtn {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 6px;
+    /* border: 1px solid; */
+    border-radius: 200px;
+}
+.FeedPostHeader .ActionBtn:hover{
+    background: #f0f0f0;
+}
+
+/* Post Options Menu */
+.FeedPostHeader {
+    position: relative; /* Required for menu positioning */
+}
+
+.PostOptionsMenu {
+    position: absolute;
+    top: 40px; /* Position below the 3-dots */
+    right: 0;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 170px;
+    z-index: 10;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.PostOption {
+    padding: 12px 15px;
+    font-size: 15px;
+    color: #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.PostOption:hover {
+    background-color: #f5f5f5;
+}
+
+.PostOption img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+}
+
+.PostOption.Delete {
+    color: #e61c40;
+}
+
+.PostOption.Delete:hover {
+    background-color: #fbebee;
+}
+
+.FeedPostHeader .ActionBtn img{
+    width: 25px;
+    height: 25px;
 }
 
 .FeedPost.Opened {
@@ -54,12 +196,13 @@
 
 
 .FeedPostContent {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	padding: 15px 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 0px;
+    font-weight: 300;
+    font-size: 15px;
 }
-
 
 .FeedPostContent img {
     border-radius: 5px;
@@ -68,7 +211,7 @@
 .UploadedFile {
     width: 100%;
     max-width: 300px;
-    background: #dedede;
+    background: #eae8e8;
     padding: 20px;
     color: black;
     border-radius: 10px;
@@ -111,7 +254,7 @@
     width: 100%;
     padding: 5px 10px;
     border-top: 1px solid #9e9e9e;
-    margin-top: 10px;
+    margin-top: 6px;
     user-select: none;
 }
 
@@ -125,9 +268,9 @@ border-bottom: 1px solid #9e9e9e;
     width: 100%;
     display: flex;
     justify-content: center;
-    padding: 8px;
+    padding: 8px 0px;
     cursor: pointer;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
     transition: transform 0.2s ease-in-out;
 }
@@ -205,8 +348,8 @@ border-bottom: 1px solid #9e9e9e;
     padding-bottom: 10px;
 }
 
-.CommentSection .ModalContent{
-    max-height: 650px;
+.CommentSection .ModalContent {
+    max-height: 620px;
     max-width: 600px;
     overflow-y: auto;
     padding-bottom: 0px;
@@ -240,12 +383,17 @@ border-bottom: 1px solid #9e9e9e;
 
 .ModalComment {
     width: 100%;
-    background: #ebebeb;
+    background: #f1f1f1;
     padding: 10px 15px;
     display: flex;
     flex-direction: column;
     border-radius: 20px;
     max-width: 360px;
+    box-shadow: 0px 0px 0px rgba(3, 3, 3, 0.03),
+    0px 0px 3px rgba(3, 3, 3, 0.05),
+    0px 0px 4px rgba(3, 3, 3, 0.08),
+    0px 0px 1px rgba(3, 3, 3, 0.10);
+    /* box-shadow: 0px 0px 0px rgba(3,3,3,0.03); */
 }
 
 .ViewRepliesBtn { /* for replies preview */
@@ -277,10 +425,10 @@ border-bottom: 1px solid #9e9e9e;
 
 .ModalCommentHeader {
     display: flex;
-    gap: 15px;
+    gap: 8px;
     align-items: center;
     font-weight: 600;
-    font-size: 17px;
+    font-size: 16px;
 }
 
 
@@ -291,8 +439,9 @@ border-bottom: 1px solid #9e9e9e;
 }
 
 .ModalCommentContent {
-    padding: 8px 0px;
-    font-size: 16px;
+    padding: 7px 0px;
+    font-size: 15px;
+    font-weight: 300;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -320,16 +469,22 @@ border-bottom: 1px solid #9e9e9e;
 .CommentContainer .CreateModalComment {
     position: relative;
     border-top: 0px;
-    margin-top: 10px;
-    padding: 12px 10px;
+    margin-top: 15px;
+    padding: 8px 15px;
 }
 
 .CreateCommentReply {
     margin-left: 20px;
-    max-width: 478px;
+    max-width: 410px;
 }
 
-
+form.CreateModalComment.CreateCommentReply div {
+    padding: 0px;
+    font-size: 15px;
+    font-weight: 300;
+    /* word-spacing: 1px; */
+    line-height: 30px; 
+}
 
 .CommentInput {
     padding: 10px;

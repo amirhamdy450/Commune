@@ -1,16 +1,28 @@
 <?php
  
  //check if path not set !
+
+
     if(!isset($PATH)){
         die("Path not set");
     }
 
 
 
-    include $PATH.'Includes/UserValidation.php';
+    include_once $PATH.'Includes/UserAuth.php';
+    include_once $PATH.'Includes/Encryption.php';
+
 
 
     $hasCoverPhoto = false; 
+
+    //get user data (ignore data in session to get fresh data)
+    $sql="SELECT id, Fname, Lname, Username, Email , Bio, BirthDay, Gender, ProfilePic, Privilege, CoverPhoto  FROM users WHERE id=?";
+    $stmt=$pdo->prepare($sql);
+    $stmt->execute([$UID]);
+    $User=$stmt->fetch(PDO::FETCH_ASSOC);
+    
+
 
     if($User['CoverPhoto']){
         $hasCoverPhoto = true;
@@ -47,6 +59,10 @@
 
     $FollowersCount=$Stats['FollowersCount'];
     $FollowingCount=$Stats['FollowingCount'];
+
+
+
+    $ProfileUserID = $User['id'];
 ?>
 
 
@@ -90,7 +106,7 @@
 
 
                     <div class="ProfileInfo">
-                        <p class="UserName"><?php echo $User['name']; ?></p>
+                        <p class="UserName"><?php echo $User['Fname'].' '.$User['Lname']; ?></p>
                         <p class="UserUsername">@<?php echo $User['Username']; ?></p>
                     </div>
                 </div>
@@ -111,14 +127,23 @@
                             <p class="StatTitle">Following</p>
                         </div>
                     </div>
-                        <button class="BrandBtn EditProfileButton">Edit Profile</button>
 
                 </div>
+
+                <div class="ProfileActions">
+                    <button class="BrandBtn EditProfileBtn">Edit Profile</button>
+
+                    <?php
+                        $encryptedUserID=Encrypt($User['id'],"Positioned",["Timestamp"=>time()]);
+                    ?>
+                    <a class="BrandBtn PreviewProfileBtn" href="index.php?redirected_from=profile&target=profile&uid=<?php echo urlencode($encryptedUserID); ?>"><img src="Imgs/Icons/profile-preview.svg" alt=""></a>
             
+
+                </div>
 
             </div>
 
-                        <div class="TabsNav ProfileNav">
+            <div class="TabsNav ProfileNav">
                 <a href="#" class="NavItem Active" tab-content="ProfilePostsTab" >Posts</a>
                 <a href="#" class="NavItem" tab-content="ProfileFollowersTab">Followers</a>
                 <a href="#" class="NavItem" tab-content="ProfileFollowingTab">Following</a>
@@ -170,10 +195,10 @@
             <div class="TabContent Posts" id="ProfilePostsTab">
                 <?php include 'Includes/Profile/Posts.php'; ?>
             </div>
-            <div class="TabContent hidden" id="ProfileFollowersTab">
+            <div class="TabContent FollowList Followers hidden" id="ProfileFollowersTab">
                 <?php include 'Includes/Profile/Followers.php'; ?>
             </div>
-            <div class="TabContent hidden" id="ProfileFollowingTab">
+            <div class="TabContent FollowList Following hidden" id="ProfileFollowingTab">
                 <?php include 'Includes/Profile/Following.php'; ?>
             </div>
             <div class="TabContent hidden" id="ProfileAboutTab">
@@ -184,6 +209,69 @@
     </div>
 
 
+<div class="Modal EditProfileModal hidden" id="EditProfileModal">
+    <div class="ModalContent">
+        <div class="ModalCancel"></div>
+        <h2>Edit Your Profile</h2>
+        
+        <form class="EditProfileForm" id="EditProfileForm" novalidate>
+            
+            <div class="TextField">
+                <label for="Edit_Fname">First Name</label>
+                <input type="text" name="fname" id="Edit_Fname" placeholder="Your first name" value="<?php echo htmlspecialchars($User['Fname'] ?? ''); ?>">
+            </div>
+            <div class="TextField">
+                <label for="Edit_Lname">Last Name</label>
+                <input type="text" name="lname" id="Edit_Lname" placeholder="Your last name" value="<?php echo htmlspecialchars($User['Lname'] ?? ''); ?>">
+            </div>
+            <div class="TextField">
+                <label for="Edit_Username">Username</label>
+                <input type="text" name="username" id="Edit_Username" placeholder="Your unique username" value="<?php echo htmlspecialchars($User['Username'] ?? ''); ?>">
+            </div>
+            <div class="TextField">
+                <label for="Edit_Bio">Bio</label>
+                <textarea name="bio" id="Edit_Bio" rows="4" placeholder="Tell us about yourself..."><?php echo htmlspecialchars($User['Bio'] ?? ''); ?></textarea>
+            </div>
+            <div class="TextField">
+                <label for="Edit_Bday">Birthday</label>
+                <input type="date" name="bday" id="Edit_Bday" value="<?php echo htmlspecialchars($User['BirthDay'] ?? ''); ?>">
+            </div>
+            <div class="TextField">
+                <label for="Edit_Country">Country</label>
+                <select name="country" id="Edit_Country">
+                    <option value="">Select a country...</option>
+                    <?php
+                    // This query is from Includes/Access/Register.php
+                    $sql = "SELECT id, Name FROM countries ORDER BY Name ASC";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute();
+                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        // Check if this is the user's current country and set 'selected'
+                        $selected = ($row['id'] == $User['CountryID']) ? 'selected' : '';
+                        echo '<option value="' . $row['id'] . '" ' . $selected . '>' . htmlspecialchars($row['Name']) . '</option>';
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="TextField">
+                <label>Gender</label>
+                <div class="RadioGroup" id="Edit_Gender">
+                    <label><input type="radio" name="gender" value="0" <?php echo ($User['Gender'] == 0) ? 'checked' : ''; ?>> Male</label>
+                    <label><input type="radio" name="gender" value="1" <?php echo ($User['Gender'] == 1) ? 'checked' : ''; ?>> Female</label>
+                </div>
+            </div>
+
+            <div class="FormResponse"></div>
+            
+            <div class="FormNavigation">
+                <div class="BrandBtn Dark ModalCancelBtn">Cancel</div>
+                <input type="submit" value="Save Changes" class="BrandBtn">
+                <div class="Loader hidden"></div>
+            </div>
+        </form>
+        
+    </div>
+</div>
 
     <?php include 'Includes/Modals/CreatePost.php'; ?>
     <?php include 'Includes/Modals/CommentSection.php'; ?>

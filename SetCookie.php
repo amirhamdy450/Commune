@@ -2,13 +2,13 @@
 // Assuming you have a function that checks user credentials:
 
 include "Includes/DB.php";
-function generateToken() {
+/* function generateToken() {
     $token=bin2hex(random_bytes(32));
     $secretKey="Commune2024";
     $HashedToken=hash_hmac('sha256', $token, $secretKey); // Generates HMAC
 
     return $HashedToken;
-}
+} */
 
 function setTokenCookie($token,$token2) {
     $expiry = time() + (60 * 60 *5); // 5 hours 

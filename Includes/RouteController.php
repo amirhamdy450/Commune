@@ -21,6 +21,7 @@ if (isset($_GET['redirect'])) {
     }
 
 
+
     if($Redirect == "logout"){
         include $PATH.'Includes/Access/Logout.php';
         die();
@@ -31,11 +32,37 @@ if (isset($_GET['redirect'])) {
 
 
 
-//check if url has a pid param to show a specific post
-if (isset($_GET['pid'])) {
-    $PostID = $_GET['pid'];
-    include 'post.php';
-    die();
-}
+//checking target if its not redirect
+if(isset($_GET['target'])){
+    $target=$_GET['target'];
 
+    //check if url has a pid param to show a specific post
+    if($target == "post"){
+        if (isset($_GET['pid'])) {
+
+            $PostID = $_GET['pid'];
+            include 'post.php';
+            die();
+        
+        }else{
+            header("Location: 404.php");
+            exit();
+        }
+    }
+
+
+    if($target == "profile"){
+        if (isset($_GET['uid'])) {
+            $ProfileUserID = $_GET['uid'];
+            include 'VProfile.php';
+            die();
+        
+        }else{
+            header("Location: 404.php");
+            exit();
+        }
+    }
+
+
+}
 

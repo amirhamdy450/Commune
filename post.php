@@ -1,9 +1,9 @@
 <?php
-include 'Includes/UserValidation.php';
+include 'Includes/UserAuth.php';
 
 //check if url has a pid param to show a specific post
 
-$PostID_Token= openssl_decrypt(base64_decode($PostID), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
+$PostID_Token= openssl_decrypt(base64_decode($PostID), 'aes-256-cbc', ENCRYPTION_KEY, OPENSSL_RAW_DATA, ENCRYPTION_IV);
 
 if($PostID_Token===false){
     header("Location: 404.php");
@@ -73,12 +73,10 @@ $PostID=(int)substr($PostID_Token, $PostIDPosition + 1);
                 
                 $FeedPostID = 'D' . $FeedPost['Date'] . 'I' . $FeedPost['PID'];  // D is  for Date, I is for ID
 
-                $encryptedFeedPostID =  base64_encode(openssl_encrypt($FeedPostID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv));;
+                $encryptedFeedPostID =  base64_encode(openssl_encrypt($FeedPostID, 'aes-256-cbc', ENCRYPTION_KEY, OPENSSL_RAW_DATA, ENCRYPTION_IV));;
 
 
 
-                /*   $decrypted=  openssl_decrypt($encryptedFeedPostID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
-                echo $decrypted; */
 
 
                 echo '<div class="FeedPost Opened" PID=' . $encryptedFeedPostID . '>
@@ -179,7 +177,7 @@ $PostID=(int)substr($PostID_Token, $PostIDPosition + 1);
                                 $timestamp = strtotime($Comment['Date']);
                                 $FormattedID = 'D'.$timestamp.'I'.$Comment['CID'];
 
-                                $encrypted = openssl_encrypt($FormattedID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
+                                $encrypted = openssl_encrypt($FormattedID, 'aes-256-cbc', ENCRYPTION_KEY, OPENSSL_RAW_DATA, ENCRYPTION_IV);
                                 $CommentID = base64_encode($encrypted); // Makes it JSON-safe
 
 

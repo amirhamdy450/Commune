@@ -37,7 +37,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $LastName = $_POST['lname'];
         $Email = $_POST['email'];
         $Birthday = $_POST['bday'];
+        $Gender=$_POST['gender'];
+        $Country = $_POST['country'];
         $Password = $_POST['pass'];
+
+
 
 
         //validate (server side)
@@ -61,10 +65,23 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             ]);
             die();
 
-        }else if(!ValidateDate($Birthday)){
+        }else if(!validateBirthYear($Birthday)){
             echo json_encode([
                 'status' => false,
                 'message' => 'Invalid Birthday !'
+            ]);
+            die();
+
+        }else if(!validateBoolean($Gender)){
+            echo json_encode([
+                'status' => false,
+                'message' => 'Invalid Gender !'
+            ]);
+            die();
+        }else if(!validateCountryCode($Country)){
+            echo json_encode([
+                'status' => false,
+                'message' => 'Invalid Country Code !'
             ]);
             die();
 
@@ -76,6 +93,35 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             die();
 
         }
+
+        //check if email already exists
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE Email = ?");
+        $stmt->execute([$Email]);
+        if($stmt->fetchColumn() > 0){
+            echo json_encode([
+                'status' => false,
+                'message' => 'Email already registered !'
+            ]);
+            die();
+        }
+
+
+
+        //check what country id corresponds to the code
+        $sql = "SELECT id FROM countries WHERE code = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$Country]);
+        $CountryID = $stmt->fetch(PDO::FETCH_ASSOC)['id'];
+
+        if(!$CountryID){
+            echo json_encode([
+                'status' => false,
+                'message' => 'Country not found!'
+            ]);
+            die();
+        }
+
+
 
 
         //hash the password using MD5
@@ -92,7 +138,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         if(UsernameExists($Suggested_Username)){
             $counter=0;
+            $Suggested_Username = $base . '_'. $random_suffix . $counter;
             while(UsernameExists($Suggested_Username)){
+                $counter++;
                 $random_suffix = bin2hex(random_bytes(4)); 
                 $Suggested_Username = $base . '_'. $random_suffix . $counter;
             }
@@ -100,9 +148,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 
         //insert into DB
-        $sql = "INSERT INTO `users` (`Fname`, `Lname`,`Username`, `Email`, `Birthday`, `Password`) VALUES ( ?, ? , ?, ?, ?, ?)";
+        $sql = "INSERT INTO `users` (`Fname`, `Lname`,`Username`, `Email`, `Birthday` , `Gender`, `CountryID`, `Password`) VALUES ( ?, ? ,?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$FirstName, $LastName, $Suggested_Username, $Email, $Birthday, $Password]);
+        $stmt->execute([$FirstName, $LastName, $Suggested_Username, $Email, $Birthday, $Gender, $CountryID, $Password]);
 
         echo json_encode([
             'status' => true,
@@ -159,6 +207,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         $emailExists = $stmt->rowCount() > 0;
 
+
+        $UserID=$user['id'];
+
         if(!$emailExists){
             echo json_encode([
                 'status' => false,
@@ -185,6 +236,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             die();
 
         }
+
+
 
 
         // On success, reset login attempts

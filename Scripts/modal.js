@@ -21,10 +21,22 @@ function ShowConfirmModal(Options){
 
 
 
-  function HandleModalConfirm() {
-    if(CurrentConfirmModalFunction){
+  async function HandleModalConfirm() {
+/*     if(CurrentConfirmModalFunction){
       CurrentConfirmModalFunction();
+    } */
+
+    if (CurrentConfirmModalFunction) {
+      try {
+        // Support async and sync functions
+        const result = CurrentConfirmModalFunction();
+        if (result instanceof Promise) await result;
+      } catch (err) {
+        console.error("Error in confirmation function:", err);
+        return; // Don't proceed with close/refresh on error
+      }
     }
+
 
     let Action = Options.Action || 'Close';
     Action = Action.toLowerCase();

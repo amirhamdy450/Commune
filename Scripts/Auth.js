@@ -94,26 +94,98 @@ function FillFormResponse(field,msg){
 
 document.addEventListener("DOMContentLoaded", function () {
     if(document.body.classList.contains("Register")){
-        console.log("Register");
-        //select form
-        let form = document.getElementById("RegisterForm");
+        const form = document.getElementById("RegisterForm");
+        const steps = Array.from(form.getElementsByClassName("FormStep"));
+        const nextBtn = document.getElementById("NextBtn");
+        const backBtn = document.getElementById("BackBtn");
+        const submitBtn = document.getElementById("SubmitBtn");
+        const progressSteps = Array.from(form.getElementsByClassName("ProgressStep"));
+        let currentStep = 0;
 
-        //submit form
-        form.addEventListener("submit", (e)=>{
-            e.preventDefault();
+        const showStep = (stepIndex) => {
+            steps.forEach((step, index) => {
+                step.classList.toggle("active", index === stepIndex);
+            });
+            progressSteps.forEach((step, index) => {
+                step.classList.toggle("active", index <= stepIndex);
+            });
 
+            if(stepIndex > 0){
+                backBtn.classList.remove("hidden");
+            }else{
+                backBtn.classList.add("hidden");
+            }
 
-            let Errors = Forms.ValidateTextFields(form,AuthValidationMap);
+            if(stepIndex < steps.length - 1){
+                nextBtn.classList.remove("hidden");
+            }else{
+                nextBtn.classList.add("hidden");
+            }
 
+            if(stepIndex === steps.length - 1){
+                submitBtn.classList.remove("hidden");
+            }else{
+                submitBtn.classList.add("hidden");
+            }
 
-            if(Errors == 0){
-                //submit form
-                let formData = new FormData(form);
-                formData.append("ReqType", 1);
-                console.log(formData);
-                Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
+/*             backBtn.style.display = stepIndex > 0 ? "block" : "none";
+            nextBtn.style.display = stepIndex < steps.length - 1 ? "block" : "none";
+            submitBtn.style.display = stepIndex === steps.length - 1 ? "block" : "none"; */
+        };
+
+        const validateStep = (stepIndex) => {
+            const currentStepFields = steps[stepIndex].getElementsByClassName("TextField");
+            let errors = 0;
+            
+            [...currentStepFields].forEach(field => {
+                const input = field.querySelector("input:not([type=radio]), select");
+                 if (input) {
+                    const name = input.getAttribute("name");
+                    if (AuthValidationMap[name]) {
+                        const res = AuthValidationMap[name](input.value);
+                        if (!res.IsValid) {
+                            errors++;
+                            Forms.PopulateFieldError(field, res.Errors);
+                        } else {
+                             field.classList.remove("Error");
+                             const fieldError = field.querySelector(".FieldError");
+                             if (fieldError) fieldError.innerHTML = "";
+                        }
+                    }
+                 }
+            });
+            return errors === 0;
+        };
+
+        nextBtn.addEventListener("click", () => {
+            if (validateStep(currentStep)) {
+                currentStep++;
+                showStep(currentStep);
             }
         });
+
+        backBtn.addEventListener("click", () => {
+            currentStep--;
+            showStep(currentStep);
+        });
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (validateStep(currentStep)) {
+                let formData = new FormData(form);
+                formData.append("ReqType", 1);
+                
+                let res = await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
+                if (res.status) {
+                    // Potentially redirect to login or show a success message
+                    window.location.href = "index.php";
+                } else {
+                    alert(res.message || "An unexpected error occurred.");
+                }
+            }
+        });
+
+        showStep(currentStep);
 
     }else if(document.body.classList.contains("Login")){
 

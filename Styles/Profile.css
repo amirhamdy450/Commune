@@ -170,7 +170,12 @@ body{
     color: #657786;
 }
 
-.EditProfileButton {
+
+.ProfileActions {
+    display: flex;
+    gap: 10px;
+}
+.EditProfileBtn {
     padding: 10px 25px;
     border-radius: 25px;
     font-weight: bold;
@@ -182,9 +187,64 @@ body{
     white-space: nowrap; /* Prevent button text from wrapping */
 }
 
-.EditProfileButton:hover {
+.EditProfileBtn:hover {
     background-color: var(--accent-color-hover);
 }
+
+.PreviewProfileBtn {
+    background: #8e9093;
+    border-radius: 26px;
+    /* border: 2px solid #e2dede; */
+    padding: 10px 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.PreviewProfileBtn:hover {
+    background: #56749d;
+}
+
+
+.PreviewProfileBtn img {
+    width: 22px;
+    height: 22px;
+}
+
+
+/* Follow button for VProfile header */
+.ProfileHeader .FollowBtn.BrandBtn {
+/*     background-color: #3d99df;
+ */    padding: 12px 40px;
+    font-size: 16px;
+    /* width: 100%; */
+}
+
+.ProfileHeader .BrandBtn.Followed {
+    padding: 10px 35px;
+    font-size: 16px;
+    border-radius: 20px;
+}
+
+.ProfileHeader .ActionBtn {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    /* border: 1px solid; */
+    border-radius: 200px;
+    border: 2px solid #a29f9f;
+}
+.ProfileHeader .ActionBtn:hover{
+    background: #f0f0f0;
+}
+
+.ProfileHeader .ActionBtn img{
+    width: 25px;
+    height: 25px;
+}
+
 
 /* Profile Navigation */
 .TabsNav {
@@ -230,12 +290,13 @@ body{
 .ProfileContent {
     margin-top: 20px;
     width: 100%;
-    padding: 20px 30px;
-    background-color: #fff;
+    /* padding: 0px 30px; */
+    /* background-color: #fff; */
     border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 24px;
 }
 
@@ -252,9 +313,182 @@ body{
 }
 
 
+.TabContent.FollowList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 35px 20px;
+    width: 100%;
+    /* max-width: 750px; */
+    /* max-width: 200px; */
+    /* justify-content: center; */
+    background: white;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.UserCard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 600px;
+    text-decoration: none;
+
+}
+
+.UserCard:not(:last-child) {
+    padding-bottom: 20px;
+    border-bottom: 2px solid #dfdfdfa1;
+}
+
+
+.UserCard .ProfilePictureContainer {
+    margin: 0;
+    width: 70px;
+    height: 70px;
+    border: 1px solid #fff;
+}
+
+.UserCard .ProfileInfo .UserName {
+    font-size: 18px;
+    /* font-weight: 500; */
+    color: #222121;
+    /* text-decoration: none; */
+}
+
+.UserCard .ProfileInfo .UserUsername {
+    font-size: 16px;
+
+}
+
+.UserCard a.Follower {
+    text-decoration: none;
+    color: black;
+}
+
+
+.UserCard .Info{
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+    gap: 15px;
+    width: 60%;
+    /* max-width: 600px; */
+
+}
+
+
+
+/* edit profile modal */
+/* Styles/EditProfile.css */
+
+/* General Edit Modal Styling */
+.Modal.EditProfileModal .ModalContent {
+    max-width: 550px;
+    max-height: 580px;
+    overflow: auto;
+    gap: 15px;
+}
+
+.Modal.EditProfileModal h2 {
+    width: 100%;
+    text-align: left;
+    padding-left: 10px;
+    font-size: 24px;
+}
+
+.EditProfileForm {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.EditProfileForm .TextField {
+    gap: 5px;
+}
+
+.EditProfileForm .TextField label {
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+}
+
+.EditProfileForm .TextField input,
+.EditProfileForm .TextField textarea {
+    background-color: #f5f7f9;
+    border: 1px solid #dfe4ea;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 16px;
+}
+
+.EditProfileForm .TextField textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.EditProfileForm .TextField.Error input,
+.EditProfileForm .TextField.Error textarea {
+    border-color: #F23030;
+}
+
+.EditProfileForm .FormNavigation {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.EditProfileForm .FormNavigation .Loader {
+    border-width: 3px;
+    width: 25px;
+    height: 25px;
+}
+
+/* Form Response Styling */
+.EditProfileForm .FormResponse {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 15px;
+    display: none; /* Hidden by default */
+}
+
+.EditProfileForm .FormResponse.Success {
+    background-color: #e6f7ec;
+    border: 1px solid #b7e1c7;
+    color: #0f5132;
+    display: block;
+}
+
+.EditProfileForm .FormResponse.Error {
+    background-color: #fbebee;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    display: block;
+}
 
 
 
 
 
-/* wewewewewe */
+/* .FollowBtn.BrandBtn {
+    background-color: #3d99df;
+    padding: 8px 20px;
+        font-weight: 600;
+
+}
+
+.FollowBtn.BrandBtn:hover {
+    background-color: #2c74aa;
+} */
+
+
+
+
+

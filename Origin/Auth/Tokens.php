@@ -1,8 +1,10 @@
 <?php
 
+
+
 function generateToken() {
     $token=bin2hex(random_bytes(32));
-    $secretKey="Commune2024";
+    $secretKey=ENCRYPTION_KEY;
     $HashedToken=hash_hmac('sha256', $token, $secretKey); // Generates HMAC
 
     return $HashedToken;

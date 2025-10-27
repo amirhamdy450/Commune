@@ -11,7 +11,8 @@ if (isset($_GET['pid'])) {
  */
 
 include $PATH.'Includes/RouteController.php';
-include $PATH.'Includes/UserValidation.php';
+include $PATH.'Includes/UserAuth.php';
+include_once $PATH.'Includes/Encryption.php';
 $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
 
@@ -30,7 +31,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
 </head>
 
-<body class="Posts FetchPostsOnScroll">
+<body class="Posts FetchPostsOnScroll" >
 
 
     <!-- Action Menu -->
@@ -47,39 +48,67 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
             <?php
 
             $sql = "SELECT 
-            posts.id AS PID ,
-            posts.*, users.* ,
-            CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
-            FROM posts 
-            LEFT JOIN likes ON posts.id=likes.PostID AND likes.UID=?
-            INNER JOIN users ON posts.UID=users.id WHERE posts.Status=1 
-            ORDER BY posts.Date DESC LIMIT 5";
+                posts.id AS PID,
+                posts.*, 
+                users.*,
+                CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
+                CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
+                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved
+                FROM posts 
+                INNER JOIN users ON posts.UID = users.id
+                LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
+                LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
+                LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
+                LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
+                WHERE posts.Status = 1 AND b.id IS NULL
+                ORDER BY posts.Date DESC 
+                LIMIT 5";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$UID]);
+            $stmt->execute([$UID, $UID, $UID, $UID]);
             $FeedPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($FeedPosts as $FeedPost) {
 
-                $FeedPostID = 'D' . $FeedPost['Date'] . 'I' . $FeedPost['PID'];  // D is  for Date, I is for ID
+                //$FeedPostID = 'D' . $FeedPost['Date'] . 'I' . $FeedPost['PID'];  // D is  for Date, I is for ID
 
-                $encryptedFeedPostID =  base64_encode(openssl_encrypt($FeedPostID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv));;
-
-
-
-                /*   $decrypted=  openssl_decrypt($encryptedFeedPostID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
-                echo $decrypted; */
-
-
-                echo '<div class="FeedPost" PID=' . $encryptedFeedPostID . '>
-                    <div class="FeedPostHeader">
-                        <img src="Imgs/Icons/unknown.png" alt="">
-                        <p>' . $FeedPost['Fname'] . ' ' . $FeedPost['Lname'] . '</p>';
-                if ((int)$User['Privilege'] === 1) {
-                    echo '<div class="DeleteBtn PostDeleteBtn">
-                            <img src="Imgs/Icons/trash.png" alt="">
-                            </div>';
+                $IsSelfPost = (int)false;
+                if($UID == $FeedPost['UID']){
+                    $IsSelfPost = (int) true;
                 }
 
-                echo '</div>
+                $IsSavedPost = (int)false;
+                if($FeedPost['saved']){
+                    $IsSavedPost = (int) true;
+                }
+
+
+                $params=[
+                    //convert Date to a Unix timestamp
+                    "Timestamp"=> strtotime($FeedPost['Date'])
+                ];
+
+                $encryptedFeedPostID=Encrypt($FeedPost['PID'],"Positioned",$params);
+
+                $encryptedUserID=Encrypt($FeedPost['UID'],"Positioned",$params);
+
+                /*   $decrypted=  openssl_decrypt($encryptedFeedPostID, 'aes-256-cbc', ENCRYPTION_KEY, OPENSSL_RAW_DATA, ENCRYPTION_IV);
+                echo $decrypted; */
+
+                echo '<div class="FeedPost" PID=' . $encryptedFeedPostID . ' UID=' . $encryptedUserID . ' Self=' . $IsSelfPost . ' Saved=' . $IsSavedPost . '>
+                    <div class="FeedPostHeader">
+                        <div class="FeedPostAuthorContainer">
+                            <a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID). '">
+                                <img src="Imgs/Icons/unknown.png" alt="">
+                                <p>' . $FeedPost['Fname'] . ' ' . $FeedPost['Lname'] . '</p>
+                            </a>';
+
+                            if(!$IsSelfPost){
+                                echo '<button class="BrandBtn FollowBtn ' . ($FeedPost['following'] ? 'Followed' : '') . '" uid="' . $encryptedUserID . '"> ' . ($FeedPost['following'] ? 'Following' : 'Follow') . '</button>';
+                            }
+                    echo '</div>
+
+                        <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg"></div>
+                        
+                    </div>
 
                     <div class="FeedPostContent">
                         <p>' . $FeedPost['Content'] . '</p>';

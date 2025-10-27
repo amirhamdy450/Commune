@@ -18,22 +18,114 @@ if (urlParams.has('pid')) {
   currentPostID = urlParams.get('pid');
 }
 
+//follow function 
+async function FollowHandler(followButton, uid){
+  const formData = new FormData();
+  formData.append('ReqType', 11);
+  formData.append('UserID', uid);
+
+  let data= await Submit('POST','Origin/Operations/Feed.php', formData);
+
+  if (data.success) {
+    if (!data.Followed) {
+      followButton.classList.remove('Followed');
+      followButton.classList.add('FollowBtn');
+      followButton.textContent = 'Follow';
+    } else {
+      followButton.classList.remove('FollowBtn');
+      followButton.classList.add('Followed');
+      followButton.textContent = 'Following';
+    }
+  }
+
+}
+
+
+async function blockUser(uid, postElement){
+  const formData = new FormData();
+  formData.append('ReqType', 13);
+  formData.append('BlockedUID', uid);
+
+  let data= await Submit('POST','Origin/Operations/Feed.php', formData);
+
+  if (data.success) {
+    postElement.remove();
+
+
+     //wait 
+  }
+}
+
+
+
+async function savePost(post,postID){
+
+  const formData = new FormData();
+  formData.append('ReqType', 12);
+  formData.append('PostID', postID);
+
+  let data= await Submit('POST','Origin/Operations/Feed.php', formData);
+  if (data.success) {
+    showInfoBox(data.message,1);
+    //update post attribute based on saved status
+    if(data.Saved){
+      post.setAttribute('Saved', '1');
+    }else{
+      post.setAttribute('Saved', '0');
+    }
+
+
+  }
+  
+}
 
 
 // Creates HTML for a single post
 function createPostHTML(post) {
   const mediaContent = generateMediaContent(post);
-  const postDeleteButton = post.CurrentUserPrivilege 
+  //DEPRECATED
+/*   const postDeleteButton = post.CurrentUserPrivilege 
     ? `<div class="DeleteBtn PostDeleteBtn"><img src="Imgs/Icons/trash.png" alt=""></div>` 
-    : '';
+    : ''; */
+  //END OF DEPRECATED
   const likeIcon = post.liked ? 'Imgs/Icons/liked.svg' : 'Imgs/Icons/like.svg';
 
+  let followbtn="";
+
+
+
+  if(post.Self == 0){
+    
+    const following = post.following ? 'Followed' : '';
+
+    const follow_text= post.following ? 'Following' : 'Follow';
+
+
+    followbtn= `<button class="BrandBtn FollowBtn ${following} "> ${follow_text}</button>`;
+    
+  }
+
+
+
+
+
+  /* const UrlSafeUID */
   return `
-    <div class="FeedPost" PID="${post.PID}">
+    <div class="FeedPost" PID="${post.PID}" UID="${post.UID}"  Self="${post.Self}"> 
       <div class="FeedPostHeader">
-        <img src="Imgs/Icons/unknown.png" alt="">
-        <p>${post.name}</p>
-        ${postDeleteButton}
+        <div class="FeedPostAuthorContainer">
+          <a class="FeedPostAuthor" href="index.php?redirected_from=profile&target=profile&uid=${encodeURIComponent(post.UID)}">
+            <img src="Imgs/Icons/unknown.png" alt="">
+            <p>${post.name}</p>
+          </a>
+          
+          ${followbtn}
+        </div>
+        <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg"></div>
+    
+
+
+
       </div>
       <div class="FeedPostContent">
         <p>${post.Content}</p>
@@ -270,10 +362,27 @@ function fetchMorePosts() {
 // Attaches interaction event listeners to a post
 function attachPostInteractions(post) {
   const postId = post.getAttribute('PID');
+  const uid = post.getAttribute('UID');
+  const followButton= post.getElementsByClassName('FollowBtn')[0];
   const likeButton = post.getElementsByClassName('FeedPostLike')[0];
   const commentButton = post.getElementsByClassName('FeedPostComment')[0];
   const shareButton = post.getElementsByClassName('FeedPostShare')[0];
-  const deleteButton = post.getElementsByClassName('PostDeleteBtn')[0];
+  //const deleteButton = post.getElementsByClassName('PostDeleteBtn')[0];
+  
+
+  //optimizable way to deal with post options
+  const actionButton = post.getElementsByClassName('ActionBtn')[0];
+  
+
+
+  if(followButton){
+    followButton.addEventListener('click', () => {
+      FollowHandler(followButton, uid);
+    });
+
+
+    
+  }
 
   likeButton.addEventListener('click', () => {
     const formData = new FormData();
@@ -341,7 +450,7 @@ function attachPostInteractions(post) {
   shareButton.addEventListener('click', async() => {
     //get base URL
     const Url = window.location.href.split('?')[0];
-    const ShareLink = `${Url}?pid=${encodeURIComponent(postId)}`;
+    const ShareLink = `${Url}?target=post&pid=${encodeURIComponent(postId)}`;
 
 
 
@@ -371,7 +480,7 @@ function attachPostInteractions(post) {
 
   });
 
-  if (deleteButton) {
+  if (false) {
     deleteButton.addEventListener('click', () => {
       //toggleModal('DelPostBox', true);
       currentPostID = postId;
@@ -383,6 +492,97 @@ function attachPostInteractions(post) {
       });
     });
   }
+
+
+  if (actionButton) {
+    actionButton.addEventListener('click', (e) => {
+      e.stopPropagation(); // Stop click from bubbling to the document
+
+      // Remove any other open menus
+      const existingMenu = document.querySelector('.PostOptionsMenu');
+      if (existingMenu) {
+        existingMenu.remove();
+      }
+
+      // Create new menu
+      const menu = document.createElement('div');
+      menu.className = 'PostOptionsMenu';
+
+      const postAuthorUID = post.getAttribute('UID');
+      const postPID = post.getAttribute('PID');
+
+      const IsSaved =post.getAttribute('Saved')==1;
+
+      let menuOptions = '';
+      
+      
+      const isSelfPost = post.getAttribute('Self') == 1;
+      // Option 1: Hide Post
+      menuOptions += `<div class="PostOption" data-action="hide"><img src="Imgs/Icons/EyeOff.svg" alt="">Hide Post</div>`;
+
+      // Option 2: Save Post
+      if(!IsSaved){
+        menuOptions += `<div class="PostOption" data-action="save" data-pid="${postPID}"><img src="Imgs/Icons/save.svg" alt="">Save Post</div>`;
+      }else{
+        menuOptions += `<div class="PostOption" data-action="save" data-pid="${postPID}"><img src="Imgs/Icons/unsave.svg" alt="">Unsave Post</div>`;
+      }
+
+
+
+      // Option 3: Block User (if not self)
+      if (!isSelfPost) {
+          menuOptions += `<div class="PostOption" data-action="block" data-uid="${postAuthorUID}"><img src="Imgs/Icons/block.svg" alt="">Block User</div>`;
+        }
+
+        // Option 4: Delete Post (if self)
+        if (isSelfPost) {
+          menuOptions += `<div class="PostOption Delete" data-action="delete" data-pid="${postPID}"><img src="Imgs/Icons/trash.svg" alt="">Delete Post</div>`;
+        }
+
+      menu.innerHTML = menuOptions;
+
+      // Add click listeners to menu options
+      menu.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const target = e.target.closest('.PostOption');
+          if (!target) return;
+
+          const action = target.dataset.action;
+
+          if (action === 'hide') {
+              post.style.display = 'none'; // Simple hide
+          } 
+          else if (action === 'save') {
+              savePost(post,postId);
+          }
+          else if (action === 'block') {
+              //fetch user first and last name
+              let PostAuthor= post.getElementsByClassName('FeedPostAuthor')[0];
+              console.log(post);
+              let Name= PostAuthor.getElementsByTagName('p')[0].innerText;
+              ShowConfirmModal({
+                  Title: 'Are You Sure You Want To Block ' + Name + '?',
+                  ConfirmText: 'Block',
+                  onConfirm: async() => await blockUser(uid, post),
+                  Action: 'refresh'
+
+              });
+          }
+          else if (action === 'delete') {
+              currentPostID = target.dataset.pid;
+              ShowConfirmModal({
+                  Title: 'Are You Sure You Want To Delete This Post?',
+                  ConfirmText: 'Delete',
+                  onConfirm: () => DeletePost()
+              });
+          }
+          menu.remove(); // Close menu after action
+      });
+
+      // Append menu to the post header
+      post.getElementsByClassName('FeedPostHeader')[0].appendChild(menu);
+    });
+}
 }
 
 
@@ -1026,5 +1226,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+
+
+  // follow btn in profile preview
+  
+  //check if the body has an id of VProfile
+  if(document.body.id === 'VProfile'){
+    const followButton= document.getElementsByClassName('FollowBtn')[0];
+    const uid= followButton.getAttribute('uid');
+
+    followButton.addEventListener('click', () => {
+      FollowHandler(followButton, uid);
+    });
+
+  }
+
 
 });

@@ -1,47 +1,13 @@
 <?php 
 $PATH="../../";
-include $PATH.'Includes/UserValidation.php';  //include validation to get user data
+
+require_once $PATH."Includes/Config.php";
+require_once $PATH.'Includes/UserAuth.php';  //include validation to get user data
+require_once $PATH.'Includes/Encryption.php';
+include_once $PATH.'Origin/Validation.php';
 
 
-function RowExists($Table,$Column,$Value){ //check if row exists
 
-    global $pdo; // Use the global PDO instance
-
-
-    // Ensure $Column and $Value are treated as arrays for consistent processing
-    $Columns = is_array($Column) ? $Column : [$Column];
-    $Values = is_array($Value) ? $Value : [$Value];
-
-    if (count($Columns) !== count($Values)) {
-        // You might want to throw an exception or return false with an error message
-        // For simplicity here, we'll just return false.
-        echo "RowExists: Mismatch between number of columns and values.";
-        return false;
-    }
-
-    // Prepare the SQL query with placeholders for each column
-    $conditions = [];
-    $boundParams = [];
-
-    for ($i = 0; $i < count($Columns); $i++) {
-        $conditions[] = "`" . $Columns[$i] . "` = ?"; // Add backticks for column names for safety
-        $boundParams[] = $Values[$i];
-    }
-
-    // Join conditions with 'AND'
-    $whereClause = implode(' AND ', $conditions);
-
-    //check if valid in DB by only retrieving one row
-    $query = "SELECT 1 FROM `$Table` WHERE " . $whereClause . " LIMIT 1";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute($boundParams);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row) {
-        return true; // Row exists
-    } else {
-        return false; // Row does not exist
-    }
-}
 
 
 
@@ -281,8 +247,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         // Prepare the post data for the client
         $timestamp = strtotime($newPost['Date']);
-        $feedPostID = 'D' . $timestamp . 'I' . $newPost['PID'];
-        $encryptedFeedPostID = base64_encode(openssl_encrypt($feedPostID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv));
+        $encryptedFeedPostID = Encrypt($newPost['PID'],"Positioned",["Timestamp"=>$timestamp]);
 
         $media = [];
         if (is_dir($FolderPath)) {
@@ -328,15 +293,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  */
 
     
-    } else if($_POST['ReqType'] == 2){  //like a post
+    } else if($_POST['ReqType'] == 2){  //like/unlike a post
 
         $EncFeedPostAtr=$_POST['FeedPostID']; //Enc stands for encrypted and atr stands for atribute
-        $FeedPostAtr= openssl_decrypt(base64_decode($EncFeedPostAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
 
-        // Find the position of the 'I' to retrieve the  post id bieng liked
-        $PostIDPosition = strpos($FeedPostAtr, 'I');
-        $FeedPostID=(int)substr($FeedPostAtr, $PostIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
-
+        $FeedPostID=Decrypt($EncFeedPostAtr,"Positioned"); 
 
         //first we need to check if he liked  the post before
 
@@ -408,11 +369,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     } else if ($_POST['ReqType'] == 3) { //add new comment
 
         $EncFeedPostAtr=$_POST['FeedPostID']; //Enc stands for encrypted and atr stands for atribute
-        $FeedPostAtr= openssl_decrypt(base64_decode($EncFeedPostAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
+/*         $FeedPostAtr= openssl_decrypt(base64_decode($EncFeedPostAtr), 'aes-256-cbc', ENCRYPTION_KEY, OPENSSL_RAW_DATA, ENCRYPTION_IV);
 
         // Find the position of the 'I' to retrieve the  post id bieng liked
-        $PostIDPosition = strpos($FeedPostAtr, 'I');
-        $FeedPostID=(int)substr($FeedPostAtr, $PostIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+        $PostIDPosition = strpos($FeedPostAtr, 'I'); */
+        $FeedPostID=(int)Decrypt($EncFeedPostAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
 
         $CommentContent=$_POST['CommentContent'];
 
@@ -447,11 +408,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
     } else if($_POST["ReqType"] == 4){ //fetch comments
         $EncFeedPostAtr=$_POST['FeedPostID']; //Enc stands for encrypted and atr stands for atribute
-        $FeedPostAtr= openssl_decrypt(base64_decode($EncFeedPostAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
 
-        // Find the position of the 'I' to retrieve the  post id bieng liked
-        $PostIDPosition = strpos($FeedPostAtr, 'I');
-        $FeedPostID=(int)substr($FeedPostAtr, $PostIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+        $FeedPostID=(int)Decrypt($EncFeedPostAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
 
 
         if(!RowExists('posts','id',$FeedPostID)){
@@ -481,17 +439,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             foreach($Comments as &$Comment){
                 //convert Date to a Unix timestamp
                 $timestamp = strtotime($Comment['Date']);
-                $FormattedID = 'D'.$timestamp.'I'.$Comment['CID'];
 
-                $encrypted = openssl_encrypt($FormattedID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
-                $Comment['CID'] = base64_encode($encrypted); // Makes it JSON-safe
+                $Comment['CID'] = Encrypt($Comment['CID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
 
 
                 //encrypt the user id (UID)
-                $FormattedID = 'D'.$timestamp.'I'.$Comment['UID'];
+                //$FormattedID = 'D'.$timestamp.'I'.$Comment['UID'];
 
-                $encrypted = openssl_encrypt($FormattedID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
-                $Comment['UID'] = base64_encode($encrypted); // Makes it JSON-safe
+                $Comment['UID'] = Encrypt($Comment['UID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
             }
             unset($Comment);
 
@@ -504,23 +459,29 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     } else if ($_POST["ReqType"] == 5) { //fetch new posts to feed
         $EncFeedPostAtr=$_POST['LastFeedPostPID']; //Enc stands for encrypted and atr stands for atribute
-        $FeedPostAtr= openssl_decrypt(base64_decode($EncFeedPostAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
 
-        // Find the position of the 'I' to retrieve the  post id bieng liked
-        $PostIDPosition = strpos($FeedPostAtr, 'I');
-        $FeedPostID=(int)substr($FeedPostAtr, $PostIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+        $FeedPostID=(int)Decrypt($EncFeedPostAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
 
 
-        $sql='SELECT 
-              posts.id as PID,posts.*,users.* ,CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
-              FROM posts 
-              LEFT JOIN likes ON posts.id=likes.PostID AND likes.UID=?
-              INNER JOIN users ON posts.UID=users.id 
-              WHERE posts.id<? AND posts.Status=1 
-              ORDER BY posts.Date DESC  LIMIT 5 ';
+        $sql = "SELECT 
+                posts.id AS PID,
+                posts.*, 
+                users.*,
+                CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
+                CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
+                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved
+                FROM posts 
+                INNER JOIN users ON posts.UID = users.id
+                LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
+                LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
+                LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
+                LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
+                WHERE posts.id < ? AND posts.Status = 1 AND b.id IS NULL
+                ORDER BY posts.Date DESC 
+                LIMIT 5";
         $stmt = $pdo->prepare($sql);
         
-        if($stmt->execute([$UID,$FeedPostID])){
+        if($stmt->execute([$UID,$UID, $UID , $UID,$FeedPostID])){
 
         $NewPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -529,9 +490,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         foreach ($NewPosts as $FeedPost) {
             //convert Date to a Unix timestamp
             $timestamp = strtotime($FeedPost['Date']);
-            $FeedPostID = 'D'.$timestamp.'I'.$FeedPost['PID'];
-            $encryptedFeedPostID = base64_encode(openssl_encrypt($FeedPostID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv));
-            
+           /*  $FeedPostID = 'D'.$timestamp.'I'.$FeedPost['PID']; */
+            $encryptedFeedPostID = Encrypt($FeedPost['PID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
+
+           /*  $UserID = 'D'.$timestamp.'I'.$FeedPost['UID']; */
+            $encryptedUserID = Encrypt($FeedPost['UID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
+
             $MediaFolder = $PATH.$FeedPost['MediaFolder'];
             $media = [];
             if (is_dir($MediaFolder)) {
@@ -558,14 +522,18 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             // Add post details to the response array
             $response[] = [
                 'PID' => $encryptedFeedPostID,
-                'name' => $FeedPost['name'],
+                'UID' => $encryptedUserID,
+                'name' => $FeedPost['Fname'] . ' ' . $FeedPost['Lname'],
                 'Content' => $FeedPost['Content'],
                 'LikeCounter' => $FeedPost['LikeCounter'],
                 'CommentCounter' => $FeedPost['CommentCounter'],
                 'MediaFolder' => $media,
                 'MediaType'=> (int)$FeedPost['Type'],
                 'CurrentUserPrivilege'=> (int)$User['Privilege'],
-                'liked'=>$FeedPost['liked']
+                'liked'=>$FeedPost['liked'],
+                'following'=>$FeedPost['following'],
+                'Self' => (int)($FeedPost['UID'] == $UID), //identify if the post belongs to the user
+                'saved'=>(int)$FeedPost['saved']
             ];
 
 
@@ -577,11 +545,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     } else if($_POST["ReqType"] == 6){ //delete a post
         $EncFeedPostAtr=$_POST['FeedPostID']; //Enc stands for encrypted and atr stands for atribute
-        $FeedPostAtr= openssl_decrypt(base64_decode($EncFeedPostAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
 
-        // Find the position of the 'I' to retrieve the  post id bieng liked
-        $PostIDPosition = strpos($FeedPostAtr, 'I');
-        $FeedPostID=(int)substr($FeedPostAtr, $PostIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+        $FeedPostID=(int)Decrypt($EncFeedPostAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
         
         $sql="UPDATE posts SET Status=0 WHERE id=?";
         $stmt=$pdo->prepare($sql);
@@ -595,13 +560,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         }
 
-    } else if ($_POST["ReqType"] == 7) { //like a comment
+    } else if ($_POST["ReqType"] == 7) { //like/unlike a comment
         $EncCommentAtr=$_POST['CommentID']; //Enc stands for encrypted and atr stands for atribute
-        $CommentAtr= openssl_decrypt(base64_decode($EncCommentAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv); 
-   
-        // Find the position of the 'I' to retrieve the  comment id bieng liked
-        $CommentIDPosition = strpos($CommentAtr, 'I');
-        $CommentID=(int)substr($CommentAtr, $CommentIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+
+        $CommentID=(int)Decrypt($EncCommentAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
 
         if(!RowExists('comments','id',$CommentID)){
             echo json_encode([
@@ -667,11 +629,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     }else if($_POST["ReqType"]== 8){ //replying to a comment
         
         $EncCommentAtr=$_POST['CommentID']; //Enc stands for encrypted and atr stands for atribute
-        $CommentAtr= openssl_decrypt(base64_decode($EncCommentAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
 
-        // Find the position of the 'I' to retrieve the  post id bieng liked
-        $CommentIDPosition = strpos($CommentAtr, 'I');
-        $CommentID=(int)substr($CommentAtr, $CommentIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+        $CommentID=(int)Decrypt($EncCommentAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
 
         if(!RowExists('comments','id',$CommentID)){
             echo json_encode([
@@ -684,11 +643,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         if(isset($_POST['ReplyTo'])){
             $EncUserAtr=$_POST['ReplyTo']; //Enc stands for encrypted and atr stands for atribute
-            $UserAtr= openssl_decrypt(base64_decode($EncUserAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv); 
-   
-            // Find the position of the 'I' to retrieve the  comment id bieng liked
-            $UserIDPosition = strpos($UserAtr, 'I');
-            $UserID=(int)substr($UserAtr, $UserIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+
+            $UserID=(int)Decrypt($EncUserAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
 
             if(!RowExists('users','id',$UserID)){
                 echo json_encode([
@@ -735,11 +691,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     }else if($_POST['ReqType']==9){ //like a reply
         $EncReplyAtr=$_POST['ReplyID']; //Enc stands for encrypted and atr stands for atribute
-        $ReplyAtr= openssl_decrypt(base64_decode($EncReplyAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv); 
-   
-        // Find the position of the 'I' to retrieve the  comment id bieng liked
-        $ReplyIDPosition = strpos($ReplyAtr, 'I');
-        $ReplyID=(int)substr($ReplyAtr, $ReplyIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+
+        $ReplyID=(int)Decrypt($EncReplyAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
 
         if(!RowExists('comments_replies','id',$ReplyID)){
             echo json_encode([
@@ -800,11 +753,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
     }else if ($_POST["ReqType"]== 10){ //fetch comment replies
         $EncCommentAtr=$_POST['CommentID']; //Enc stands for encrypted and atr stands for atribute
-        $CommentAtr= openssl_decrypt(base64_decode($EncCommentAtr), 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv); 
-   
-        // Find the position of the 'I' to retrieve the  comment id bieng liked
-        $CommentIDPosition = strpos($CommentAtr, 'I');
-        $CommentID=(int)substr($CommentAtr, $CommentIDPosition + 1); //the position after I is the id , retrieve it and convert it to integer
+
+        $CommentID=(int)Decrypt($EncCommentAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
 
         if(!RowExists('comments','id',$CommentID)){
             echo json_encode([
@@ -833,24 +783,113 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         foreach($Replies as &$Reply){
             //convert Date to a Unix timestamp
             $timestamp = strtotime($Reply['Date']);
-            $FormattedID = 'D'.$timestamp.'I'.$Reply['CRID'];
 
-            $encrypted = openssl_encrypt($FormattedID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
-            $Reply['CRID'] = base64_encode($encrypted); // Makes it JSON-safe
+            $Reply['CRID'] = Encrypt($Reply['CRID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
 
 
             //encrypt the user id (UID)
-            $FormattedID = 'D'.$timestamp.'I'.$Reply['UID'];
 
-            $encrypted = openssl_encrypt($FormattedID, 'aes-256-cbc', $CompanyName, OPENSSL_RAW_DATA, $iv);
-            $Reply['UID'] = base64_encode($encrypted); // Makes it JSON-safe
+            $Reply['UID'] = Encrypt($Reply['UID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
         }
         unset($Reply);
 
         echo json_encode($Replies);
 
    
-    }
+    }else if ($_POST["ReqType"]==11){ //follow/unfollow a user
+        $EncUserAtr=$_POST['UserID']; //Enc stands for encrypted and atr stands for atribute
+
+
+
+        $TargetUserID=(int)Decrypt($EncUserAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
+
+
+        //first we need to check if he is already following the user
+        $sql="SELECT * FROM followers WHERE FollowerID=? AND UserID=?";
+        $stmt=$pdo->prepare($sql);
+        $stmt->execute([$UID,$TargetUserID]);
+        $Following=$stmt->fetch(PDO::FETCH_ASSOC);
+        if($Following){
+            $sql="DELETE FROM followers WHERE FollowerID=? AND UserID=?";
+            $stmt=$pdo->prepare($sql);
+            if($stmt->execute([$UID,$TargetUserID])){
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Unfollowed",
+                    'Followed'=> false,
+                ]);
+            }
+        }else{
+            $sql="INSERT INTO followers (FollowerID,UserID) VALUES (?,?)";
+            $stmt=$pdo->prepare($sql);
+            if($stmt->execute([$UID,$TargetUserID])){
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Followed",
+                    'Followed'=> true,
+                ]);
+            }
+        }
+
+    
+    
+    }else if ($_POST["ReqType"] == 12) { // Save/Unsave Post
+        $EncPostAtr = $_POST['PostID'];
+        $PostID = (int)Decrypt($EncPostAtr, "Positioned");
+
+        if (!RowExists('posts', 'id', $PostID)) {
+            echo json_encode(['success' => false, 'message' => 'Post not found.']);
+            exit;
+        }
+
+        // Check if already saved
+        $sql_check = "SELECT id FROM saved_posts WHERE UID = ? AND PostID = ?";
+        $stmt_check = $pdo->prepare($sql_check);
+        $stmt_check->execute([$UID, $PostID]);
+
+        if ($stmt_check->fetch()) {
+            // Already saved, so unsave
+            $sql_delete = "DELETE FROM saved_posts WHERE UID = ? AND PostID = ?";
+            $pdo->prepare($sql_delete)->execute([$UID, $PostID]);
+            echo json_encode(['success' => true, 'message' => 'Post unsaved!', 'Saved' => false]);
+        } else {
+            // Not saved, so save
+            $sql_insert = "INSERT INTO saved_posts (UID, PostID) VALUES (?, ?)";
+            $pdo->prepare($sql_insert)->execute([$UID, $PostID]);
+            echo json_encode(['success' => true, 'message' => 'Post saved!', 'Saved' => true]);
+        }
+        exit;
+
+    }else if ($_POST["ReqType"] == 13) { // Block User
+        $EncUserAtr = $_POST['BlockedUID'];
+        $BlockedUID = (int)Decrypt($EncUserAtr, "Positioned");
+
+        if ($BlockedUID == $UID) {
+            echo json_encode(['success' => false, 'message' => 'You cannot block yourself.']);
+            exit;
+        }
+
+        if (!RowExists('users', 'id', $BlockedUID)) {
+            echo json_encode(['success' => false, 'message' => 'User not found.']);
+            exit;
+        }
+
+        // Check if already blocked
+        $sql_check = "SELECT id FROM blocked_users WHERE BlockerUID = ? AND BlockedUID = ?";
+        $stmt_check = $pdo->prepare($sql_check);
+        $stmt_check->execute([$UID, $BlockedUID]);
+
+        if ($stmt_check->fetch()) {
+            // Already blocked (future: unblock?)
+            echo json_encode(['success' => true, 'message' => 'User is already blocked.']);
+        } else {
+            // Not blocked, so block
+            $sql_insert = "INSERT INTO blocked_users (BlockerUID, BlockedUID) VALUES (?, ?)";
+            $pdo->prepare($sql_insert)->execute([$UID, $BlockedUID]);
+            echo json_encode(['success' => true, 'message' => 'User blocked.']);
+        }
+        exit;
+}
     
 
 

@@ -11,8 +11,6 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
         let ActiveTab=TabsNav.getElementsByClassName("Active")[0];
         ActiveTab.classList.remove("Active");
         tab.classList.add("Active");
-
-
         //set all other tabs content to hidden
         let TabsContent=document.getElementsByClassName("TabContent");
         [...TabsContent].forEach(TabContent => {

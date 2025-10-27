@@ -111,3 +111,97 @@
     /* width: 100%; */
     /* font-size: 16px; */
 }
+
+/* Multi-Step Form Styles */
+.ProgressBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.ProgressStep {
+    width: 30px;
+    height: 30px;
+    background-color: #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+    transition: background-color 0.4s ease;
+}
+
+.ProgressStep.active {
+    background-color: var(--accent-color);
+}
+
+.ProgressStep::before {
+    content: attr(data-title);
+    position: absolute;
+    top: 40px;
+    font-size: 12px;
+    color: #333;
+}
+
+.ProgressBar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 4px;
+    width: 100%;
+    background-color: #ccc;
+    z-index: 0;
+}
+
+.FormStep {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.FormStep.active {
+    display: flex;
+}
+
+.FormNavigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+#BackBtn {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+#NextBtn, #SubmitBtn {
+    flex-grow: 2;
+}
+
+/* New Field Styles */
+.TextField select {
+    padding: 15px 20px;
+    border: 1px solid #dfe4ea;
+    border-radius: 5px;
+    width: 100%;
+    background-color: white;
+}
+
+.RadioGroup {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.RadioGroup label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}

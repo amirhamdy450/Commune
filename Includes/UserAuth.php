@@ -1,8 +1,20 @@
 <?php
-include $PATH."Includes/DB.php";
-include $PATH."Origin/Auth/Tokens.php";
+require_once $PATH."Includes/DB.php";
+require_once $PATH."Origin/Auth/Tokens.php";
 
 $LoggedIn = false;
+
+function fetchUserData($UID) {
+    global $pdo;
+    // This function fetches the CORE user data for the session.
+    $sql = "SELECT id, Fname, Lname, Username, Email, ProfilePic, Privilege FROM users WHERE id = :UID";
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(":UID", $UID, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
 
 
 
@@ -33,7 +45,7 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
         $oneDayInSeconds = 24 * 60 * 60; // 24 hours in seconds
 
 
-        if ($Now - $UpdatedOn > $thirtyDaysInSeconds) {
+        if ($Now - $UpdatedOn > $thirtyDaysInSeconds) {  // If token is older than 30 days (expired)
             // Delete the token entry from the database
             $deleteSql = "DELETE FROM tokens WHERE id = ?";
             $deleteStmt = $pdo->prepare($deleteSql);
@@ -62,14 +74,17 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
         }
 
         //echo $UID;
-        $sql="SELECT * FROM users WHERE id=:UID";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(":UID",$UID,PDO::PARAM_INT);
-        $stmt->execute();
-        $User =$stmt->fetch(PDO::FETCH_ASSOC);   
+        // Check if user data is already in the session to avoid a database query
+        if (isset($_SESSION['user_data']) && $_SESSION['user_data']['id'] == $UID) {
+            $User = $_SESSION['user_data'];
+        } else {
+            // If not in session, fetch from DB and store it in the session
+            $User = fetchUserData( $UID);
+            $_SESSION['user_data'] = $User;
+        } 
 
-        $CompanyName='Commune'; 
-        $iv = "COMMUNE2025_9831"; //like secret key and will be used for decrypting AES later
+/*         ENCRYPTION_KEY='Commune'; 
+        ENCRYPTION_IV = "COMMUNE2025_9831"; //like secret key and will be used for decrypting AES later */
 
 
         //allowed extensions array

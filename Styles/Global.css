@@ -1,11 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 :root{
     --accent-color: #2c79e8;
     --accent-color-hover:#3065d0;
 
     --accent-dark: rgb(48, 48, 48);
     --accent-dark-hover: #202020 ;
+
+    --background-color: #f5f5f5db;
 
     --background-alert:rgb(236 17 17);
     --hover-alert: rgb(201, 17, 17);
@@ -21,6 +22,12 @@
     outline: none !important;
     font-family: 'Poppins', sans-serif;
     margin: 0px;
+}
+
+
+body{
+	background-color: var(--background-color);
+	
 }
 
 
@@ -137,16 +144,22 @@ h1,h2,h3,h4,h5,h6,p{
     width: 100%;
 }
 
-.Modal.Confirm .ModalContent{
-    max-width: 550px;
+.Modal.Confirm .ModalContent {
+    max-width: 450px;
+    gap: 10px;
 }
-
 .Modal .ConfirmBox {
     display: flex;
     justify-content: space-between;
     width: 100%;
     max-width: 350px;
     padding-top: 15px;
+}
+
+
+h2.ModalTitle {
+    font-size: 23px;
+    font-weight: 600;
 }
 
 body.ModalOpen {
@@ -485,7 +498,7 @@ body.ModalOpen {
 }
 
 
-.TextField .IconCont{
+.TextField .IconCont {
     display: flex;
     justify-content: space-between;
     flex-direction: row;
@@ -494,6 +507,7 @@ body.ModalOpen {
     border-radius: 5px;
     /* padding: 13px; */
     padding: 5px 20px;
+    background: white;
 }
 
 
@@ -509,9 +523,10 @@ body.ModalOpen {
     height: 20px;
 }
 
-.TextField.Pass .IconCont img{
+.TextField.Pass .IconCont img {
     width: 20px;
     height: 20px;
+    cursor: pointer;
 }
 
 
@@ -563,8 +578,9 @@ body.ModalOpen {
 }
 
 .DropdownItem {
-    color: black;
-    padding: 14px 16px;
+    font-weight: 500;
+    color: #333;
+    padding: 12px 16px;
     text-decoration: none;
     display: block;
     font-size: 16px;

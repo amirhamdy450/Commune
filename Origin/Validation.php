@@ -1,5 +1,6 @@
 <?php
 
+
 function validateEmail($Email): bool
 {
 
@@ -63,5 +64,73 @@ function validateName(string $name): bool
     
     return true;
 }
+
+
+
+
+function validateBoolean($value): bool
+{
+
+    $value = trim($value);
+    
+    // Check if the name is empty after trimming.
+    if (empty($value)) {
+        return false;
+    }
+
+    if ($value === 0 || $value === 1 || $value === '0' || $value === '1' || $value === true || $value === false) {
+        return true;
+    }
+    
+    return false;
+}
+
+
+
+
+
+
+function validateBirthYear($Date){
+
+    //first validate date with validateDate function
+    if(!validateDate($Date)){
+        return false;
+    }
+
+    $year = date('Y', strtotime($Date));
+    $currentYear = date('Y');
+
+    if($year < 1900 || $year > $currentYear){
+        return false;
+    }
+
+
+
+    return true;
+
+
+}
+
+
+
+
+function validateCountryCode($code): bool
+{
+    $code = trim($code);
+    
+    // Check if the code is empty after trimming.
+    if (empty($code)) {
+        return false;
+    }
+
+    if (preg_match('/^[A-Z]{2}$/', $code)) {
+        return true;
+    }
+    
+    return false;
+}
+
+
+
 
 ?>
