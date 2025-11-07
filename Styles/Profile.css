@@ -313,7 +313,7 @@ body{
 }
 
 
-.TabContent.FollowList {
+.TabContent {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -323,10 +323,38 @@ body{
     /* max-width: 750px; */
     /* max-width: 200px; */
     /* justify-content: center; */
-    background: white;
+    background: #fdfdfd;
     border-radius: 15px;
     margin-bottom: 15px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.TabContent.About {
+    max-width: 650px;
+    font-size: 18px;
+    /* font-weight: 400; */
+    border: 2px solid #cdcdcd;
+}
+
+.AboutSection {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.BioSection {
+    width: 100%;
+    max-width: 70%;
+    display: flex;
+    /* justify-content: center; */
+    border: 2px solid #dddddd;
+    border-radius: 10px;
+    padding: 30px 40px;
+    font-size: 18px;
+    font-weight: 300;
+    background: #f4f4f4;
 }
 
 .UserCard {
@@ -474,7 +502,118 @@ body{
 }
 
 
+/* edit profile image  modal */
+/* Profile Picture & Cover Photo Modal Styling */
+.Modal.EditImageModal .ModalContent {
+    max-width: 500px;
+    gap: 15px;
+}
 
+.EditImageForm {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+}
+
+/* This is the file input, we hide it */
+.EditImageForm input[type="file"] {
+    display: none;
+}
+
+.ImagePreviewContainer {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%; /* Make it circular for profile pics */
+    overflow: hidden;
+    border: 3px solid #f0f0f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    background-color: #f9f9f9;
+}
+
+.ImagePreviewContainer img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: filter 0.3s ease;
+}
+
+.ImagePreviewContainer .ImagePreviewOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+    border-radius: 50%; /* Match the container */
+}
+
+.ImagePreviewContainer:hover .ImagePreviewOverlay {
+    opacity: 1;
+}
+
+.ImagePreviewContainer:hover img {
+    filter: brightness(70%);
+}
+
+.ImagePreviewOverlay .BrandBtn {
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-weight: 600;
+}
+.ImagePreviewOverlay .BrandBtn:hover {
+    background-color: #fff;
+}
+
+.EditImageForm .FormNavigation {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+
+/* Wider modal for cover photo  */
+.Modal.EditImageModal .ModalContent.Wide {
+    max-width: 800px; /* Wider modal for cover photo */
+}
+
+.ImagePreviewContainer.Cover {
+    width: 100%;
+    height: 250px; /* Rectangular shape */
+    border-radius: 12px; /* Slight rounding */
+    position: relative;
+    background-color: #e0e0e0;
+}
+
+.ImagePreviewContainer.Cover img {
+    border-radius: 0; /* Override the 50% from profile pic */
+    object-fit: cover; /* Cover the area */
+}
+
+/* Fix for default placeholder image */
+.ImagePreviewContainer.Cover img.DefaultImage {
+    object-fit: contain; /* Don't stretch the placeholder */
+    padding: 20px;
+}
+
+
+.ImagePreviewContainer.Cover .ImagePreviewOverlay {
+    border-radius: 12px; /* Match container */
+}
 
 
 /* .FollowBtn.BrandBtn {

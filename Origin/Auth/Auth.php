@@ -37,7 +37,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $LastName = $_POST['lname'];
         $Email = $_POST['email'];
         $Birthday = $_POST['bday'];
-        $Gender=$_POST['gender'];
+        $Gender=(int)$_POST['gender'];
         $Country = $_POST['country'];
         $Password = $_POST['pass'];
 

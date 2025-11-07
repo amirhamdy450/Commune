@@ -765,7 +765,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
 
         //get al replies to that comment
-        $sql="SELECT CR.id AS CRID, CR.UID,CR.Reply,CR.LikeCounter, CR.Date,Sender.Name AS Sender,
+        $sql="SELECT CR.id AS CRID, CR.UID,CR.Reply,CR.LikeCounter, CR.Date,CONCAT(Sender.Fname,' ',Sender.Lname)  AS Sender,
         Sender.Username AS SenderUsername,Tagged.Username AS TaggedUser ,
         CASE WHEN CRL.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
         FROM comments_replies CR

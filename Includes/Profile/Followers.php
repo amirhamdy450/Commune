@@ -8,7 +8,7 @@ $sql="SELECT F.FollowerID,U.Fname,U.Lname, U.ProfilePic ,U.Username,
  LEFT JOIN followers F2 ON F.FollowerID=F2.UserID AND F.UserID=F2.FollowerID
  WHERE F.UserID=?";
 $stmt=$pdo->prepare($sql);
-$stmt->execute([$UID]);
+$stmt->execute([$ProfileUserID]);
 $Followers=$stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if($Followers){
@@ -33,6 +33,9 @@ if($Followers){
         <div class=" BrandBtn FollowBtn '.$FollowStatus.'">Follow Back</div>
     </a>';
     }
+}else{
+    //no followers
+    echo '<p style="font-style:italic; color:gray; text-align:center; margin-top:20px;">No followers yet</p>';
 }
 
 

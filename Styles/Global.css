@@ -530,6 +530,15 @@ body.ModalOpen {
 }
 
 
+/* New Field Styles */
+.TextField select {
+    padding: 15px 20px;
+    border: 1px solid #dfe4ea;
+    border-radius: 5px;
+    width: 100%;
+    background-color: white;
+}
+
 .TextField.Error input, .TextArea.Error textarea {
     border: 2px solid #F23030;
 }
@@ -548,6 +557,8 @@ body.ModalOpen {
     color: #F23030;
     margin: 8px 0 4px;
 }
+
+
 
 
 

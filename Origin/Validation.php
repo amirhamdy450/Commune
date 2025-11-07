@@ -71,13 +71,11 @@ function validateName(string $name): bool
 function validateBoolean($value): bool
 {
 
-    $value = trim($value);
-    
-    // Check if the name is empty after trimming.
-    if (empty($value)) {
+    if ($value === '' || $value === null) {
         return false;
     }
-
+    
+    
     if ($value === 0 || $value === 1 || $value === '0' || $value === '1' || $value === true || $value === false) {
         return true;
     }

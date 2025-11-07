@@ -184,14 +184,7 @@
     flex-grow: 2;
 }
 
-/* New Field Styles */
-.TextField select {
-    padding: 15px 20px;
-    border: 1px solid #dfe4ea;
-    border-radius: 5px;
-    width: 100%;
-    background-color: white;
-}
+
 
 .RadioGroup {
     display: flex;

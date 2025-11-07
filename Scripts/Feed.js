@@ -165,6 +165,8 @@ function createCommentHTML(comment,type=1){
     ViewRepliesButton = '';
   }
 
+  comment.name=comment.Fname + ' ' + comment.Lname;
+
   if(type==1){
     return `             
       <div class="CommentContainer">

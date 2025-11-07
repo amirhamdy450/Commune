@@ -7,7 +7,7 @@ FROM followers F
 INNER JOIN users U ON F.UserID = U.id
 WHERE F.FollowerID = ?";
 $stmt=$pdo->prepare($sql);
-$stmt->execute([$UID]);
+$stmt->execute([$ProfileUserID]);
 $Followings=$stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
@@ -30,6 +30,9 @@ if($Followings){
         <div class=" BrandBtn Unfollow ">Unfollow</div>
     </a>';
     }
+}else{
+    //no followings
+    echo '<p style="font-style:italic; color:gray; text-align:center; margin-top:20px;">Not following anyone yet</p>';
 }
 
 

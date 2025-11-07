@@ -133,7 +133,7 @@
             <div class="CoverPhotoContainer">
                 <div class="CoverPhoto <?php echo !$hasCoverPhoto ? 'Default' : ''; ?>">
                     <?php if ($hasCoverPhoto): ?>
-                        <img src="https://via.placeholder.com/900x300/e0e0e0/ffffff?text=Cover+Photo" alt="Cover Photo">
+                        <img src="<?php echo $PATH . 'MediaFolders/cover_pictures/' . htmlspecialchars($ProfileUser['CoverPhoto']); ?>" alt="Cover Photo">
                     <?php endif; ?>
 
                 </div>
@@ -141,7 +141,13 @@
             <div class="ProfileBottomHeader">
                 <div class="Initial">
                     <div class="ProfilePictureContainer">
-                        <img src="Imgs/Icons/unknown.png" alt="Profile Picture">
+                        <?php
+                        if ($ProfileUser['ProfilePic']) {
+                            echo '<img src="'.$PATH . 'MediaFolders/profile_pictures/' . htmlspecialchars($ProfileUser['ProfilePic']) . '" alt="Profile Picture">';
+                        } else {
+                            echo '<img src="Imgs/Icons/unknown.png" alt="Profile Picture">';
+                        }
+                        ?>
 <!--                         <div class="Overlay">
                             <span>Edit </span>
                         </div>
@@ -194,6 +200,7 @@
             </div>
 
             <div class="TabsNav ProfileNav">
+                <a href="#" class="NavItem" tab-content="ProfileBioTab">Bio</a>
                 <a href="#" class="NavItem Active" tab-content="ProfilePostsTab" >Posts</a>
                 <a href="#" class="NavItem" tab-content="ProfileFollowersTab">Followers</a>
                 <a href="#" class="NavItem" tab-content="ProfileFollowingTab">Following</a>
@@ -217,16 +224,13 @@
 
 
         <div class="ProfileContent">
-<!--             <div class="TabsNav ProfileNav">
-                <a href="#" class="NavItem Active" tab-content="ProfilePostsTab" >Posts</a>
-                <a href="#" class="NavItem" tab-content="ProfileFollowersTab">Followers</a>
-                <a href="#" class="NavItem" tab-content="ProfileFollowingTab">Following</a>
-                <a href="#" class="NavItem" tab-content="ProfileAboutTab">About</a>
-            </div>
- -->
+
             
             <div class="TabContent Posts" id="ProfilePostsTab">
                 <?php include 'Includes/Profile/Posts.php'; ?>
+            </div>
+            <div class="TabContent Bio hidden" id="ProfileBioTab">
+                <?php include 'Includes/Profile/Bio.php';?>
             </div>
             <div class="TabContent FollowList Followers hidden" id="ProfileFollowersTab">
                 <?php include 'Includes/Profile/Followers.php'; ?>
@@ -234,7 +238,7 @@
             <div class="TabContent FollowList Following hidden" id="ProfileFollowingTab">
                 <?php include 'Includes/Profile/Following.php'; ?>
             </div>
-            <div class="TabContent hidden" id="ProfileAboutTab">
+            <div class="TabContent About hidden" id="ProfileAboutTab">
                 <?php include 'Includes/Profile/About.php';?>
             </div>
         </div>
