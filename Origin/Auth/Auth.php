@@ -6,6 +6,15 @@ include_once $PATH.'Origin/Validation.php';
 include_once $PATH.'Origin/Auth/Tokens.php';
 
 
+// --- START NEW PHPMailer SETUP ---
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require $PATH.'vendor/phpmailer/phpmailer/src/Exception.php';
+require $PATH.'vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require $PATH.'vendor/phpmailer/phpmailer/src/SMTP.php';
+// --- END NEW PHPMailer SETUP ---
+
 //Error codes:
 /*  severity increases with number
 41-49 - Client-side validation errors
@@ -261,6 +270,116 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         ]);
 
 
+    }else if($_POST['ReqType'] == 3){ //Request Password Reset
+        
+        $Email = $_POST['email'];
+        if(!ValidateEmail($Email) || !RowExists('users', 'Email', $Email)){
+            echo json_encode([
+                'status' => true, // We lie to the user for security
+                'message' => 'If an account with this email exists, a reset link has been sent.'
+            ]);
+            die();
+        }
+
+        // Generate a secure token
+        $token = bin2hex(random_bytes(32));
+        $expires = time() + 3600; // 1 hour
+
+        try {
+            // Delete any old tokens for this email
+            $sql = "DELETE FROM password_reset_tokens WHERE email = ?";
+            $pdo->prepare($sql)->execute([$Email]);
+
+            // Insert the new token
+            $sql = "INSERT INTO password_reset_tokens (email, token, expires) VALUES (?, ?, ?)";
+            $pdo->prepare($sql)->execute([$Email, $token, $expires]);
+
+            // --- Send the email ---
+            // !! CONFIGURE THIS SECTION WITH YOUR EMAIL CREDENTIALS !!
+            $mail = new PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';  // Set host to Gmail's SMTP server
+            $mail->SMTPAuth   = true;              // Enable SMTP authentication
+            $mail->Username   = 'test.noreplies@gmail.com'; // Your full Gmail address
+            $mail->Password   = 'ovjthrrmqslmxluc'; // The App Password you generated
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption
+            $mail->Port       = 587;               // TCP port to connect to
+
+            $mail->setFrom('test.noreplies@gmail.com', 'Commune'); // 'From' email and name
+            $mail->addAddress($Email);             // The user's email (from the form)
+
+            $mail->isHTML(true);
+            $mail->Subject = 'Your Password Reset Link';
+            
+            // !! IMPORTANT: Update this URL to match your website !!
+            $resetLink = 'http://localhost/projects/Commune/index.php?target=reset-password&token=' . $token; 
+            
+            $mail->Body    = "Hello,<br><br>Please click the link below to reset your password:<br><a href='$resetLink'>$resetLink</a><br><br>This link will expire in 1 hour.";
+
+            $mail->send();
+
+            echo json_encode([
+                'status' => true,
+                'message' => 'If an account with this email exists, a reset link has been sent.'
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("PHPMailer Error: " . $mail->ErrorInfo);
+            echo json_encode([
+                'status' => false,
+                'message' => 'Could not send email. Please contact support.'
+            ]);
+        }
+        die();
+
+    // --- START NEW REQTYPE 4 ---
+    }else if($_POST['ReqType'] == 4){ // Perform Password Reset
+        
+        $email = $_POST['email'];
+        $token = $_POST['token'];
+        $password = $_POST['pass'];
+
+        // 1. Validate Password
+        if(!ValidatePassword($password)){
+            echo json_encode([
+                'status' => false,
+                'message' => 'Password must be at least 8 characters long and include an uppercase, lowercase, and number.'
+            ]);
+            die();
+        }
+
+        // 2. Validate Token
+        $sql = "SELECT id FROM password_reset_tokens WHERE email = ? AND token = ? AND expires > ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$email, $token, time()]);
+        $tokenRow = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$tokenRow) {
+            echo json_encode([
+                'status' => false,
+                'message' => 'This reset link is invalid or has expired. Please try again.'
+            ]);
+            die();
+        }
+
+        // 3. Update User's Password
+        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+        $sql = "UPDATE users SET Password = ? WHERE Email = ?";
+        $pdo->prepare($sql)->execute([$hashedPassword, $email]);
+
+        // 4. Delete the used token
+        $sql = "DELETE FROM password_reset_tokens WHERE email = ?";
+        $pdo->prepare($sql)->execute([$email]);
+        
+        // 5. Delete all *other* login tokens for this user for security
+        $sql = "DELETE T FROM tokens T JOIN users U ON T.UID = U.id WHERE U.Email = ?";
+        $pdo->prepare($sql)->execute([$email]);
+
+        echo json_encode([
+            'status' => true,
+            'message' => 'Password reset successfully! You can now login.'
+        ]);
+        die();
     }
 
 

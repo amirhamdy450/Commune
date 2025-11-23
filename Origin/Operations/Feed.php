@@ -7,7 +7,19 @@ require_once $PATH.'Includes/Encryption.php';
 include_once $PATH.'Origin/Validation.php';
 
 
+function CreateNotification($ToUID, $FromUID, $Type, $ReferenceID = null, $MetaInfo = null) {
+    global $pdo;
 
+    // Don't notify if user acts on themselves (e.g., liking own post)
+    if ($ToUID == $FromUID && $FromUID !== null) {
+        return;
+    }
+
+    $sql = "INSERT INTO notifications (ToUID, FromUID, Type, ReferenceID, MetaInfo, Date) 
+            VALUES (?, ?, ?, ?, ?, NOW())";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$ToUID, $FromUID, $Type, $ReferenceID, $MetaInfo]);
+}
 
 
 
@@ -259,16 +271,22 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             }
         }
 
+
+        $PostProfilePic = (isset($newPost['ProfilePic']) && !empty($newPost['ProfilePic']))
+            ? 'MediaFolders/profile_pictures/' . htmlspecialchars($newPost['ProfilePic'])
+            : 'Imgs/Icons/unknown.png';
+
         $responsePost = [
             'PID' => $encryptedFeedPostID,
-            'name' => $newPost['name'],
+            'name' => $newPost['Fname'] . ' ' . $newPost['Lname'],
             'Content' => $newPost['Content'],
             'LikeCounter' => $newPost['LikeCounter'],
             'CommentCounter' => $newPost['CommentCounter'],
             'MediaFolder' => $media,
             'MediaType' => (int)$newPost['Type'],
             'CurrentUserPrivilege' => (int)$User['Privilege'],
-            'liked' => false
+            'liked' => false,
+            'ProfilePic' => $PostProfilePic
         ];
 
         echo json_encode([
@@ -279,18 +297,6 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         die();
     
 
-        //send back the post
-/*         $response[] = [
-            'PID' => $encryptedFeedPostID,
-            'name' => $FeedPost['name'],
-            'Content' => $FeedPost['Content'],
-            'LikeCounter' => $FeedPost['LikeCounter'],
-            'CommentCounter' => $FeedPost['CommentCounter'],
-            'MediaFolder' => $media,
-            'MediaType'=> (int)$FeedPost['Type'],
-            'CurrentUserPrivilege'=> (int)$User['Privilege'],
-        ];
- */
 
     
     } else if($_POST['ReqType'] == 2){  //like/unlike a post
@@ -318,6 +324,16 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 $sql='UPDATE posts SET LikeCounter=LikeCounter+1 WHERE id=?';
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$FeedPostID]);
+
+
+                // 1. Fetch Post Owner
+                $ownerSQL = "SELECT UID FROM posts WHERE id = ?";
+                $stmtOwner = $pdo->prepare($ownerSQL);
+                $stmtOwner->execute([$FeedPostID]);
+                $PostOwnerUID = $stmtOwner->fetchColumn();
+
+              
+                CreateNotification($PostOwnerUID, $UID, 1, $FeedPostID);
 
                 echo json_encode([
                     'success' => true,
@@ -392,6 +408,15 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $stmt->execute([$FeedPostID]);
 
 
+            // 1. Fetch Post Owner
+            $ownerSQL = "SELECT UID FROM posts WHERE id = ?";
+            $stmtOwner = $pdo->prepare($ownerSQL);
+            $stmtOwner->execute([$FeedPostID]);
+            $PostOwnerUID = $stmtOwner->fetchColumn();
+
+            // 2. Create Notification (Type 2 = Comment)
+            CreateNotification($PostOwnerUID, $UID, 2, $FeedPostID);
+
             echo json_encode([
                 'success' => true,
                 'message' => "Error: Failed To insert comment"
@@ -442,6 +467,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
                 $Comment['CID'] = Encrypt($Comment['CID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
 
+                $Comment['ProfilePic'] = (isset($Comment['ProfilePic']) && !empty($Comment['ProfilePic']))
+                    ? 'MediaFolders/profile_pictures/' . htmlspecialchars($Comment['ProfilePic'])
+                    : 'Imgs/Icons/unknown.png';
+
+                $Comment['IsSelf'] = ($Comment['UID'] == $UID);
 
                 //encrypt the user id (UID)
                 //$FormattedID = 'D'.$timestamp.'I'.$Comment['UID'];
@@ -461,6 +491,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $EncFeedPostAtr=$_POST['LastFeedPostPID']; //Enc stands for encrypted and atr stands for atribute
 
         $FeedPostID=(int)Decrypt($EncFeedPostAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
+
+        //check if search filter is set
+        if (isset($_POST['Search'])) {
+            $SearchTerm = '%' . $_POST['Search'] . '%';
+        }
 
 
         $sql = "SELECT 
@@ -495,6 +530,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
            /*  $UserID = 'D'.$timestamp.'I'.$FeedPost['UID']; */
             $encryptedUserID = Encrypt($FeedPost['UID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
+
+
+            $PostProfilePic = (isset($FeedPost['ProfilePic']) && !empty($FeedPost['ProfilePic']))
+                    ? 'MediaFolders/profile_pictures/' . htmlspecialchars($FeedPost['ProfilePic'])
+                    : 'Imgs/Icons/unknown.png';
+
 
             $MediaFolder = $PATH.$FeedPost['MediaFolder'];
             $media = [];
@@ -533,7 +574,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'liked'=>$FeedPost['liked'],
                 'following'=>$FeedPost['following'],
                 'Self' => (int)($FeedPost['UID'] == $UID), //identify if the post belongs to the user
-                'saved'=>(int)$FeedPost['saved']
+                'saved'=>(int)$FeedPost['saved'],
+                'ProfilePic' => $PostProfilePic
             ];
 
 
@@ -588,6 +630,18 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 $sql="UPDATE comments SET LikeCounter=LikeCounter+1 WHERE id=?";
                 $stmt=$pdo->prepare($sql);
                 if($stmt->execute([$CommentID])){
+                    // 1. Fetch Comment Owner and the Post it belongs to
+                    $sqlDetails = "SELECT UID, PostID FROM comments WHERE id = ?";
+                    $stmtDetails = $pdo->prepare($sqlDetails);
+                    $stmtDetails->execute([$CommentID]);
+                    $details = $stmtDetails->fetch(PDO::FETCH_ASSOC);
+                    
+                    $CommentOwnerUID = $details['UID'];
+                    $ReferencePostID = $details['PostID'];
+
+                    // 2. Create Notification (Type 5 = Like Comment)
+                    CreateNotification($CommentOwnerUID, $UID, 5, $ReferencePostID);
+
                     echo json_encode([
                         'success' => true,
                         'message' => "Comment Liked",
@@ -683,6 +737,24 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
 
 
+        // A. Fetch Thread Details (We need the PostID for the link, and the Main Comment Owner)
+        $stmtDetails = $pdo->prepare("SELECT UID, PostID FROM comments WHERE id = ?");
+        $stmtDetails->execute([$CommentID]);
+        $CommentDetails = $stmtDetails->fetch(PDO::FETCH_ASSOC);
+        
+        $CommentOwnerUID = $CommentDetails['UID'];
+        $ReferencePostID = $CommentDetails['PostID'];
+
+        // B. Determine Who to Notify
+        // If a specific user was tagged, they are the priority target.
+        // If no one was tagged, it's a direct reply to the main comment owner.
+        $TargetUID = ($TaggedUser !== NULL) ? $TaggedUser : $CommentOwnerUID;
+
+        // C. Send Notification (Type 3 = Reply)
+        // Note: We link to the ReferencePostID so the user lands on the correct post.
+        CreateNotification($TargetUID, $UID, 3, $ReferencePostID);
+
+
         echo json_encode([
             'success' => true,
             'message' => "Reply inserted",
@@ -716,6 +788,25 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 $sql="UPDATE comments_replies SET LikeCounter=LikeCounter+1 WHERE id=?";
                 $stmt=$pdo->prepare($sql);
                 if($stmt->execute([$ReplyID])){
+
+
+                    $sqlReply = "SELECT UID, CommentID FROM comments_replies WHERE id = ?";
+                    $stmtReply = $pdo->prepare($sqlReply);
+                    $stmtReply->execute([$ReplyID]);
+                    $replyData = $stmtReply->fetch(PDO::FETCH_ASSOC);
+                    
+                    $ReplyOwnerUID = $replyData['UID'];
+                    $ParentCommentID = $replyData['CommentID'];
+
+                    // 2. Fetch Post ID from the Parent Comment
+                    $sqlComment = "SELECT PostID FROM comments WHERE id = ?";
+                    $stmtComment = $pdo->prepare($sqlComment);
+                    $stmtComment->execute([$ParentCommentID]);
+                    $ReferencePostID = $stmtComment->fetchColumn();
+
+                    // 3. Create Notification (Type 6 = Like Reply)
+                    CreateNotification($ReplyOwnerUID, $UID, 6, $ReferencePostID);
+
                     echo json_encode([
                         'success' => true,
                         'message' => "Comment Liked",
@@ -766,7 +857,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         //get al replies to that comment
         $sql="SELECT CR.id AS CRID, CR.UID,CR.Reply,CR.LikeCounter, CR.Date,CONCAT(Sender.Fname,' ',Sender.Lname)  AS Sender,
-        Sender.Username AS SenderUsername,Tagged.Username AS TaggedUser ,
+        Sender.Username AS SenderUsername, Sender.ProfilePic AS SenderProfilePic, Tagged.Username AS TaggedUser ,
         CASE WHEN CRL.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
         FROM comments_replies CR
         INNER JOIN users Sender ON CR.UID=Sender.id
@@ -788,6 +879,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 
             //encrypt the user id (UID)
+
+            $Reply['SenderProfilePic'] = (isset($Reply['SenderProfilePic']) && !empty($Reply['SenderProfilePic']))
+            ? 'MediaFolders/profile_pictures/' . htmlspecialchars($Reply['SenderProfilePic'])
+            : 'Imgs/Icons/unknown.png';
+
+            $Reply['IsSelf'] = ($Reply['UID'] == $UID);
 
             $Reply['UID'] = Encrypt($Reply['UID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
         }
@@ -823,6 +920,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $sql="INSERT INTO followers (FollowerID,UserID) VALUES (?,?)";
             $stmt=$pdo->prepare($sql);
             if($stmt->execute([$UID,$TargetUserID])){
+
+                CreateNotification($TargetUserID, $UID, 4);
                 echo json_encode([
                     'success' => true,
                     'message' => "Followed",
@@ -889,7 +988,339 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             echo json_encode(['success' => true, 'message' => 'User blocked.']);
         }
         exit;
-}
+    }else if ($_POST["ReqType"] == 14) { // FETCH POST FOR EDITING
+        $EncFeedPostAtr = $_POST['FeedPostID'];
+        $FeedPostID = (int)Decrypt($EncFeedPostAtr, "Positioned");
+
+        // 1. Verify Ownership
+        $sql = "SELECT Content, Type, MediaFolder FROM posts WHERE id = ? AND UID = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$FeedPostID, $UID]);
+        $post = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$post) {
+            echo json_encode(['success' => false, 'message' => 'Post not found or you do not have permission to edit it.']);
+            die();
+        }
+
+        // 2. Get Media Files
+        $media = [];
+        $FolderPath = $PATH . $post['MediaFolder'];
+        if ($post['Type'] == 2 || $post['Type'] == 3) {
+             if (is_dir($FolderPath)) {
+                $mediaFiles = scandir($FolderPath);
+                foreach ($mediaFiles as $file) {
+                    if ($file !== '.' && $file !== '..') {
+                        // We send the filename and the client-facing path
+                        $media[] = [
+                            'name' => $file, 
+                            'path' => $post['MediaFolder'] . '/' . $file
+                        ];
+                    }
+                }
+            }
+        }
+        
+        // 3. Send data to the client
+        echo json_encode([
+            'success' => true,
+            'Content' => $post['Content'],
+            'MediaType' => (int)$post['Type'],
+            'MediaFiles' => $media
+        ]);
+        die();
+
+    } else if ($_POST["ReqType"] == 15) { // SUBMIT POST EDIT
+        $EncFeedPostAtr = $_POST['PostID'];
+        $FeedPostID = (int)Decrypt($EncFeedPostAtr, "Positioned");
+        $PostContent = $_POST['content'];
+        $filesToDelete = isset($_POST['files_to_delete']) ? json_decode($_POST['files_to_delete']) : [];
+
+        // 1. Verify Ownership and get MediaFolder
+        $sql = "SELECT MediaFolder, Type FROM posts WHERE id = ? AND UID = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$FeedPostID, $UID]);
+        $post = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$post) {
+            echo json_encode(['success' => false, 'message' => 'Post not found or you do not have permission to edit it.']);
+            die();
+        }
+
+        $FolderPath = $PATH . $post['MediaFolder']; // Full server path to media
+        $RootMediaFolderPath = $post['MediaFolder']; // DB path
+        $currentType = (int)$post['Type'];
+
+        if (!empty($post['MediaFolder']) && !is_dir($FolderPath)) {
+            if (!mkdir($FolderPath, 0777, true)) {
+                echo json_encode(['success' => false, 'message' => "Error: Could not create media directory."]);
+                die();
+            }
+        }
+
+        // 2. Delete marked files
+        if (!empty($filesToDelete)) {
+            foreach ($filesToDelete as $filename) {
+                $filePath = $FolderPath . '/' . basename($filename); // Sanitize filename
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+        }
+
+        // 3. Handle new file uploads (re-using logic from ReqType 1)
+        $ImagesFound = false;
+        $DocumentFound = false;
+
+        // Check file types (logic from ReqType 1)
+        if (isset($_FILES['document']) && isset($_FILES['images'])) {
+             echo json_encode(['success' => false, 'message' => "Error: Multiple File Types Detected !"]);
+             die();
+        }
+        
+        // Check if new documents were uploaded
+        if (isset($_FILES['document'])) {
+            $DocumentFound = true;
+            $DocumentFiles = $_FILES['document'];
+            $CreationTime = strtotime("now"); // Use for new file names
+             
+             for ($i = 0; $i < count($DocumentFiles['name']); $i++) {
+                $fileExtension = pathinfo($DocumentFiles['name'][$i], PATHINFO_EXTENSION);
+                $newFilename = $CreationTime . $UID . "_file" . ($i + 1) . "." . $fileExtension;
+                $targetPath = $FolderPath . "/" . $newFilename;
+
+                if (in_array(strtolower($fileExtension), $AllowedDocumentExtensions)) {
+                    if (!move_uploaded_file($DocumentFiles['tmp_name'][$i], $targetPath)) {
+                        echo json_encode(['success' => false, 'message' => "Error: Failed to move ".$DocumentFiles['name'][$i]]);
+                        die();
+                    }
+                } else {
+                     echo json_encode(['success' => false, 'message' => "Error: File Extension Of ".$DocumentFiles['name'][$i]." is not allowed !"]);
+                     die();
+                }
+             }
+        }
+        
+        // Check if new images were uploaded (simplified from ReqType 1 - add scaling back if needed)
+        if (isset($_FILES['images'])) {
+            $ImagesFound = true;
+            $ImageFiles = $_FILES['images'];
+            $CreationTime = strtotime("now");
+
+            for ($i = 0; $i < count($ImageFiles['name']); $i++) {
+                $fileExtension = strtolower(pathinfo($ImageFiles['name'][$i], PATHINFO_EXTENSION));
+                $newFilename = $CreationTime . $UID . "_file" . ($i + 1) . "." . $fileExtension;
+                $targetPath = $FolderPath . "/" . $newFilename;
+
+                if (!in_array($fileExtension, $AllowedImagesExtensions)) {
+                    echo json_encode(['success' => false, 'message' => "Error: File Extension Of ".$ImageFiles['name'][$i]." is not allowed !"]);
+                    die();
+                }
+                
+                // Simplified move_uploaded_file. Add image scaling logic from ReqType 1 back here if you need it.
+                if (!move_uploaded_file($ImageFiles['tmp_name'][$i], $targetPath)) {
+                    echo json_encode(['success' => false, 'message' => "Error: Failed to move ".$ImageFiles['name'][$i]]);
+                    die();
+                }
+            }
+        }
+
+        // 4. Determine new post type
+        $remainingFiles = glob($FolderPath . "/*");
+        $fileCount = 0;
+        if ($remainingFiles) {
+            $fileCount = count($remainingFiles);
+        }
+
+        $newType = $currentType;
+        if ($fileCount == 0) {
+            $newType = 1; // Text only
+        } else if ($DocumentFound) {
+            $newType = 3; // Documents
+        } else if ($ImagesFound) {
+            $newType = 2; // Images
+        } else if ($currentType == 3 && !$DocumentFound) {
+            // No new docs, but old docs remain
+            $newType = 3;
+        } else if ($currentType == 2 && !$ImagesFound) {
+            // No new images, but old images remain
+            $newType = 2;
+        }
+
+
+        // 5. Update the database
+        $sql = "UPDATE posts SET Content = ?, Type = ? WHERE id = ? AND UID = ?";
+        $stmt = $pdo->prepare($sql);
+        if (!$stmt->execute([$PostContent, $newType, $FeedPostID, $UID])) {
+            echo json_encode(['success' => false, 'message' => "Error: Failed to update post in database."]);
+            die();
+        }
+
+        // 6. Fetch and return the fully updated post data
+        $sql = 'SELECT posts.id AS PID, posts.*, users.Fname, users.Lname, users.Username, users.ProfilePic,
+                CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
+                CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
+                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved
+                FROM posts
+                INNER JOIN users ON posts.UID = users.id
+                LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
+                LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
+                LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
+                WHERE posts.id = ?';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$UID, $UID, $UID, $FeedPostID]);
+        $updatedPost = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Manually format the post for the client
+        $timestamp = strtotime($updatedPost['Date']);
+        $encryptedFeedPostID = Encrypt($updatedPost['PID'], "Positioned", ["Timestamp" => $timestamp]);
+        $encryptedUserID = Encrypt($updatedPost['UID'], "Positioned", ["Timestamp" => $timestamp]);
+        
+        $PostProfilePic = (isset($updatedPost['ProfilePic']) && !empty($updatedPost['ProfilePic']))
+            ? 'MediaFolders/profile_pictures/' . htmlspecialchars($updatedPost['ProfilePic'])
+            : 'Imgs/Icons/unknown.png';
+
+        $media = [];
+        $MediaFolder = $PATH . $updatedPost['MediaFolder'];
+        if ($updatedPost['Type'] > 1 && is_dir($MediaFolder)) {
+            $MediaFiles = scandir($MediaFolder);
+            foreach ($MediaFiles as $file) {
+                if ($file !== '.' && $file !== '..') {
+                    $media[] = ['name' => $file, 'path' => $updatedPost['MediaFolder'] . '/' . $file];
+                }
+            }
+        }
+        
+        $responsePost = [
+            'PID' => $encryptedFeedPostID,
+            'UID' => $encryptedUserID,
+            'name' => $updatedPost['Fname'] . ' ' . $updatedPost['Lname'],
+            'Username' => $updatedPost['Username'],
+            'ProfilePic' => $PostProfilePic,
+            'Content' => $updatedPost['Content'],
+            'LikeCounter' => $updatedPost['LikeCounter'],
+            'CommentCounter' => $updatedPost['CommentCounter'],
+            'MediaFolder' => $media,
+            'MediaType'=> (int)$updatedPost['Type'],
+            'liked'=> (bool)$updatedPost['liked'],
+            'following'=> (bool)$updatedPost['following'],
+            'Self' => (int)($updatedPost['UID'] == $UID),
+            'saved'=>(int)$updatedPost['saved']
+        ];
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Post updated successfully',
+            'post' => $responsePost
+        ]);
+        die();
+    }else if ($_POST["ReqType"] == 16) { // DELETE COMMENT
+        $EncCommentAtr = $_POST['CommentID'];
+        $CommentID = (int)Decrypt($EncCommentAtr, "Positioned");
+
+        if ($CommentID <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Invalid Comment ID.']);
+            die();
+        }
+
+        // 1. Verify Ownership & Get PostID
+        // We select UID to verify ownership, and PostID to update the counter later
+        $sql = "SELECT UID, PostID FROM comments WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$CommentID]);
+        $commentData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$commentData) {
+            echo json_encode(['success' => false, 'message' => 'Comment not found.']);
+            die();
+        }
+
+        if ($commentData['UID'] != $UID) {
+            echo json_encode(['success' => false, 'message' => 'Permission denied. You do not own this comment.']);
+            die();
+        }
+        
+        $PostID = $commentData['PostID'];
+
+        try {
+            $pdo->beginTransaction();
+
+            // 2. DELETE DEPENDENCIES (Manual Cascade)
+            
+            // A. Delete Likes on Replies to this comment
+            // "Delete from likes where the reply belongs to this comment"
+            $sql = "DELETE FROM comments_replies_likes 
+                    WHERE ReplyID IN (SELECT id FROM comments_replies WHERE CommentID = ?)";
+            $pdo->prepare($sql)->execute([$CommentID]);
+
+            // B. Delete Replies to this comment
+            $sql = "DELETE FROM comments_replies WHERE CommentID = ?";
+            $pdo->prepare($sql)->execute([$CommentID]);
+
+            // C. Delete Likes on this comment
+            $sql = "DELETE FROM comments_likes WHERE CommentID = ?";
+            $pdo->prepare($sql)->execute([$CommentID]);
+
+            // 3. DELETE THE COMMENT
+            // Now that all children are gone, this will succeed
+            $sql = "DELETE FROM comments WHERE id = ?";
+            $pdo->prepare($sql)->execute([$CommentID]);
+
+            // 4. Update Post Counter
+            // We decrement the counter, ensuring it doesn't go below zero
+            $sql = "UPDATE posts SET CommentCounter = GREATEST(0, CommentCounter - 1) WHERE id = ?";
+            $pdo->prepare($sql)->execute([$PostID]);
+
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Comment and its replies deleted successfully']);
+
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            // Log the specific DB error for debugging
+            error_log("Delete Comment Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Database error occurred while deleting.']);
+        }
+
+    } else if ($_POST["ReqType"] == 17) { // DELETE REPLY
+        $EncReplyAtr = $_POST['ReplyID'];
+        $ReplyID = (int)Decrypt($EncReplyAtr, "Positioned");
+
+        // 1. Verify Ownership & Get CommentID
+        $sql = "SELECT CommentID FROM comments_replies WHERE id = ? AND UID = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$ReplyID, $UID]);
+        $replyData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$replyData) {
+            echo json_encode(['success' => false, 'message' => 'Reply not found or permission denied.']);
+            die();
+        }
+
+        $CommentID = $replyData['CommentID'];
+
+        try {
+            $pdo->beginTransaction();
+
+            // 2. Delete Likes on this Reply
+            $sql = "DELETE FROM comments_replies_likes WHERE ReplyID = ?";
+            $pdo->prepare($sql)->execute([$ReplyID]);
+
+            // 3. Delete the Reply
+            $sql = "DELETE FROM comments_replies WHERE id = ?";
+            $pdo->prepare($sql)->execute([$ReplyID]);
+
+            // 4. Update Comment Counter (ReplyCounter)
+            $sql = "UPDATE comments SET ReplyCounter = GREATEST(0, ReplyCounter - 1) WHERE id = ?";
+            $pdo->prepare($sql)->execute([$CommentID]);
+
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Reply deleted']);
+
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => 'Error deleting reply']);
+        }
+    }
     
 
 

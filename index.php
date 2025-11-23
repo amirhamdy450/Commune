@@ -90,6 +90,13 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
                 $encryptedUserID=Encrypt($FeedPost['UID'],"Positioned",$params);
 
+                if (isset($FeedPost['ProfilePic']) && !empty($FeedPost['ProfilePic'])) {
+                    $PostProfilePic = 'MediaFolders/profile_pictures/' . htmlspecialchars($FeedPost['ProfilePic']);
+                } else {
+                    $PostProfilePic = 'Imgs/Icons/unknown.png'; // Fallback
+                }
+                // --- END N
+
                 /*   $decrypted=  openssl_decrypt($encryptedFeedPostID, 'aes-256-cbc', ENCRYPTION_KEY, OPENSSL_RAW_DATA, ENCRYPTION_IV);
                 echo $decrypted; */
 
@@ -97,8 +104,8 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                     <div class="FeedPostHeader">
                         <div class="FeedPostAuthorContainer">
                             <a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID). '">
-                                <img src="Imgs/Icons/unknown.png" alt="">
-                                <p>' . $FeedPost['Fname'] . ' ' . $FeedPost['Lname'] . '</p>
+                                <img src="' . $PostProfilePic . '" alt="Profile Picture">                        
+                                 <p>' . $FeedPost['Fname'] . ' ' . $FeedPost['Lname'] . '</p>
                             </a>';
 
                             if(!$IsSelfPost){

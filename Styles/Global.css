@@ -46,6 +46,7 @@ h1,h2,h3,h4,h5,h6,p{
     color: white;
     padding: 14px 43px;
     cursor: pointer;
+    text-decoration: none;
     -khtml-border-radius: 10px;
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
@@ -57,7 +58,6 @@ h1,h2,h3,h4,h5,h6,p{
     outline: none;
     text-align: center;
 }
-
 .BrandBtn:hover {
     background-color: var(--accent-color-hover);
     transition: all 0.2s ease-in-out;
@@ -232,6 +232,86 @@ body.ModalOpen {
     border-radius: 20px;
 }
 
+/* Make the search bar container relative */
+.WideSearch {
+    position: relative;
+}
+
+/* Style for the suggestions dropdown */
+.SearchSuggestions {
+    position: absolute;
+    top: 100%; /* Position right below the search bar */
+    left: 0;
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000; /* Above other content */
+    margin-top: 5px; /* Small gap */
+}
+
+.SearchSuggestions .SuggestionSectionTitle {
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #657786;
+    background-color: #f5f8fa;
+    border-bottom: 1px solid #e1e8ed;
+}
+
+.SearchSuggestionItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #14171a;
+    transition: background-color 0.2s ease;
+}
+
+.SearchSuggestionItem:hover {
+    background-color: #f5f8fa;
+}
+
+/* User Suggestion Item */
+.SearchSuggestionItem.UserSearch img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.SearchSuggestionItem.UserSearch .UserInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.SearchSuggestionItem.UserSearch .UserInfo .Name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.SearchSuggestionItem.UserSearch .UserInfo .Username {
+    font-size: 14px;
+    color: #657786;
+}
+
+/* Topic/Full Search Item */
+.SearchSuggestionItem.TopicSearch {
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.SearchSuggestionItem.TopicSearch img {
+    width: 30px;
+    height: 30px;
+    opacity: 0.6;
+}
+
+
 .CreatePostBtn {
     padding: 10px 20px;
     border-radius: 20px;
@@ -245,6 +325,201 @@ body.ModalOpen {
     transform: scale(1.05);
 }
 
+
+/* --- NOTIFICATION SYSTEM STYLES --- */
+/* 1. The Container */
+#NotifContainer {
+    position: relative;
+}
+
+/* 2. The Bell Button */
+#NotifBtn {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+/* 3. The Red Badge */
+.NotifBadge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: #e41e3f;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 4px;
+    font-size: 10px;
+    font-weight: bold;
+    border: 2px solid #fff;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 4. The Dropdown Panel */
+.DropdownMenu.Notifications {
+    position: absolute;
+    top: 60px;
+    right: -90px; /* Center alignment */
+    width: 360px; /* Wider for better readability */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e1e8ed;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform-origin: top right;
+    animation: menuScale 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes menuScale {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Header */
+.NotifHeader {
+    padding: 15px 20px;
+    font-weight: 800;
+    font-size: 18px;
+    border-bottom: 1px solid #f0f2f5;
+    background-color: #fff;
+}
+
+/* Scrollable List Area */
+.NotifList {
+    overflow-y: auto;
+    max-height: 450px;
+    background-color: #fff;
+    min-height: 100px; /* Prevents collapse */
+}
+
+/* Individual Notification Items */
+.NotifItem {
+    display: flex;
+    align-items: start; /* Align to top for long text */
+    gap: 15px;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: #14171a;
+    border-bottom: 1px solid #f7f9fa;
+    transition: background-color 0.1s;
+}
+
+.NotifItem:hover {
+    background-color: #f8f9fa;
+}
+
+.NotifItem.Unread {
+    background-color: #f0f7ff;
+    border-left: 3px solid var(--accent-color);
+}
+
+.NotifItem img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0; /* Prevent squishing */
+    border: 1px solid #eee;
+}
+
+.NotifContent {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    line-height: 1.4;
+    padding-top: 2px;
+}
+
+.NotifDate {
+    font-size: 12px;
+    color: #657786;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* --- NEW: SMOOTH LOADER --- */
+.NotifLoader {
+    padding: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.NotifLoader .Loader {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #eff1f1;       /* Light track */
+    border-top-color: var(--accent-color); /* Active color */
+    border-radius: 50%;
+    animation: smoothSpin 0.8s linear infinite;
+}
+
+@keyframes smoothSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- NEW: EMPTY STATE --- */
+.NotifEmptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    text-align: center;
+    color: #657786;
+    min-height: 250px;
+}
+
+.NotifEmptyState img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 15px;
+    opacity: 0.2; /* Subtle look */
+    filter: grayscale(100%);
+}
+
+.NotifEmptyState h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #14171a;
+}
+
+.NotifEmptyState p {
+    font-size: 14px;
+    max-width: 200px;
+    line-height: 1.5;
+}
+
+/* --- NEW: FOOTER --- */
+.NotifFooter {
+    padding: 15px;
+    text-align: center;
+    background-color: #f7f9fa;
+    border-top: 1px solid #e1e8ed;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-color);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.NotifFooter:hover {
+    background-color: #eef0f2;
+}
+
+/* --- END OF NOTIFICATION SYSTEM STYLES --- */
+
 .ActionBar {
     display: flex;
     justify-content: center;
@@ -252,7 +527,23 @@ body.ModalOpen {
     gap: 10px;
 }
 
-
+#NavMenuDropBtn {
+    display: inline-block;
+    width: 53px;
+    height: 53px;
+    padding: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    vertical-align: middle;
+    border: 2px solid #bcbcbc;
+}
+/* This targets the <img> inside the button */
+#NavMenuDropBtn img {
+    width: 100%;           
+    height: 100%;          
+    object-fit: cover;     /* Scale the image to cover, DO NOT STRETCH */
+    display: block;      
+}
 /* Create_Posts */
 
 .CPost {

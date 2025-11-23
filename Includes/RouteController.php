@@ -20,7 +20,16 @@ if (isset($_GET['redirect'])) {
         die();
     }
 
+    if($Redirect == "saved"){
+        include $PATH.'Includes/SavedPosts.php';
+        die();
+    }
 
+
+    if($Redirect == "forgot-password"){
+        include $PATH.'Includes/Access/ForgetPass.php';
+        die();
+    }
 
     if($Redirect == "logout"){
         include $PATH.'Includes/Access/Logout.php';
@@ -36,7 +45,7 @@ if (isset($_GET['redirect'])) {
 if(isset($_GET['target'])){
     $target=$_GET['target'];
 
-    //check if url has a pid param to show a specific post
+    // --- POST ---
     if($target == "post"){
         if (isset($_GET['pid'])) {
 
@@ -51,7 +60,22 @@ if(isset($_GET['target'])){
     }
 
 
+    // --- SEARCH ---
+    if($target == "search"){
+        if (isset($_GET['query'])) {
+            $SearchQuery = $_GET['query']; // This var will be used by search.php
+            include 'Search.php';
+            die();
+        } else {
+            // No query? Just go to the main page.
+            header("Location: index.php");
+            exit();
+        }
+    }
+
+
     if($target == "profile"){
+
         if (isset($_GET['uid'])) {
             $ProfileUserID = $_GET['uid'];
             include 'VProfile.php';
@@ -59,6 +83,24 @@ if(isset($_GET['target'])){
         
         }else{
             header("Location: 404.php");
+            exit();
+        }
+    }
+
+    if($target == "settings"){
+        include 'Settings.php';
+        die();
+    }
+
+
+    if($target == "reset-password"){
+        if (isset($_GET['token'])) {
+            $ResetToken = $_GET['token']; // This var will be used by reset-password.php
+            include $PATH.'Includes/Access/ResetPass.php';
+            die();
+        } else {
+            // No token? Go to forgot password page.
+            header("Location: index.php?redirect=forgot-password");
             exit();
         }
     }

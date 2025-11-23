@@ -3,6 +3,7 @@ $PATH="../../";
 
 require_once $PATH."Includes/Config.php";
 require_once $PATH.'Includes/UserAuth.php';  //include validation to get user data
+require_once $PATH.'Includes/Encryption.php';
 include_once $PATH.'Origin/Validation.php';
 
 
@@ -296,6 +297,129 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         } else {
             echo json_encode(['success' => false, 'message' => 'No file was uploaded.']);
         }
+        die();
+    }else if($_POST['ReqType'] == 5){ // FETCH MORE PROFILE POSTS (Infinite Scroll)
+        
+        $TargetEncUID = $_POST['TargetUID'];
+        $LastPostEncID = $_POST['LastPostID'];
+
+        $TargetUID = (int)Decrypt($TargetEncUID, "Positioned");
+        $LastPostID = (int)Decrypt($LastPostEncID, "Positioned");
+
+        // Fetch 5 posts OLDER than the last one, strictly for this TargetUID
+        $sql = "SELECT 
+                posts.id AS PID, posts.*, users.*,
+                CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
+                FROM posts 
+                INNER JOIN users ON posts.UID = users.id
+                LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
+                WHERE posts.Status = 1 AND posts.UID = ? AND posts.id < ?
+                ORDER BY posts.Date DESC 
+                LIMIT 5";
+        
+        $stmt = $pdo->prepare($sql);
+        // Params: [LoggedInUser (for like status), TargetProfileUser, LastPostID]
+        $stmt->execute([$UID, $TargetUID, $LastPostID]);
+        $NewPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $response = [];
+
+        foreach ($NewPosts as $FeedPost) {
+            $timestamp = strtotime($FeedPost['Date']);
+            $encryptedFeedPostID = Encrypt($FeedPost['PID'], "Positioned", ["Timestamp" => $timestamp]);
+            $encryptedUserID = Encrypt($FeedPost['UID'], "Positioned", ["Timestamp" => $timestamp]);
+
+            // Format Profile Pic
+            $PostProfilePic = (isset($FeedPost['ProfilePic']) && !empty($FeedPost['ProfilePic']))
+            ? 'MediaFolders/profile_pictures/' . htmlspecialchars($FeedPost['ProfilePic'])
+            : 'Imgs/Icons/unknown.png';
+
+            // Handle Media
+            $MediaFolder = $PATH . $FeedPost['MediaFolder'];
+            $media = [];
+            if (is_dir($MediaFolder)) {
+                $MediaFiles = scandir($MediaFolder);
+                foreach ($MediaFiles as $file) {
+                    if (!in_array($file, ['.', '..'])) {
+                        $media[] = ['name' => $file, 'path' => $FeedPost['MediaFolder'] . '/' . $file];
+                    }
+                }
+            }
+
+            $response[] = [
+                'PID' => $encryptedFeedPostID,
+                'UID' => $encryptedUserID,
+                'name' => $FeedPost['Fname'] . ' ' . $FeedPost['Lname'],
+                'Content' => $FeedPost['Content'],
+                'LikeCounter' => $FeedPost['LikeCounter'],
+                'CommentCounter' => $FeedPost['CommentCounter'],
+                'MediaFolder' => $media,
+                'MediaType' => (int)$FeedPost['Type'],
+                'CurrentUserPrivilege' => (int)$User['Privilege'],
+                'liked' => $FeedPost['liked'],
+                'ProfilePic' => $PostProfilePic,
+                // 'Self' logic is handled by JS comparing IDs if needed, or we can pass it
+                'Self' => ($FeedPost['UID'] == $UID) ? 1 : 0
+            ];
+        }
+
+        echo json_encode($response);
+        die();
+    }else if ($_POST['ReqType'] == 6) {
+        $sql = "SELECT COUNT(*) FROM notifications WHERE ToUID = ? AND IsRead = 0";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$UID]);
+        $count = $stmt->fetchColumn();
+        
+        echo json_encode(['success' => true, 'count' => $count]);
+        die();
+    }
+
+    // [ReqType 8] FETCH NOTIFICATIONS & MARK READ
+    else if ($_POST['ReqType'] == 7) {
+        
+        // 1. Mark all as read immediately upon fetching
+        $updateSql = "UPDATE notifications SET IsRead = 1 WHERE ToUID = ? AND IsRead = 0";
+        $pdo->prepare($updateSql)->execute([$UID]);
+
+        // 2. Fetch the notifications with Actor details
+        $sql = "SELECT n.*, 
+                u.Fname, u.Lname, u.ProfilePic, u.Username 
+                FROM notifications n
+                LEFT JOIN users u ON n.FromUID = u.id
+                WHERE n.ToUID = ? 
+                ORDER BY n.Date DESC 
+                LIMIT 20"; // Limit to recent 20
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$UID]);
+        $rawNotifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $formatted = [];
+        foreach ($rawNotifs as $n) {
+            $timestamp = strtotime($n['Date']);
+            
+            // Encrypt IDs for safe linking
+            $encRefID = $n['ReferenceID'] ? Encrypt($n['ReferenceID'], "Positioned", ["Timestamp" => $timestamp]) : null;
+            $encFromUID = $n['FromUID'] ? Encrypt($n['FromUID'], "Positioned", ["Timestamp" => $timestamp]) : null;
+            
+            $ProfilePic = (isset($n['ProfilePic']) && !empty($n['ProfilePic']))
+                ? 'MediaFolders/profile_pictures/' . htmlspecialchars($n['ProfilePic'])
+                : 'Imgs/Icons/unknown.png';
+
+            $formatted[] = [
+                'id' => $n['id'],
+                'Type' => (int)$n['Type'],
+                'ActorName' => $n['Fname'] . ' ' . $n['Lname'],
+                'ActorPic' => $ProfilePic,
+                'RefID' => $encRefID,
+                'FromUID' => $encFromUID,
+                'Date' => date("M d, H:i", $timestamp),
+                'MetaInfo' => $n['MetaInfo']
+            ];
+        }
+
+        echo json_encode(['success' => true, 'notifications' => $formatted]);
         die();
     }
     // --- END OF NEW BLOCK ---

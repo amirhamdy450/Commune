@@ -1,4 +1,5 @@
 import { Submit, ValidateName, ValidateDate, PopulateFieldError } from "./Forms.js";
+import { createPostHTML, attachPostInteractions } from "./Feed.js";
 document.addEventListener('DOMContentLoaded', () => {
 
 //TABS
@@ -40,10 +41,10 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
     const editProfileForm = document.getElementById("EditProfileForm");
     
     // Find the new Cancel button
-    const editProfileCancelBtn = editProfileModal.querySelector(".ModalCancelBtn");
 
-    if (editProfileBtn && editProfileModal && editProfileForm && editProfileCancelBtn) {
-        
+    if (editProfileBtn && editProfileModal && editProfileForm ) {
+        const editProfileCancelBtn = editProfileModal.querySelector(".ModalCancelBtn");
+
         // 1. Click listener to open the modal
         editProfileBtn.addEventListener("click", () => {
             // Clear any old validation errors
@@ -361,6 +362,78 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
         });
     }
 
+    let isFetchingProfilePosts = false;
+    let noMoreProfilePosts = false;
+    const profilePostsContainer = document.getElementById('ProfilePostsTab');
+    const profileLoader = document.getElementById('ProfilePostLoader');
+    const targetUIDInput = document.getElementById('UserProfileID');
+
+    if (profilePostsContainer && profileLoader && targetUIDInput) {
+        
+        const checkAndLoadPosts = () => {
+            if (profilePostsContainer.classList.contains('hidden')) return;
+            if (isFetchingProfilePosts || noMoreProfilePosts) return;
+
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+            if (scrollTop + clientHeight >= scrollHeight - 150) {
+                
+                // 3. Show Loader IMMEDIATELY
+                isFetchingProfilePosts = true;
+                profileLoader.classList.remove('hidden');
+
+                // 4. START THE ARTIFICIAL DELAY HERE
+                // This ensures the loader is visible for at least 500ms
+                setTimeout(() => {
+                    const posts = profilePostsContainer.getElementsByClassName('FeedPost');
+                    if (posts.length === 0) {
+                        // Safety check: if for some reason posts are gone
+                        isFetchingProfilePosts = false;
+                        profileLoader.classList.add('hidden');
+                        return;
+                    }
+                    
+                    const lastPost = posts[posts.length - 1];
+                    const lastPostID = lastPost.getAttribute('PID');
+                    const targetUID = targetUIDInput.value;
+
+                    const formData = new FormData();
+                    formData.append('ReqType', 5);
+                    formData.append('TargetUID', targetUID);
+                    formData.append('LastPostID', lastPostID);
+
+                    Submit('POST', 'Origin/Operations/User.php', formData)
+                        .then(data => {
+                            if (data && data.length > 0) {
+                                data.forEach(post => {
+                                    const postHTML = createPostHTML(post);
+                                    profileLoader.insertAdjacentHTML('beforebegin', postHTML);
+                                    
+                                    const newPostElement = profileLoader.previousElementSibling;
+                                    attachPostInteractions(newPostElement);
+                                });
+                                
+                                setTimeout(checkAndLoadPosts, 200);
+                                
+                            } else {
+                                noMoreProfilePosts = true;
+                                if (!profilePostsContainer.querySelector('.NoMorePosts')) {
+                                    profileLoader.insertAdjacentHTML('beforebegin', '<p class="NoMorePosts">No more posts to show.</p>');
+                                }
+                            }
+                        })
+                        .catch(err => console.error("Error loading profile posts:", err))
+                        .finally(() => {
+                            isFetchingProfilePosts = false;
+                            profileLoader.classList.add('hidden');
+                        });
+                }, 500); // <--- The 500ms Delay
+            }
+        };
+
+        window.addEventListener('scroll', checkAndLoadPosts);
+        setTimeout(checkAndLoadPosts, 500); // Initial load delay
+    }
     function clearFormErrors() {
         const errorFields = editProfileForm.querySelectorAll(".TextField.Error");
         errorFields.forEach(field => {

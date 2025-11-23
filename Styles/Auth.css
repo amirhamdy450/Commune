@@ -198,3 +198,66 @@
     gap: 5px;
     cursor: pointer;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.AuthBoxMessage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 15px;
+    width: 100%;
+    max-width: 380px;
+    
+    /* This vertically centers it in the AuthBox */
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.AuthBoxMessage img {
+    width: 80px;
+    height: 80px;
+    opacity: 0.8;
+}
+
+.AuthBoxMessage h1,
+.AuthBoxMessage h2 {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.AuthBoxMessage p {
+    color: #333;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.AuthBoxMessage .BrandBtn {
+    margin-top: 20px;
+    padding: 12px 30px;
+}
+
+/* Make FormResponse success message look nice */
+.FormResponse.Success {
+    background: #e6f7ec;
+    border: 1px solid #b7e1c7;
+    color: #0f5132;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 15px;
+}

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 26, 2025 at 11:27 PM
+-- Generation Time: Nov 13, 2025 at 01:56 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -438,7 +438,8 @@ INSERT INTO `followers` (`id`, `FollowerID`, `UserID`, `FollowedOn`) VALUES
 (1, 3, 12, '2025-10-11 15:58:50'),
 (2, 2, 12, '2025-10-11 23:07:32'),
 (3, 12, 2, '2025-10-12 00:48:33'),
-(23, 12, 4, '2025-10-25 14:49:56');
+(25, 12, 4, '2025-10-28 03:12:53'),
+(26, 12, 1, '2025-11-06 13:49:55');
 
 -- --------------------------------------------------------
 
@@ -464,12 +465,12 @@ INSERT INTO `likes` (`id`, `PostID`, `UID`) VALUES
 (161, 3, 1),
 (165, 13, 1),
 (170, 8, 1),
-(189, 42, 12),
 (191, 1, 12),
-(201, 46, 12),
 (210, 47, 12),
 (213, 9, 12),
-(227, 7, 12);
+(227, 7, 12),
+(231, 42, 12),
+(232, 46, 12);
 
 -- --------------------------------------------------------
 
@@ -515,8 +516,42 @@ INSERT INTO `posts` (`id`, `Content`, `Type`, `MediaFolder`, `LikeCounter`, `Com
 (44, 'TEST', 2, 'MediaFolders/posts/17562476671268ae3673c939d', 0, 1, '2025-08-27 00:34:27', 1, 12),
 (45, 'test 3', 2, 'MediaFolders/posts/17562509431268ae433f01dfe', 0, 0, '2025-08-27 01:29:03', 1, 12),
 (46, 'aasd', 3, 'MediaFolders/posts/17562527331268ae4a3ddd7ed', 1, 1, '2025-08-27 01:58:53', 1, 12),
-(47, 'asad', 1, 'MediaFolders/posts/17604758531268eebacd148d5', 1, 0, '2025-10-14 23:04:13', 1, 12),
-(48, 'I\'m testing writing a bigger post than the usual to see how the UI would look like with it after i made some CSS changes in order to make it look more adaptative and overall more responsive so i\'m just writing this long unnecessary post', 1, 'MediaFolders/posts/17605686091268f02521e7e19', 0, 1, '2025-10-16 00:50:09', 1, 12);
+(47, 'asad', 1, 'MediaFolders/posts/17604758531268eebacd148d5', 1, 0, '2025-10-14 23:04:13', 0, 12),
+(48, 'I\'m testing writing a bigger post than the usual to see how the UI would look like with it after i made some CSS changes in order to make it look more adaptative and overall more responsive so i\'m just writing this long unnecessary post', 1, 'MediaFolders/posts/17605686091268f02521e7e19', 0, 1, '2025-10-16 00:50:09', 0, 12),
+(57, 'Google has a new app called \"SMART AI\"', 1, 'MediaFolders/posts/176278752112691200c11286c', 0, 0, '2025-11-10 17:12:01', 1, 12),
+(58, 'Google new Smart AI app is crazy', 1, 'MediaFolders/posts/176278753412691200ce56b32', 0, 0, '2025-11-10 17:12:14', 1, 1),
+(59, 'The new Google app is huge', 1, 'MediaFolders/posts/176278754512691200d9921bd', 0, 0, '2025-11-10 17:12:25', 1, 3),
+(60, 'Google Smart AI breaks all limits', 1, 'MediaFolders/posts/176278756512691200ede9cfa', 0, 0, '2025-11-10 17:12:45', 1, 4),
+(61, 'Google released a new app called Smart AI and its just fascinating', 1, 'MediaFolders/posts/1762787595126912010b922de', 0, 0, '2025-11-10 17:13:15', 1, 7),
+(62, 'The New AI app developed by Google is called Smart AI and it can have 1.5 million tokens which is 500k more tokens than gemini pro', 1, 'MediaFolders/posts/1762787726126912018e18d7c', 0, 0, '2025-11-10 17:15:26', 1, 15),
+(71, 'Apple just dropped Vision Pro 2 — the display clarity is unreal.', 1, 'MediaFolders/posts/176300001126912401aaa12b', 0, 0, '2025-11-11 13:01:01', 1, 3),
+(72, 'Vision Pro 2 now supports eye-tracking in multiplayer apps. Apple is seriously ahead.', 1, 'MediaFolders/posts/176300002426912401ab239f', 0, 0, '2025-11-11 13:01:24', 1, 12),
+(73, 'Anyone tested the new Vision headset from Apple? Rumor says it’s lighter and better balanced.', 1, 'MediaFolders/posts/176300003726912401ac19a5', 0, 0, '2025-11-11 13:01:37', 1, 1),
+(74, 'The second-gen Vision Pro makes AR feel like real life. The details are insane.', 1, 'MediaFolders/posts/176300004926912401ad1837', 0, 0, '2025-11-11 13:01:49', 1, 7),
+(75, 'A supposed Tesla “Model Z” prototype was spotted near Fremont — looks futuristic.', 1, 'MediaFolders/posts/176300011126912401b2187a', 0, 0, '2025-11-11 13:02:11', 1, 4),
+(76, 'Model Z might be Tesla’s new SUV flagship. Rumor mill says 900km range.', 1, 'MediaFolders/posts/176300012426912401b3368b', 0, 0, '2025-11-11 13:02:24', 1, 15),
+(77, 'So Elon hinted about “something beyond Y” in the last Q&A. That must be the Model Z, right?', 1, 'MediaFolders/posts/176300013726912401b41abc', 0, 0, '2025-11-11 13:02:37', 1, 1),
+(78, 'Leaked shots show Tesla working on a new electric SUV — could this be the Z project?', 1, 'MediaFolders/posts/176300014926912401b514da', 0, 0, '2025-11-11 13:02:49', 1, 3),
+(79, 'SpaceX revealed its first Mars habitat mockup, complete with radiation shielding.', 1, 'MediaFolders/posts/176300021126912401b912ab', 0, 0, '2025-11-11 13:03:11', 1, 7),
+(80, 'The Mars base design looks like something from a sci-fi film. SpaceX going all in.', 1, 'MediaFolders/posts/176300022426912401ba2639', 0, 0, '2025-11-11 13:03:24', 1, 4),
+(81, 'Is anyone else following SpaceX’s “Haven One” module project? Mars life might be closer than we think.', 1, 'MediaFolders/posts/176300023726912401bb1e32', 0, 0, '2025-11-11 13:03:37', 1, 12),
+(82, 'Apparently, SpaceX is already testing pressure domes for their Mars habitat prototype.', 1, 'MediaFolders/posts/176300024926912401bc129a', 0, 0, '2025-11-11 13:03:49', 1, 15),
+(83, 'Meta is rumored to be working on a smartphone that merges AR lenses directly in the display.', 1, 'MediaFolders/posts/176300041126912401c612b3', 0, 0, '2025-11-11 13:09:01', 1, 15),
+(84, 'The Horizon Phone might be Meta’s boldest hardware play yet — think AR without goggles.', 1, 'MediaFolders/posts/176300042426912401c713f2', 0, 0, '2025-11-11 13:09:14', 1, 7),
+(85, 'Some leaked renders of a “Meta Horizon Phone” just surfaced. Looks too futuristic to be fake.', 1, 'MediaFolders/posts/176300043726912401c81da4', 0, 0, '2025-11-11 13:09:27', 1, 3),
+(86, 'Meta’s upcoming phone could integrate AR directly into social feeds — imagine seeing posts pop in real space.', 1, 'MediaFolders/posts/176300044926912401c91cbb', 0, 0, '2025-11-11 13:09:39', 1, 1),
+(87, 'If the Horizon Phone actually works like they claim, it’ll crush the smartphone market.', 1, 'MediaFolders/posts/176300045926912401ca12b1', 0, 0, '2025-11-11 13:09:51', 1, 4),
+(88, 'Rumors suggest Meta’s new phone uses holographic projection instead of a normal screen.', 1, 'MediaFolders/posts/176300046926912401cb12a9', 0, 0, '2025-11-11 13:10:03', 1, 12),
+(89, 'Horizon might not just be a phone — it’s rumored to double as a mini AR hub for glasses.', 1, 'MediaFolders/posts/176300047926912401cc12a3', 0, 0, '2025-11-11 13:10:15', 1, 15),
+(90, 'Meta entering the AR phone market could shake up everything Apple’s doing with Vision Pro.', 1, 'MediaFolders/posts/176300048926912401cd128e', 0, 0, '2025-11-11 13:10:27', 1, 3),
+(91, 'SpaceX’s Starship just completed its 2025 high-orbit test flight!', 1, 'MediaFolders/posts/176290201812691221b2c7a01', 0, 0, '2025-11-12 13:08:11', 1, 1),
+(92, 'Starship finally made a full re-entry without disintegration this time', 1, 'MediaFolders/posts/176290201912691221b2c7a12', 0, 0, '2025-11-12 13:08:23', 1, 3),
+(93, 'The new heat-shield tiles on SpaceX’s Starship proved extremely durable', 1, 'MediaFolders/posts/176290202012691221b2c7a23', 0, 0, '2025-11-12 13:08:35', 1, 4),
+(94, 'SpaceX achieved orbit and re-entry with the Starship 2025 prototype', 1, 'MediaFolders/posts/176290202112691221b2c7a34', 0, 0, '2025-11-12 13:08:47', 1, 7),
+(95, 'Starship 2025 flight test data will help refine future Mars vehicle design', 1, 'MediaFolders/posts/176290202212691221b2c7a45', 0, 0, '2025-11-12 13:08:58', 1, 12),
+(96, 'Elon Musk calls the latest Starship launch “our biggest leap toward Mars yet”', 1, 'MediaFolders/posts/176290202312691221b2c7a56', 0, 0, '2025-11-12 13:09:09', 1, 15),
+(97, 'SpaceX engineers said the Starship 2025 booster performed flawlessly', 1, 'MediaFolders/posts/176290202412691221b2c7a67', 0, 0, '2025-11-12 13:09:21', 1, 3),
+(98, 'The Starship 2025 mission puts SpaceX ahead in the race for reusable heavy rockets', 1, 'MediaFolders/posts/176290202512691221b2c7a78', 0, 0, '2025-11-12 13:09:32', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -530,6 +565,13 @@ CREATE TABLE `saved_posts` (
   `PostID` int NOT NULL,
   `SavedOn` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `saved_posts`
+--
+
+INSERT INTO `saved_posts` (`id`, `UID`, `PostID`, `SavedOn`) VALUES
+(7, 12, 9, '2025-10-28 03:13:10');
 
 -- --------------------------------------------------------
 
@@ -572,7 +614,33 @@ INSERT INTO `tokens` (`id`, `UID`, `Token`, `Token_2`, `IP`, `UserAgent`, `Updat
 (50, 12, '155acf3f313d4e4fb7c6f3c24dd18f24f059d148fc9ca7b8d21d3d706b8f55f6', 'e011957b1870a69882b7fc21868b61a5e1f39c09a57865ca2cad7ce5cdcf6eaa', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760478791),
 (51, 12, '57132ce6fc74802b97bd39179a7b6c080a0550165eb447bb56aa85e34afbb2b1', '96d9ec549de07c43f1ba1eb4de4f125746c6d2fa7313d27876258303bc279386', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760483929),
 (52, 12, '67896fbdf4e2c7125bd7ea2a7c803e60a23836d71396aba87f4b74a463e9cb6f', 'eece5de3f13f1f53a4e96c8a0e89ab5832129a57c536586a95c8ec6de2bd9ddb', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1761350571),
-(53, 12, 'd4c86c363f8caa7092bd68b6086e17752ca3ba9d588cf1524d3570256457ac26', '212751d1eccd8e91bc53bedc7ee8327f27adc21cedc1cecbff10e6409f706c7f', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1761512109);
+(53, 12, 'd4c86c363f8caa7092bd68b6086e17752ca3ba9d588cf1524d3570256457ac26', '212751d1eccd8e91bc53bedc7ee8327f27adc21cedc1cecbff10e6409f706c7f', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1761512109),
+(54, 12, 'c120d5e83af34fbb32f36157adea7925420ef3c516ef6dea3942dd02a6160c83', '48fc3d7cbd406624facfb8a1f9f906b1b0ab258d35c9da16fcde62233874320e', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1761777684),
+(55, 12, '8cd74bb84292b2ffaea311653d7f5e3176fb214ccaea9f1be0ef4cb4fd41d9bc', '69f0f223fa8ff00b98846c395d5189ce8b7799b99733d87b9879cda841ff181a', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', 1763038330);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `topic_cache`
+--
+
+CREATE TABLE `topic_cache` (
+  `id` int NOT NULL,
+  `Query` varchar(255) NOT NULL,
+  `Results` text NOT NULL,
+  `LastCalculated` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `topic_cache`
+--
+
+INSERT INTO `topic_cache` (`id`, `Query`, `Results`, `LastCalculated`) VALUES
+(36, 'Spacex', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"SpaceX\",\"url\":\"index.php?target=search&query=SpaceX\"},{\"type\":\"suggestion\",\"query\":\"Haven One\",\"url\":\"index.php?target=search&query=Haven+One\"}]}', '2025-11-13 15:54:06'),
+(38, 'Space', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Space\",\"url\":\"index.php?target=search&query=Space\"},{\"type\":\"suggestion\",\"query\":\"Haven One\",\"url\":\"index.php?target=search&query=Haven+One\"}]}', '2025-11-13 15:54:05'),
+(41, 'Spacx', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Spacx\",\"url\":\"index.php?target=search&query=Spacx\"}]}', '2025-11-13 15:24:24'),
+(51, 'Spa', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Spa\",\"url\":\"index.php?target=search&query=Spa\"}]}', '2025-11-13 15:53:31'),
+(52, 'Spac', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Spac\",\"url\":\"index.php?target=search&query=Spac\"}]}', '2025-11-13 15:53:32');
 
 -- --------------------------------------------------------
 
@@ -603,12 +671,12 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `Fname`, `Lname`, `Username`, `Email`, `Password`, `BirthDay`, `Gender`, `Bio`, `CountryID`, `ProfilePic`, `CoverPhoto`, `Followers`, `Following`, `Privilege`) VALUES
-(1, 'Amir ', 'King', 'Amirking', '', '', NULL, 0, NULL, 66, '', '', 0, 0, 0),
-(2, 'Sarah ', 'Ahmed', 'Sarah82', '', '', NULL, 1, NULL, 66, '', '', 0, 0, 0),
-(3, 'Ahmed ', 'Aly', 'Ahmed_Aly73', '', '', NULL, 0, NULL, 66, '', '', 0, 0, 0),
-(4, 'Teacher', '', 'Ter34', '', '', NULL, 0, NULL, 66, '', '', 0, 0, 1),
+(1, 'Amir ', 'King', 'Amirking', 'testing_one@gmail.com', '', NULL, 0, NULL, 66, '', '', 0, 0, 0),
+(2, 'Sarah ', 'Ahmed', 'Sarah82', 'testing_two@gmail.com', '', NULL, 1, NULL, 66, '', '', 0, 0, 0),
+(3, 'Ahmed ', 'Aly', 'Ahmed_Aly73', 'testing_three@gmail.com', '', NULL, 0, NULL, 66, '', '', 0, 0, 0),
+(4, 'Teacher', '', 'Ter34', 'testing_four@gmail.com', '', NULL, 0, NULL, 66, '', '', 0, 0, 1),
 (7, 'Yael  ', 'Lengoff', 'yael cardenas_len goffd7e21dc4', 'hyfyd@mailinator.com', '$2y$10$/AFgiGFRSrzEquqJzZ10Gu5MBJwzPz0NbC14sFn54hAaRUhJ47oJm', '2007-04-16', 0, NULL, 66, '', '', 0, 0, 0),
-(12, 'amir ', 'hamdy', 'amir_hamdy40f259c4', 'amirhamdy450@gmail.com', '$2y$10$BKjkavTff16oXjfjLEeY6.xZlj461bC4MtsIHSPyKLP65/0Sijo06', '2000-10-01', 0, NULL, 66, '', '', 0, 0, 0),
+(12, 'amir', 'hamdy', 'amir_hamdy40f259c4', 'amirhamdy450@gmail.com', '$2y$10$BKjkavTff16oXjfjLEeY6.xZlj461bC4MtsIHSPyKLP65/0Sijo06', '2000-10-02', 0, 'a new bio', 61, '176269871712/12_6910a5dd15c8b.jfif', '176242986412/12_690c8ba8150c6.jpg', 0, 0, 0),
 (15, 'user', 'one', 'user_oned78bff33', 'user1@gmail.com', '$2y$10$SkbEy7QBNJkS7..WUjBG0ucweJBL2vpGFIbe97ogLDKXaVu31G0m.', '2000-07-05', 1, NULL, 11, NULL, NULL, 0, 0, 0);
 
 --
@@ -703,6 +771,13 @@ ALTER TABLE `tokens`
   ADD KEY `commune_tokens_UID` (`UID`);
 
 --
+-- Indexes for table `topic_cache`
+--
+ALTER TABLE `topic_cache`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `idx_query` (`Query`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -753,31 +828,37 @@ ALTER TABLE `countries`
 -- AUTO_INCREMENT for table `followers`
 --
 ALTER TABLE `followers`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `likes`
 --
 ALTER TABLE `likes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=228;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=233;
 
 --
 -- AUTO_INCREMENT for table `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 
 --
 -- AUTO_INCREMENT for table `saved_posts`
 --
 ALTER TABLE `saved_posts`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `tokens`
 --
 ALTER TABLE `tokens`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+
+--
+-- AUTO_INCREMENT for table `topic_cache`
+--
+ALTER TABLE `topic_cache`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `users`

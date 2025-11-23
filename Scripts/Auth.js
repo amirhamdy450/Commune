@@ -190,88 +190,198 @@ document.addEventListener("DOMContentLoaded", function () {
     }else if(document.body.classList.contains("Login")){
 
         //select form
-        let form = document.getElementById("LoginForm");
-        console.log(form);
+        let Loginform = document.getElementById("LoginForm");
+        console.log(Loginform);
+        if(Loginform){
         //submit form
-        form.addEventListener("submit", async (e)=>{
-            //validate form
-            e.preventDefault();
-            
-            let Errors = Forms.ValidateTextFields(form,AuthValidationMap);
-
-            console.log("Errors count: ",Errors);
-
-
-            let protected_pass=document.getElementById('protected_pass');
-            
-            if(!protected_pass){
-                return;
-            }
-
-
-
-
-            //checking if password is empty 
-            //this the only check that delivers specific error message (for better UX)
-            //the rest of the error messages are vague
-            if(protected_pass.value.trim() == ""){
-
-                let ErrorsHTML=[["Empty Password","Please enter your Password"]]
-                Forms.PopulateFieldError(protected_pass.parentElement.parentElement,ErrorsHTML);
-                return;
-            }else{
-                //remove error
-                protected_pass.parentElement.parentElement.classList.remove("Error");
-                let FieldError = protected_pass.parentElement.parentElement.getElementsByClassName("FieldError")[0];
-                if(FieldError){
-                    FieldError.innerHTML = "";
-                }
-            }
-
-
-            //validating password format without specifying the exact error (for security reasons)
-            let pr_Res=Forms.ValidatePassword(protected_pass.value);
-            if(!pr_Res.IsValid){
-                console.log("Invalid password format: ",protected_pass.value);
-                console.log(pr_Res.Errors);
+            Loginform.addEventListener("submit", async (e)=>{
+                //validate form
+                e.preventDefault();
                 
-                Errors++;
-                //keep it vague unlike register 
-                let Parent = protected_pass.parentElement.parentElement;
+                let Errors = Forms.ValidateTextFields(Loginform,AuthValidationMap);
 
-               let msg=`<p><b>Invalid Credentials:</b> Email or Password is incorrect </p>`;
-               FillFormResponse(Parent,msg);
-            }else{
-                let ResponseError = protected_pass.parentElement.parentElement.getElementsByClassName("ResponseError")[0];
-                //remove error
-                if(ResponseError){
-                    ResponseError.remove();
+                console.log("Errors count: ",Errors);
+
+
+                let protected_pass=document.getElementById('protected_pass');
+                
+                if(!protected_pass){
+                    return;
                 }
-            }
 
 
 
 
-            if(Errors == 0 ){
-                //submit form
-                let formData = new FormData(form);
-                formData.append("ReqType", 2);
-                console.log(formData);
-                let Res=await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
-                if(Res.status){
-                    window.location.href = "index.php";
+                //checking if password is empty 
+                //this the only check that delivers specific error message (for better UX)
+                //the rest of the error messages are vague
+                if(protected_pass.value.trim() == ""){
+
+                    let ErrorsHTML=[["Empty Password","Please enter your Password"]]
+                    Forms.PopulateFieldError(protected_pass.parentElement.parentElement,ErrorsHTML);
+                    return;
                 }else{
-                    console.log(Res);
-                    let Parent = protected_pass.parentElement.parentElement;
-                    FillFormResponse(Parent,Res.message);
-                    
+                    //remove error
+                    protected_pass.parentElement.parentElement.classList.remove("Error");
+                    let FieldError = protected_pass.parentElement.parentElement.getElementsByClassName("FieldError")[0];
+                    if(FieldError){
+                        FieldError.innerHTML = "";
+                    }
                 }
-            }
 
 
-            
+                //validating password format without specifying the exact error (for security reasons)
+                let pr_Res=Forms.ValidatePassword(protected_pass.value);
+                if(!pr_Res.IsValid){
+                    console.log("Invalid password format: ",protected_pass.value);
+                    console.log(pr_Res.Errors);
+                    
+                    Errors++;
+                    //keep it vague unlike register 
+                    let Parent = protected_pass.parentElement.parentElement;
 
-        });
+                let msg=`<p><b>Invalid Credentials:</b> Email or Password is incorrect </p>`;
+                FillFormResponse(Parent,msg);
+                }else{
+                    let ResponseError = protected_pass.parentElement.parentElement.getElementsByClassName("ResponseError")[0];
+                    //remove error
+                    if(ResponseError){
+                        ResponseError.remove();
+                    }
+                }
+
+
+
+
+                if(Errors == 0 ){
+                    //submit form
+                    let formData = new FormData(Loginform);
+                    formData.append("ReqType", 2);
+                    console.log(formData);
+                    let Res=await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
+                    if(Res.status){
+                        window.location.href = "index.php";
+                    }else{
+                        console.log(Res);
+                        let Parent = protected_pass.parentElement.parentElement;
+                        FillFormResponse(Parent,Res.message);
+                        
+                    }
+                }
+
+
+
+
+
+
+
+                
+
+            });
+        }
+
+
+                    // --- START NEW LOGIC ---
+
+        // REQUEST RESET FORM
+        const requestResetForm = document.getElementById("RequestResetForm");
+        if (requestResetForm) {
+            const loader = requestResetForm.querySelector(".Loader");
+            const submitBtn = requestResetForm.querySelector("input[type='submit']");
+
+            const formContainer = document.getElementById("RequestResetForm");
+            const successView = document.getElementById("ResetSuccessView");
+
+            requestResetForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const formResponse = requestResetForm.querySelector(".FormResponse");
+                formResponse.innerHTML = ""; // Clear previous messages
+                
+                const emailField = requestResetForm.querySelector("input[name='email']").parentElement;
+                const emailVal = requestResetForm.querySelector("input[name='email']").value;
+                
+                // Client-side validation
+                const emailRes = Forms.ValidateEmail(emailVal);
+                if (!emailRes.IsValid) {
+                    Forms.PopulateFieldError(emailField, emailRes.Errors);
+                    return;
+                }
+                
+                let formData = new FormData(requestResetForm);
+                formData.append("ReqType", 3);
+
+                loader.classList.remove("hidden");
+                submitBtn.disabled = true;
+                
+                try {
+                    let res = await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
+                
+                    if (res.status) {
+                        // SUCCESS: Hide form, show success message
+                        formContainer.classList.add("hidden");
+                        successView.classList.remove("hidden");
+                    } else {
+                        // FAILURE: Show error message on the form
+                        formResponse.innerHTML = `<p>${res.message}</p>`;
+                        formResponse.className = `FormResponse Error`;
+                    }
+                
+                } catch (error) {
+                    console.error("Error during password reset request:", error);
+                    formResponse.innerHTML = `<p>An unexpected network error occurred.</p>`;
+                    formResponse.className = `FormResponse Error`;
+                } finally {
+                    // --- START NEW CODE ---
+                    // Always hide loader and re-enable button
+                    loader.classList.add("hidden");
+                    submitBtn.disabled = false;
+                    // --- END NEW CODE ---
+                }
+            });
+        }
+
+        // RESET PASSWORD FORM
+        const resetPasswordForm = document.getElementById("ResetPasswordForm");
+        if (resetPasswordForm) {
+            resetPasswordForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const formResponse = resetPasswordForm.querySelector(".FormResponse");
+                formResponse.innerHTML = "";
+                
+                const passField = resetPasswordForm.querySelector("input[name='pass']");
+                const cpassField = resetPasswordForm.querySelector("input[name='cpass']");
+
+                // Client-side validation
+                let errors = 0;
+                const passRes = Forms.ValidatePassword(passField.value);
+                if (!passRes.IsValid) {
+                    Forms.PopulateFieldError(passField.parentElement.parentElement, passRes.Errors);
+                    errors++;
+                }
+                if (passField.value !== cpassField.value) {
+                    Forms.PopulateFieldError(cpassField.parentElement.parentElement, [["Passwords Don't Match: ", "The passwords do not match."]]);
+                    errors++;
+                }
+                
+                if (errors > 0) return;
+
+                let formData = new FormData(resetPasswordForm);
+                formData.append("ReqType", 4);
+                
+                let res = await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
+                
+                formResponse.innerHTML = `<p>${res.message}</p>`;
+                formResponse.className = `FormResponse ${res.status ? 'Success' : 'Error'}`;
+
+                if (res.status) {
+                    // Success! Redirect to login after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = "index.php";
+                    }, 3000);
+                }
+            });
+        }
+        // --- END NEW LOGIC ---
 
     }else{
         console.warn("No Auth");

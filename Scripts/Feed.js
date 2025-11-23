@@ -7,6 +7,7 @@ const ALLOWED_DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx',
 const ALLOWED_IMAGE_EXTENSIONS = ['xbm', 'tif', 'jfif', 'ico', 'tiff', 'gif', 'svg', 'webp', 'svgz', 'jpg', 'jpeg', 'png', 'bmp', 'pjp', 'apng', 'pjpeg', 'avif'];
 
 let validSelectedFiles = [];
+let filesToDelete = []; //for editing posts
 let currentPostID = null;
 
 
@@ -81,7 +82,7 @@ async function savePost(post,postID){
 
 
 // Creates HTML for a single post
-function createPostHTML(post) {
+export function createPostHTML(post) {
   const mediaContent = generateMediaContent(post);
   //DEPRECATED
 /*   const postDeleteButton = post.CurrentUserPrivilege 
@@ -115,7 +116,7 @@ function createPostHTML(post) {
       <div class="FeedPostHeader">
         <div class="FeedPostAuthorContainer">
           <a class="FeedPostAuthor" href="index.php?redirected_from=profile&target=profile&uid=${encodeURIComponent(post.UID)}">
-            <img src="Imgs/Icons/unknown.png" alt="">
+            <img src="${post.ProfilePic}" alt="">
             <p>${post.name}</p>
           </a>
           
@@ -159,6 +160,9 @@ function createCommentHTML(comment,type=1){
     likeIcon = 'Imgs/Icons/like.svg';
   }
 
+
+
+
   if(comment.ReplyCounter > 0){
     ViewRepliesButton = `<div class="ViewRepliesBtn">${comment.ReplyCounter} Replies</div>`;
   }else{
@@ -166,6 +170,9 @@ function createCommentHTML(comment,type=1){
   }
 
   comment.name=comment.Fname + ' ' + comment.Lname;
+
+  const isSelf = comment.IsSelf ? '1' : '0';
+  
 
   if(type==1){
     return `             
@@ -179,10 +186,13 @@ function createCommentHTML(comment,type=1){
           </div>
         </div>
 
-        <div class="ModalComment">
+        <div class="ModalComment" Self="${isSelf}">
           <div class="ModalCommentHeader">
-            <img src="Imgs/Icons/unknown.png" alt="">
-            <p>${comment.name}</p>
+            <div class="ModalCommentAuthor">
+              <img src="${comment.ProfilePic}" alt="">
+              <p>${comment.name}</p>
+            </div>
+           <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg" alt="Options"></div>
           </div>
           <div class="ModalCommentContent">
             <p>${comment.comment}</p>
@@ -240,10 +250,14 @@ function createCommentHTML(comment,type=1){
           </div>
         </div>
 
-        <div class="ModalComment">
+        <div class="ModalComment" Self="${isSelf}">
           <div class="ModalCommentHeader">
-            <img src="Imgs/Icons/unknown.png" alt="">
-            <p>${comment.Sender}</p>
+            <div class="ModalCommentAuthor">
+              <img src="${comment.SenderProfilePic}" alt="">
+              <p>${comment.Sender}</p>
+            </div>
+           <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg" alt="Options"></div>
+
           </div>
           <div class="ModalCommentContent">
              ${TaggedUser} <p>${comment.Reply}</p>
@@ -361,8 +375,13 @@ function fetchMorePosts() {
   };
 }
 
+
+
+
+
 // Attaches interaction event listeners to a post
-function attachPostInteractions(post) {
+export function attachPostInteractions(post) {
+  console.log('Attaching interactions to post:', post);
   const postId = post.getAttribute('PID');
   const uid = post.getAttribute('UID');
   const followButton= post.getElementsByClassName('FollowBtn')[0];
@@ -508,7 +527,7 @@ function attachPostInteractions(post) {
 
       // Create new menu
       const menu = document.createElement('div');
-      menu.className = 'PostOptionsMenu';
+      menu.className = 'ActionMenu PostContext';
 
       const postAuthorUID = post.getAttribute('UID');
       const postPID = post.getAttribute('PID');
@@ -539,6 +558,7 @@ function attachPostInteractions(post) {
         // Option 4: Delete Post (if self)
         if (isSelfPost) {
           menuOptions += `<div class="PostOption Delete" data-action="delete" data-pid="${postPID}"><img src="Imgs/Icons/trash.svg" alt="">Delete Post</div>`;
+          menuOptions += `<div class="PostOption" data-action="edit" data-pid="${postPID}"><img src="Imgs/Icons/edit.svg" alt="">Edit Post</div>`; // Add Edit
         }
 
       menu.innerHTML = menuOptions;
@@ -570,6 +590,9 @@ function attachPostInteractions(post) {
 
               });
           }
+          else if (action === 'edit') {
+              openEditModal(target.dataset.pid); // Use target.dataset.pid
+          }
           else if (action === 'delete') {
               currentPostID = target.dataset.pid;
               ShowConfirmModal({
@@ -588,6 +611,82 @@ function attachPostInteractions(post) {
 }
 
 
+function toggleCommentMenu(event, type, id, element, isSelf) {
+    event.stopPropagation();
+    
+    // Remove any existing menus first
+    const existing = document.querySelector('.CommentOptionsMenu');
+    if (existing) existing.remove();
+
+    const menu = document.createElement('div');
+    menu.className = 'ActionMenu CommentContext'; 
+    
+    // --- START DYNAMIC MENU BUILDER ---
+    let menuHTML = '';
+
+    // Option 1: Hide (Available to EVERYONE)
+    // Note: We are using "ActionOption" here in the HTML
+    menuHTML += `
+        <div class="ActionOption" data-action="hide">
+            <img src="Imgs/Icons/EyeOff.svg"> Hide
+        </div>
+    `;
+
+    // Option 2: Delete (Available ONLY if Self)
+    if (isSelf) {
+        menuHTML += `
+            <div class="ActionOption Delete" data-action="delete">
+                <img src="Imgs/Icons/trash.svg"> Delete
+            </div>
+        `;
+    }
+    // --- END DYNAMIC MENU BUILDER ---
+
+    menu.innerHTML = menuHTML;
+
+    // Handle Clicks
+    menu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const option = e.target.closest('.ActionOption');
+        if (!option) return;
+
+        const action = option.dataset.action;
+
+        if (action === 'hide') {
+            element.style.display = 'none'; // Temporary Hide
+        } else if (action === 'delete') {
+            ShowConfirmModal({
+                Title: 'Delete this?',
+                ConfirmText: 'Delete',
+                onConfirm: async () => {
+                    const formData = new FormData();
+                    // Determine Request Type based on 'type' param (1=Comment, 2=Reply)
+                    formData.append('ReqType', type === 1 ? 16 : 17);
+                    formData.append(type === 1 ? 'CommentID' : 'ReplyID', id);
+
+                    const data = await Submit('POST', 'Origin/Operations/Feed.php', formData);
+                    if (data.success) {
+                        element.remove();
+                    } else {
+                        alert(data.message);
+                    }
+                },
+                Action: 'Close'
+            });
+        }
+        menu.remove();
+    });
+
+    // Append to the header
+    element.querySelector('.ModalCommentHeader').appendChild(menu);
+    
+    // Close menu when clicking outside
+    const closeMenu = () => {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+    };
+    document.addEventListener('click', closeMenu);
+}
 
 function attachCommentInteractions() {
   let CommentSectionModal= document.getElementsByClassName('CommentSection')[0];
@@ -614,6 +713,21 @@ function attachCommentInteractions() {
 
     const CommentID = attrs.getAttribute('cid');
     const UserID = attrs.getAttribute('uid');
+
+
+    let ModalComment = comment.getElementsByClassName('ModalComment')[0];
+
+
+
+
+    const menuBtn = comment.querySelector('.ActionBtn');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+            // Check the data attribute we set in createCommentHTML
+            const isSelf = ModalComment.getAttribute('Self') === '1';
+            toggleCommentMenu(e, 1, CommentID, comment, isSelf); // 1 = Comment Type
+        });
+    }
 
     likeButton.addEventListener('click', () => {
       const formData = new FormData();
@@ -719,6 +833,19 @@ function attachReplyInteractions(reply, parentComment) {
 
     const ReplyID = attrs.getAttribute('crid');
     const ReplyUserID = attrs.getAttribute('uid');
+
+    const menuBtn = reply.querySelector('.ActionBtn');
+
+    let ModalComment = reply.getElementsByClassName('ModalComment')[0];
+
+    if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+            // Check the data attribute we set in createCommentHTML
+            const isSelf = ModalComment.getAttribute('Self') === '1';
+
+            toggleCommentMenu(e, 2, ReplyID, reply, isSelf); // 2 = Reply Type
+        });
+    }
 
     likeButton.addEventListener("click", () => {
       const formData = new FormData();
@@ -834,6 +961,193 @@ function toggleModal(modal, show) {
 
 
 }
+
+
+// edit post function
+async function openEditModal(postID) {
+    const modal = document.getElementsByClassName('CPostContainer')[0];
+    const form = document.getElementById('CreatePostForm');
+    const contentTextarea = document.getElementById('CPostContent');
+    const editIDField = document.getElementById('CPostEditID');
+    const filesToDeleteField = document.getElementById('CPostFilesToDelete');
+    const overviewContainer = modal.querySelector('.UploadOverview');
+    const filesContainer = modal.querySelector('.UploadedFiles');
+    
+    // 1. Reset and configure modal for "Edit"
+    form.reset();
+    validSelectedFiles = [];
+    filesToDelete = []; // Reset files to delete
+    filesContainer.innerHTML = '';
+    overviewContainer.classList.add('hidden');
+    
+    modal.querySelector('h1').textContent = 'Edit Post';
+    form.querySelector('.PostSubmitBtn').value = 'Save Changes';
+    editIDField.value = postID; // Set the PostID
+    filesToDeleteField.value = '[]';
+    
+    // 2. Fetch post data from new API
+    const formData = new FormData();
+    formData.append('ReqType', 14);
+    formData.append('FeedPostID', postID);
+
+    try {
+        const data = await Submit("POST", "Origin/Operations/Feed.php", formData);
+        
+        if (data.success) {
+            // 3. Populate modal with existing data
+            contentTextarea.value = data.Content;
+
+            if (data.MediaFiles && data.MediaFiles.length > 0) {
+                overviewContainer.classList.remove('hidden');
+                let fileHTML = '';
+                const isImage = data.MediaType === 2;
+                const icon = isImage ? 'Imgs/Icons/Image.svg' : 'Imgs/Icons/Document.svg';
+
+                data.MediaFiles.forEach(file => {
+                    fileHTML += `
+                    <div class="UploadedFile existing" data-filename="${file.name}">
+                        <div class="FileName">
+                            <img src="${icon}">
+                            <p>${file.name}</p>
+                        </div>
+                        <span class="RemoveUploadedFile" data-filename="${file.name}">&times;</span>
+                    </div>
+                    `;
+                });
+                filesContainer.innerHTML = fileHTML;
+
+                // 4. Attach listeners to new "remove" buttons
+                filesContainer.querySelectorAll('.RemoveUploadedFile').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const fileDiv = btn.closest('.UploadedFile');
+                        const filename = fileDiv.dataset.filename;
+                        
+                        ShowConfirmModal({
+                          Title: 'Are You Sure You Want To Remove This File?',
+                          ConfirmText: 'Remove',
+                          onConfirm: () => {
+                            // Add to delete list and hide from UI
+                            filesToDelete.push(filename);
+                            filesToDeleteField.value = JSON.stringify(filesToDelete); // Update hidden form field
+                            fileDiv.classList.add('hidden'); // Hide it
+                          },
+                          Action : 'Close'
+                        });
+                    });
+                });
+            }
+            toggleModal(modal, true); // Show modal *after* data is loaded
+        } else {
+            showInfoBox(data.message, 2); // Show error
+        }
+    } catch (error) {
+        console.error('Error fetching post for edit:', error);
+        showInfoBox('Could not load post for editing.', 2);
+    }
+}
+
+//reset of edit post modal
+function resetPostModal() {
+    const form = document.getElementById('CreatePostForm');
+    const modal = document.getElementsByClassName('CPostContainer')[0];
+    
+    form.reset();
+    validSelectedFiles = [];
+    filesToDelete = [];
+    
+    // Reset UI Elements
+    modal.querySelector('h1').textContent = 'Create Post';
+    form.querySelector('.PostSubmitBtn').value = 'Post';
+    document.getElementById('CPostEditID').value = '';
+    document.getElementById('CPostFilesToDelete').value = '[]';
+    
+    // Clear File Previews
+    modal.querySelector('.UploadedFiles').innerHTML = '';
+    modal.querySelector('.UploadOverview').classList.add('hidden');
+    
+    // Reset File Inputs (Cloning checks might be needed depending on browser, but reset() usually handles value)
+    document.querySelector('.DocumentPostUpload').value = '';
+    document.querySelector('.ImagePostUpload').value = '';
+}
+
+// handle post submit and edit
+async function handlePostSubmit(e) {
+    e.preventDefault();
+    
+    const form = document.getElementById('CreatePostForm');
+    const editID = document.getElementById('CPostEditID').value;
+    const isEditing = (editID !== '');
+    
+    const formData = new FormData(form); // Automatically grabs content & inputs
+    
+    // 1. Configure Request Type
+    if (isEditing) {
+        formData.append('ReqType', 15);
+        // 'PostID' and 'files_to_delete' are already in formData via HTML inputs
+    } else {
+        formData.append('ReqType', 1);
+    }
+
+    // 2. Append New Files (from global array)
+    // (Assuming handlePostFileUpload populates validSelectedFiles)
+    if (validSelectedFiles.length > 0) {
+        const fileType = validSelectedFiles[0].type.startsWith('image/') ? 'images[]' : 'document[]';
+        validSelectedFiles.forEach(file => formData.append(fileType, file));
+    }
+
+    // 3. Submit
+    const btn = form.querySelector('.PostSubmitBtn');
+    const loader = form.querySelector('.Loader');
+    
+    btn.disabled = true;
+    loader.classList.remove('hidden');
+
+    try {
+        const data = await Submit("POST", "Origin/Operations/Feed.php", formData);
+        
+        if (data.success) {
+            if (isEditing) {
+                updatePostInDOM(editID, data.post); // Updates specific post
+                showInfoBox('Post updated successfully!', 1);
+            } else {
+                prependPostToFeed(data.post); // Adds new post to top
+                showInfoBox('Post created successfully!', 1);
+            }
+            
+            resetPostModal();
+            toggleModal(document.getElementsByClassName('CPostContainer')[0], false);
+        } else {
+            showInfoBox(data.message || "Error processing post", 2);
+        }
+    } catch (error) {
+        console.error(error);
+        showInfoBox("An unexpected error occurred.", 2);
+    } finally {
+        btn.disabled = false;
+        loader.classList.add('hidden');
+    }
+}
+
+// Helper to update DOM (Clean separation of concerns)
+function updatePostInDOM(pid, postData) {
+    const oldElement = document.querySelector(`.FeedPost[PID="${pid}"]`);
+    if (oldElement) {
+        // Use your existing createPostHTML function
+        const newHTML = createPostHTML(postData); 
+        oldElement.outerHTML = newHTML;
+        // Re-attach events to the new DOM node
+        attachPostInteractions(document.querySelector(`.FeedPost[PID="${pid}"]`)); 
+    }
+}
+
+// Helper to prepend DOM
+function prependPostToFeed(postData) {
+    const container = document.getElementsByClassName('FeedContainer')[0];
+    container.insertAdjacentHTML('afterbegin', createPostHTML(postData));
+    attachPostInteractions(container.firstElementChild);
+}
+
 
 function showInfoBox(message,Type=0) {
   let InfoTypeDiv= '';
@@ -1093,7 +1407,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Create post button
   const CreatePostBtn = document.getElementsByClassName('CreatePostBtn')[0];
   const createPostModal = document.getElementsByClassName('CPostContainer')[0];
-  CreatePostBtn.addEventListener('click', () => toggleModal(createPostModal, true));
+  CreatePostBtn.addEventListener('click', () => {
+      resetPostModal();
+      toggleModal(createPostModal, true)
+  });
 
   // File upload handlers
   const postDocumentUpload = document.getElementsByClassName('DocumentPostUpload')[0];
@@ -1107,10 +1424,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // Post submission
-  // Post submission
   const postForm = document.getElementsByClassName('CPost')[0];
   const postContent = document.getElementById('CPostContent');
-  postForm.addEventListener('submit', e => {
+/*   postForm.addEventListener('submit', e => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('content', postContent.value);
@@ -1160,8 +1476,9 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = false;
         loader.classList.add('hidden');
       });
-  });
+  }); */
 
+  postForm.addEventListener('submit', handlePostSubmit);
   // Comment submission
   const commentForm = document.getElementById('CreateNewComment');
   commentForm.addEventListener('submit', e => {
