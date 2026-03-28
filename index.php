@@ -144,7 +144,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                                 continue;  //skip this iteration
                             }
                             $DocumentPath = $MediaFolder . '/' . $document;
-                            echo '<a class="FeedPostLink" href="http://localhost/projects/igamify/' . $DocumentPath . '">
+                            echo '<a class="FeedPostLink" href="' . APP_URL . '/' . $DocumentPath . '">
                             <div class="UploadedFile">
                                 <img src="Imgs/Icons/Document.svg" >
                                 <p>' . $document . ' </p>

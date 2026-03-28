@@ -210,16 +210,12 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 
 
-        //check if enmail exists
+        //check if email exists
         $stmt = $pdo->prepare("SELECT id, Password FROM users WHERE Email = ?");
         $stmt->execute([$Email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        $emailExists = $stmt->rowCount() > 0;
 
-
-        /* $UserID=$user['id']; */
-
-        if(!$emailExists){
+        if(!$user){
             echo json_encode([
                 'status' => false,
                 'code'=>40, //db entry not found

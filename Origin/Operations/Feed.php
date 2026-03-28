@@ -915,6 +915,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $sql="DELETE FROM followers WHERE FollowerID=? AND UserID=?";
             $stmt=$pdo->prepare($sql);
             if($stmt->execute([$UID,$TargetUserID])){
+                // Decrement counters
+                $pdo->prepare("UPDATE users SET Followers=Followers-1 WHERE id=?")->execute([$TargetUserID]);
+                $pdo->prepare("UPDATE users SET Following=Following-1 WHERE id=?")->execute([$UID]);
                 echo json_encode([
                     'success' => true,
                     'message' => "Unfollowed",
@@ -925,7 +928,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $sql="INSERT INTO followers (FollowerID,UserID) VALUES (?,?)";
             $stmt=$pdo->prepare($sql);
             if($stmt->execute([$UID,$TargetUserID])){
-
+                // Increment counters
+                $pdo->prepare("UPDATE users SET Followers=Followers+1 WHERE id=?")->execute([$TargetUserID]);
+                $pdo->prepare("UPDATE users SET Following=Following+1 WHERE id=?")->execute([$UID]);
                 CreateNotification($TargetUserID, $UID, 4);
                 echo json_encode([
                     'success' => true,
