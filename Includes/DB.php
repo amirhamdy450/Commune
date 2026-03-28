@@ -2,6 +2,10 @@
 require_once 'Config.php';
 date_default_timezone_set('Africa/Cairo');
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $DBservername = DB_Servername;
 $DBusername = DB_Username;
 $DBpassword = DB_Password;

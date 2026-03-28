@@ -26,6 +26,7 @@ function CreateNotification($ToUID, $FromUID, $Type, $ReferenceID = null, $MetaI
 
 if($_SERVER['REQUEST_METHOD']==='POST'){
 
+    ValidateCsrf();
     $UID=$User['id'];
 
 
@@ -590,16 +591,20 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         $FeedPostID=(int)Decrypt($EncFeedPostAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
         
-        $sql="UPDATE posts SET Status=0 WHERE id=?";
+        $sql="UPDATE posts SET Status=0 WHERE id=? AND UID=?";
         $stmt=$pdo->prepare($sql);
-        if($stmt->execute([$FeedPostID])){
-            
-            echo json_encode([
-                'success' => true,
-                'message' => "Post Deleted",
-
-            ]);
-
+        if($stmt->execute([$FeedPostID,$UID])){
+            if($stmt->rowCount() > 0){
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Post Deleted",
+                ]);
+            }else{
+                echo json_encode([
+                    'success' => false,
+                    'message' => "Post not found or you do not have permission to delete it.",
+                ]);
+            }
         }
 
     } else if ($_POST["ReqType"] == 7) { //like/unlike a comment

@@ -25,6 +25,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?php echo $CsrfToken; ?>">
     <link rel="stylesheet" href="Styles/Global.css">
     <link rel="stylesheet" href="Styles/Feed.css">
     <link rel="stylesheet" href="Styles/PostView.css">
@@ -106,7 +107,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                         <div class="FeedPostAuthorContainer">
                             <a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID). '">
                                 <img src="' . $PostProfilePic . '" alt="Profile Picture">                        
-                                 <p>' . $FeedPost['Fname'] . ' ' . $FeedPost['Lname'] . '</p>
+                                 <p>' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
                             </a>';
 
                             if(!$IsSelfPost){
@@ -119,7 +120,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                     </div>
 
                     <div class="FeedPostContent">
-                        <p>' . $FeedPost['Content'] . '</p>';
+                        <p>' . htmlspecialchars($FeedPost['Content']) . '</p>';
 
                 $MediaFolder = $FeedPost['MediaFolder'];
                 if (is_dir($MediaFolder)) {

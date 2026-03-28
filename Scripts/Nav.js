@@ -1,5 +1,6 @@
 // At the top of Scripts/Nav.js
 let searchDebounceTimer;
+const NavCsrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
 
 function htmlspecialchars(str) {
@@ -128,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('ReqType', 6);
         
-        fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
+        fetch('Origin/Operations/User.php', { method: 'POST', headers: { 'X-CSRF-Token': NavCsrfToken }, body: formData })
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.count > 0) {
@@ -148,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('ReqType', 7);
 
-        fetch('Origin/Operations/User.php', { method: 'POST', body: formData })
+        fetch('Origin/Operations/User.php', { method: 'POST', headers: { 'X-CSRF-Token': NavCsrfToken }, body: formData })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -188,6 +189,7 @@ async function fetchSearchResults(query) {
     try {
         const response = await fetch('Origin/Operations/Search.php', {
             method: 'POST',
+            headers: { 'X-CSRF-Token': NavCsrfToken },
             body: formData
         });
         const data = await response.json();

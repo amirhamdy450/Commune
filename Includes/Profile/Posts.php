@@ -46,7 +46,7 @@
                             <div class="FeedPostAuthorContainer">
                                 <a class="FeedPostAuthor" href="">
                                     <img src="' . $PostProfilePic . '" alt="">
-                                    <p>' . $FeedPost['Fname'] . ' ' . $FeedPost['Lname'] . '</p>
+                                    <p>' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
                                 </a>
                             </div>
                             
@@ -54,7 +54,7 @@
                         </div>
 
                         <div class="FeedPostContent">
-                            <p>' . $FeedPost['Content'] . '</p>';
+                            <p>' . htmlspecialchars($FeedPost['Content']) . '</p>';
 
             $MediaFolder = $FeedPost['MediaFolder'];
             if (is_dir($MediaFolder)) {

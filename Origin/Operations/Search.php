@@ -6,6 +6,7 @@ require_once $PATH . 'Includes/UserAuth.php';
 require_once $PATH . 'Includes/Encryption.php';
 
 header('Content-Type: application/json');
+ValidateCsrf();
 $response = ['success' => false];
 $query = isset($_POST['query']) ? trim($_POST['query']) : '';
 

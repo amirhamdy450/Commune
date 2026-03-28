@@ -1,5 +1,11 @@
 
-import { Submit } from "./Forms.js";
+import { Submit, CsrfToken } from "./Forms.js";
+
+function EscapeHtml(str) { //safe filter strings
+    if (typeof str !== 'string') return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
 //GLOBALS
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB in bytes
 const MAX_FILE_COUNT = 2;
@@ -343,7 +349,7 @@ function fetchMorePosts() {
         formData.append('ReqType', 5);
         formData.append('LastFeedPostPID', lastPostPID);
 
-        fetch('Origin/Operations/Feed.php', { method: 'POST', body: formData })
+        fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
           .then(response => response.json())
           .then(data => {
             if (data.length > 0) {
@@ -410,7 +416,7 @@ export function attachPostInteractions(post) {
     formData.append('ReqType', 2);
     formData.append('FeedPostID', postId);
 
-    fetch('Origin/Operations/Feed.php', { method: 'POST', body: formData })
+    fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
       .then(response => response.json())
       .then(data => {
         if (data.success) {
@@ -432,7 +438,7 @@ export function attachPostInteractions(post) {
 
     let likeIcon = 'Imgs/Icons/like.svg'; 
 
-    fetch('Origin/Operations/Feed.php', { method: 'POST', body: formData })
+    fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
       .then(response => response.json())
       .then(data => {
         const commentsContainer = document.getElementsByClassName('ModalCommentsContainer')[0];
@@ -718,7 +724,7 @@ export function attachCommentInteractions(specificContainer = null) {
       formData.append('ReqType', 7);
       formData.append('CommentID', CommentID);
 
-      fetch('Origin/Operations/Feed.php', { method: 'POST', body: formData })
+      fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -784,7 +790,7 @@ export function attachCommentInteractions(specificContainer = null) {
         formData.append('ReqType', 10);
         formData.append('CommentID', CommentID);
 
-        fetch('Origin/Operations/Feed.php', { method: 'POST', body: formData })
+        fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
           .then(response => response.json())
           .then(data => {
             let RepliesContainer = comment.getElementsByClassName('RepliesContainer')[0];
@@ -836,7 +842,7 @@ function attachReplyInteractions(reply, parentComment) {
       formData.append("ReqType", 9);
       formData.append("ReplyID", ReplyID);
 
-      fetch("Origin/Operations/Feed.php", { method: "POST", body: formData })
+      fetch("Origin/Operations/Feed.php", { method: "POST", headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
         .then((response) => response.json())
         .then((data) => {
           if (data.success) {
@@ -1300,7 +1306,7 @@ async function DeletePost(){
   formData.append('ReqType', 6);
   formData.append('FeedPostID', currentPostID);
 
-  fetch('Origin/Operations/Feed.php', { method: 'POST', body: formData })
+  fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
@@ -1432,7 +1438,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
     loader.classList.remove('hidden');
 
-    fetch('Origin/Operations/Feed.php', { method: 'POST', body: formData })
+    fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
       .then(response => response.json())
       .then(data => {
         if (data.success) {
@@ -1474,7 +1480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     formData.append('FeedPostID', currentPostID);
     formData.append('CommentContent', commentContent);
 
-    fetch('Origin/Operations/Feed.php', { method: 'POST', body: formData })
+    fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
       .then(response => response.json())
       .then(() => {
         commentForm.getElementsByClassName('CommentInput')[0].value = '';

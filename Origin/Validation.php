@@ -129,6 +129,14 @@ function validateCountryCode($code): bool
 }
 
 
+function ValidateCsrf() {
+    $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (empty($token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Invalid request.']);
+        exit();
+    }
+}
 
 
 ?>

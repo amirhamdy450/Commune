@@ -8,6 +8,7 @@ require_once $PATH . 'Origin/Validation.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    ValidateCsrf();
     $ReqType = $_POST['ReqType'];
 
     // [ReqType 1] UPDATE ACCOUNT INFO

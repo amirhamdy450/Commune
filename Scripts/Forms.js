@@ -1,8 +1,11 @@
+export const CsrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+
 export async function Submit( ReqMethod, ReqTarget, formData) {
 
     try {
       const response = await fetch(`${ReqTarget}`, {
         method: `${ReqMethod}`,
+        headers: { 'X-CSRF-Token': CsrfToken },
         body: formData,
       });
 

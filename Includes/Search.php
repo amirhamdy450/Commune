@@ -11,6 +11,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?php echo $CsrfToken; ?>">
     <link rel="stylesheet" href="Styles/Global.css">
     <link rel="stylesheet" href="Styles/Feed.css">
     <link rel="stylesheet" href="Styles/profile.css"> 

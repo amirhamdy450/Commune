@@ -95,6 +95,11 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
 
         $AllowedImagesExtensions=['xbm', 'tif', 'jfif', 'ico', 'tiff', 'gif', 'svg', 'webp', 'svgz', 'jpg', 'jpeg', 'png', 'bmp', 'pjp', 'apng', 'pjpeg', 'avif'];
 
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        $CsrfToken = $_SESSION['csrf_token'];
+
         $LoggedIn = true;
        
     }else{

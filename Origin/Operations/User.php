@@ -15,6 +15,7 @@ $CoverPicsFolder=$PATH."MediaFolders/cover_pictures/";
 
 if($_SERVER['REQUEST_METHOD']==='POST'){
 
+    ValidateCsrf();
     $UID=$User['id'];
 
     if($_POST['ReqType']==1){ //fetch new user posts
