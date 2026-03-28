@@ -3,10 +3,8 @@ include 'Includes/UserAuth.php';
 include 'Includes/Encryption.php';
 
 // Decrypt the Post ID from URL
-$PostID_Token = openssl_decrypt(base64_decode($PostID), 'aes-256-cbc', ENCRYPTION_KEY, OPENSSL_RAW_DATA, ENCRYPTION_IV);
-if($PostID_Token === false){ header("Location: 404.php"); exit(); }
-$PostIDPosition = strpos($PostID_Token, 'I');
-$PostID = (int)substr($PostID_Token, $PostIDPosition + 1);
+$PostID = (int)Decrypt($PostID, "Positioned");
+if($PostID <= 0){ header("Location: 404.php"); exit(); }
 ?>
 
 <!DOCTYPE html>

@@ -9,9 +9,8 @@ define('DB_Name', 'commune');
 
 
 
-//Encryption
+//Encryption — key is derived to 32 bytes inside Encryption.php
 define('ENCRYPTION_KEY', 'Commune');
-define('ENCRYPTION_IV', 'COMMUNE2025_9831');
 
 
 //Mail config
