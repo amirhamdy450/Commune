@@ -1,3 +1,4 @@
 MediaFolders/
 commune.sql
 Includes/Config.php
+Database/commune_with_data.sql
