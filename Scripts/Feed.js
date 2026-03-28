@@ -151,7 +151,7 @@ export function createPostHTML(post) {
 }
 
 
-function createCommentHTML(comment,type=1){
+export function createCommentHTML(comment,type=1){
   let likeIcon,ViewRepliesButton;
   //type 1: comment, type 2: reply
   if(comment.liked){
@@ -515,99 +515,76 @@ export function attachPostInteractions(post) {
   }
 
 
-  if (actionButton) {
+if (actionButton) {
     actionButton.addEventListener('click', (e) => {
-      e.stopPropagation(); // Stop click from bubbling to the document
-
-      // Remove any other open menus
+      e.stopPropagation();
       const existingMenu = document.querySelector('.PostOptionsMenu');
-      if (existingMenu) {
-        existingMenu.remove();
-      }
+      if (existingMenu) existingMenu.remove();
 
-      // Create new menu
       const menu = document.createElement('div');
       menu.className = 'ActionMenu PostContext';
-
       const postAuthorUID = post.getAttribute('UID');
       const postPID = post.getAttribute('PID');
-
       const IsSaved =post.getAttribute('Saved')==1;
-
       let menuOptions = '';
-      
-      
       const isSelfPost = post.getAttribute('Self') == 1;
-      // Option 1: Hide Post
-      menuOptions += `<div class="PostOption" data-action="hide"><img src="Imgs/Icons/EyeOff.svg" alt="">Hide Post</div>`;
 
-      // Option 2: Save Post
+      // --- FIX: Only show "Hide Post" if we are NOT on the single post page ---
+      const isSinglePostView = document.body.classList.contains('PostView');
+      
+      if (!isSinglePostView) {
+          menuOptions += `<div class="PostOption" data-action="hide"><img src="Imgs/Icons/EyeOff.svg">Hide Post</div>`;
+      }
+      
       if(!IsSaved){
-        menuOptions += `<div class="PostOption" data-action="save" data-pid="${postPID}"><img src="Imgs/Icons/save.svg" alt="">Save Post</div>`;
+        menuOptions += `<div class="PostOption" data-action="save" data-pid="${postPID}"><img src="Imgs/Icons/save.svg">Save Post</div>`;
       }else{
-        menuOptions += `<div class="PostOption" data-action="save" data-pid="${postPID}"><img src="Imgs/Icons/unsave.svg" alt="">Unsave Post</div>`;
+        menuOptions += `<div class="PostOption" data-action="save" data-pid="${postPID}"><img src="Imgs/Icons/unsave.svg">Unsave Post</div>`;
       }
 
-
-
-      // Option 3: Block User (if not self)
       if (!isSelfPost) {
-          menuOptions += `<div class="PostOption" data-action="block" data-uid="${postAuthorUID}"><img src="Imgs/Icons/block.svg" alt="">Block User</div>`;
-        }
-
-        // Option 4: Delete Post (if self)
-        if (isSelfPost) {
-          menuOptions += `<div class="PostOption Delete" data-action="delete" data-pid="${postPID}"><img src="Imgs/Icons/trash.svg" alt="">Delete Post</div>`;
-          menuOptions += `<div class="PostOption" data-action="edit" data-pid="${postPID}"><img src="Imgs/Icons/edit.svg" alt="">Edit Post</div>`; // Add Edit
-        }
+          menuOptions += `<div class="PostOption" data-action="block" data-uid="${postAuthorUID}"><img src="Imgs/Icons/block.svg">Block User</div>`;
+      }
+      if (isSelfPost) {
+          menuOptions += `<div class="PostOption Delete" data-action="delete" data-pid="${postPID}"><img src="Imgs/Icons/trash.svg">Delete Post</div>`;
+          menuOptions += `<div class="PostOption" data-action="edit" data-pid="${postPID}"><img src="Imgs/Icons/edit.svg">Edit Post</div>`; 
+      }
 
       menu.innerHTML = menuOptions;
-
-      // Add click listeners to menu options
       menu.addEventListener('click', (e) => {
           e.stopPropagation();
           const target = e.target.closest('.PostOption');
           if (!target) return;
-
           const action = target.dataset.action;
 
           if (action === 'hide') {
-              post.style.display = 'none'; // Simple hide
-          } 
-          else if (action === 'save') {
+              post.style.display = 'none';
+          } else if (action === 'save') {
               savePost(post,postId);
-          }
-          else if (action === 'block') {
-              //fetch user first and last name
+          } else if (action === 'block') {
               let PostAuthor= post.getElementsByClassName('FeedPostAuthor')[0];
-              console.log(post);
               let Name= PostAuthor.getElementsByTagName('p')[0].innerText;
               ShowConfirmModal({
-                  Title: 'Are You Sure You Want To Block ' + Name + '?',
+                  Title: 'Block ' + Name + '?',
                   ConfirmText: 'Block',
                   onConfirm: async() => await blockUser(uid, post),
                   Action: 'refresh'
-
               });
-          }
-          else if (action === 'edit') {
-              openEditModal(target.dataset.pid); // Use target.dataset.pid
-          }
-          else if (action === 'delete') {
+          } else if (action === 'edit') {
+              openEditModal(target.dataset.pid);
+          } else if (action === 'delete') {
               currentPostID = target.dataset.pid;
               ShowConfirmModal({
-                  Title: 'Are You Sure You Want To Delete This Post?',
+                  Title: 'Delete This Post?',
                   ConfirmText: 'Delete',
                   onConfirm: () => DeletePost()
               });
           }
-          menu.remove(); // Close menu after action
+          menu.remove();
       });
-
-      // Append menu to the post header
       post.getElementsByClassName('FeedPostHeader')[0].appendChild(menu);
     });
-}
+  }
 }
 
 
@@ -688,11 +665,18 @@ function toggleCommentMenu(event, type, id, element, isSelf) {
     document.addEventListener('click', closeMenu);
 }
 
-function attachCommentInteractions() {
-  let CommentSectionModal= document.getElementsByClassName('CommentSection')[0];
+export function attachCommentInteractions(specificContainer = null) {
+  let container;
+  if (specificContainer) {
+      container = specificContainer;
+  } else {
+      container = document.getElementsByClassName('CommentSection')[0];
+  }
+
+  if (!container) return;
 
   
-  let Comments= CommentSectionModal.getElementsByClassName('CommentContainer');
+  let Comments= container.getElementsByClassName('CommentContainer');
 
 
   [...Comments].forEach(comment => {

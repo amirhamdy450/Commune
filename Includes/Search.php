@@ -1,9 +1,6 @@
 <?php
-// This file is included by RouteController.php when ?target=search is set.
-// The $SearchQuery variable is already set by RouteController.php.
-
 if (!isset($PATH)) $PATH = '';
-if (!isset($SearchQuery)) $SearchQuery = ''; // Should be set, but as a fallback
+if (!isset($SearchQuery)) $SearchQuery = ''; 
 
 include_once $PATH.'Includes/UserAuth.php';
 include_once $PATH.'Includes/Encryption.php';
@@ -28,23 +25,52 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
     <div class="FlexContainer">
         <div class="SearchContainer">
             
-            <h2 class="SearchPageTitle">Search results for "<strong><?php echo htmlspecialchars($SearchQuery); ?></strong>"</h2>
-
-            <div class="SearchSection" id="SearchUsersSection">
-                <h3 class="SearchSectionTitle">People</h3>
-                <div class="SearchUsersContainer" id="SearchUsersContainer">
-                    </div>
-                <div class="Loader hidden" id="UsersLoader"></div>
-                <button class="BrandBtn SeeMoreBtn hidden" id="SeeMoreUsersBtn">See More Users</button>
+            <div class="SearchHeader">
+                <h2 class="SearchPageTitle">Results for "<strong><?php echo htmlspecialchars($SearchQuery); ?></strong>"</h2>
+                
+                <div class="TabsNav SearchNav">
+                    <a href="#" class="NavItem Active" tab-content="SearchAllTab">All</a>
+                    <a href="#" class="NavItem" tab-content="SearchUsersTab">People</a>
+                    <a href="#" class="NavItem" tab-content="SearchPostsTab">Posts</a>
+                </div>
             </div>
 
-            <div class="SearchSection" id="SearchPostsSection">
-                <h3 class="SearchSectionTitle">Posts</h3>
-                <div class="FeedContainer" id="SearchPostsContainer">
+            <div class="SearchContent">
+                
+                <div class="TabContent Active" id="SearchAllTab">
+                    
+                    <div class="SearchSectionPreview hidden" id="AllPeopleSection">
+                        <h3 class="PreviewTitle">People</h3>
+                        <div class="SearchUsersContainer" id="AllPeopleList"></div>
+                        <div class="ViewAllBtn" id="SeeAllPeopleBtn">See all people</div>
                     </div>
-                <div class="Loader" id="PostsLoader"></div> <button class="BrandBtn SeeMoreBtn hidden" id="SeeMorePostsBtn">See More Posts</button>
-            </div>
 
+                    <div class="SearchSectionPreview hidden" id="AllPostsSection">
+                        <h3 class="PreviewTitle">Posts</h3>
+                        <div class="FeedContainer" id="AllPostsList"></div>
+                        <div class="ViewAllBtn" id="SeeAllPostsBtn">See all posts</div>
+                    </div>
+
+                    <div class="SearchEmptyState hidden" id="AllEmptyState">
+                        <img src="Imgs/Icons/search.svg" alt="No Results">
+                        <h3>No results found</h3>
+                        <p>We couldn't find anything matching "<?php echo htmlspecialchars($SearchQuery); ?>".</p>
+                    </div>
+                </div>
+
+                <div class="TabContent hidden" id="SearchUsersTab">
+                    <div class="SearchUsersContainer" id="SearchUsersList"></div>
+                    <div class="FeedLoader hidden" id="UsersLoader"><div class="Loader"></div></div>
+                    <p class="NoMorePosts hidden" id="NoMoreUsers">No more users found.</p>
+                </div>
+
+                <div class="TabContent hidden" id="SearchPostsTab">
+                    <div class="FeedContainer" id="SearchPostsList"></div>
+                    <div class="FeedLoader hidden" id="PostsLoader"><div class="Loader"></div></div>
+                    <p class="NoMorePosts hidden" id="NoMorePosts">No more posts found.</p>
+                </div>
+
+            </div>
         </div>
     </div>
 

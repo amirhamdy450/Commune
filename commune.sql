@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 13, 2025 at 01:56 PM
+-- Generation Time: Nov 24, 2025 at 03:08 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -75,7 +75,9 @@ INSERT INTO `comments` (`id`, `comment`, `LikeCounter`, `ReplyCounter`, `PostID`
 (37, 'hio\r\n', 0, 0, 46, 12, '2025-09-09 02:11:03'),
 (38, 'commenting on my own post', 0, 0, 44, 12, '2025-10-11 14:18:01'),
 (39, 'just commenting to test something that is also long but this time in the comment section', 0, 0, 48, 12, '2025-10-16 02:22:50'),
-(42, 'test', 0, 0, 1, 12, '2025-10-21 02:54:59');
+(42, 'test', 0, 0, 1, 12, '2025-10-21 02:54:59'),
+(43, 'test', 0, 1, 72, 12, '2025-11-15 02:28:54'),
+(47, 'testing notifications', 0, 0, 98, 12, '2025-11-23 02:32:16');
 
 -- --------------------------------------------------------
 
@@ -126,7 +128,8 @@ INSERT INTO `comments_replies` (`id`, `CommentID`, `UID`, `Reply`, `Tagged`, `Li
 (8, 18, 12, 'unfazed', 1, 0, '2025-08-26 23:05:36'),
 (9, 5, 12, 'hello teacher', NULL, 0, '2025-10-14 21:32:24'),
 (10, 5, 12, 'hello teacher', NULL, 0, '2025-10-14 21:32:33'),
-(11, 1, 12, 'wydc , it looks cringe anyways', NULL, 0, '2025-10-14 21:34:10');
+(11, 1, 12, 'wydc , it looks cringe anyways', NULL, 0, '2025-10-14 21:34:10'),
+(16, 43, 12, 'test reply', NULL, 0, '2025-11-15 02:29:11');
 
 -- --------------------------------------------------------
 
@@ -439,7 +442,7 @@ INSERT INTO `followers` (`id`, `FollowerID`, `UserID`, `FollowedOn`) VALUES
 (2, 2, 12, '2025-10-11 23:07:32'),
 (3, 12, 2, '2025-10-12 00:48:33'),
 (25, 12, 4, '2025-10-28 03:12:53'),
-(26, 12, 1, '2025-11-06 13:49:55');
+(27, 12, 1, '2025-11-22 18:43:30');
 
 -- --------------------------------------------------------
 
@@ -470,7 +473,46 @@ INSERT INTO `likes` (`id`, `PostID`, `UID`) VALUES
 (213, 9, 12),
 (227, 7, 12),
 (231, 42, 12),
-(232, 46, 12);
+(232, 46, 12),
+(238, 98, 12);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` int NOT NULL,
+  `ToUID` int NOT NULL COMMENT 'The user receiving the notification',
+  `FromUID` int DEFAULT NULL COMMENT 'The actor. NULL = System Notification',
+  `Type` int NOT NULL COMMENT '1=Like, 2=Comment, 3=Reply, 4=Follow, 10=System, 11=Security',
+  `ReferenceID` int DEFAULT NULL COMMENT 'ID of Post/Comment. NULL for general alerts',
+  `MetaInfo` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Custom text or JSON for system messages',
+  `IsRead` tinyint(1) NOT NULL DEFAULT '0',
+  `Date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `ToUID`, `FromUID`, `Type`, `ReferenceID`, `MetaInfo`, `IsRead`, `Date`) VALUES
+(3, 1, 12, 1, 98, NULL, 1, '2025-11-23 02:32:00'),
+(4, 1, 12, 2, 98, NULL, 1, '2025-11-23 02:32:16');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_reset_tokens`
+--
+
+CREATE TABLE `password_reset_tokens` (
+  `id` int NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires` bigint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -511,7 +553,7 @@ INSERT INTO `posts` (`id`, `Content`, `Type`, `MediaFolder`, `LikeCounter`, `Com
 (20, 'ghh', 2, 'MediaFolders/posts/1753616577', 0, 0, '2025-07-27 14:42:57', 0, 4),
 (34, 'checking functionality', 1, 'MediaFolders/posts/17550465871689be2bbc4917', 0, 0, '2025-08-13 02:56:27', 1, 1),
 (36, 'i hacked saikoro and that is the result:', 3, 'MediaFolders/posts/17550752051689c5285d0ba5', 0, 0, '2025-08-13 10:53:25', 1, 1),
-(42, 'my  first public post !', 1, 'MediaFolders/posts/17562418211268ae1f9ddb016', 1, 0, '2025-08-26 22:57:01', 1, 12),
+(42, 'my  first public post !', 1, 'MediaFolders/posts/17562418211268ae1f9ddb016', 1, 0, '2025-08-26 22:57:01', 0, 12),
 (43, 'image tst', 2, 'MediaFolders/posts/17562462391268ae30df98551', 0, 0, '2025-08-27 00:10:39', 0, 12),
 (44, 'TEST', 2, 'MediaFolders/posts/17562476671268ae3673c939d', 0, 1, '2025-08-27 00:34:27', 1, 12),
 (45, 'test 3', 2, 'MediaFolders/posts/17562509431268ae433f01dfe', 0, 0, '2025-08-27 01:29:03', 1, 12),
@@ -525,7 +567,7 @@ INSERT INTO `posts` (`id`, `Content`, `Type`, `MediaFolder`, `LikeCounter`, `Com
 (61, 'Google released a new app called Smart AI and its just fascinating', 1, 'MediaFolders/posts/1762787595126912010b922de', 0, 0, '2025-11-10 17:13:15', 1, 7),
 (62, 'The New AI app developed by Google is called Smart AI and it can have 1.5 million tokens which is 500k more tokens than gemini pro', 1, 'MediaFolders/posts/1762787726126912018e18d7c', 0, 0, '2025-11-10 17:15:26', 1, 15),
 (71, 'Apple just dropped Vision Pro 2 — the display clarity is unreal.', 1, 'MediaFolders/posts/176300001126912401aaa12b', 0, 0, '2025-11-11 13:01:01', 1, 3),
-(72, 'Vision Pro 2 now supports eye-tracking in multiplayer apps. Apple is seriously ahead.', 1, 'MediaFolders/posts/176300002426912401ab239f', 0, 0, '2025-11-11 13:01:24', 1, 12),
+(72, 'Vision Pro 2 now supports eye-tracking in multiplayer apps. Apple is seriously ahead.', 1, 'MediaFolders/posts/176300002426912401ab239f', 0, 1, '2025-11-11 13:01:24', 1, 12),
 (73, 'Anyone tested the new Vision headset from Apple? Rumor says it’s lighter and better balanced.', 1, 'MediaFolders/posts/176300003726912401ac19a5', 0, 0, '2025-11-11 13:01:37', 1, 1),
 (74, 'The second-gen Vision Pro makes AR feel like real life. The details are insane.', 1, 'MediaFolders/posts/176300004926912401ad1837', 0, 0, '2025-11-11 13:01:49', 1, 7),
 (75, 'A supposed Tesla “Model Z” prototype was spotted near Fremont — looks futuristic.', 1, 'MediaFolders/posts/176300011126912401b2187a', 0, 0, '2025-11-11 13:02:11', 1, 4),
@@ -551,7 +593,11 @@ INSERT INTO `posts` (`id`, `Content`, `Type`, `MediaFolder`, `LikeCounter`, `Com
 (95, 'Starship 2025 flight test data will help refine future Mars vehicle design', 1, 'MediaFolders/posts/176290202212691221b2c7a45', 0, 0, '2025-11-12 13:08:58', 1, 12),
 (96, 'Elon Musk calls the latest Starship launch “our biggest leap toward Mars yet”', 1, 'MediaFolders/posts/176290202312691221b2c7a56', 0, 0, '2025-11-12 13:09:09', 1, 15),
 (97, 'SpaceX engineers said the Starship 2025 booster performed flawlessly', 1, 'MediaFolders/posts/176290202412691221b2c7a67', 0, 0, '2025-11-12 13:09:21', 1, 3),
-(98, 'The Starship 2025 mission puts SpaceX ahead in the race for reusable heavy rockets', 1, 'MediaFolders/posts/176290202512691221b2c7a78', 0, 0, '2025-11-12 13:09:32', 1, 1);
+(98, 'The Starship 2025 mission puts SpaceX ahead in the race for reusable heavy rockets', 1, 'MediaFolders/posts/176290202512691221b2c7a78', 1, 1, '2025-11-12 13:09:32', 1, 1),
+(99, 'Starship 2025 flight test data will help refine future Mars vehicle design', 2, 'MediaFolders/posts/176346638812691c5c94b8b56', 0, 0, '2025-11-18 13:46:28', 0, 12),
+(100, 'Starship 2025 flight test data will help refine future Mars vehicle design', 1, 'MediaFolders/posts/176346641012691c5caa2fe5b', 0, 0, '2025-11-18 13:46:50', 0, 12),
+(101, 'Starship 2025 flight test data will help refine future Mars vehicle design', 1, 'MediaFolders/posts/176346645112691c5cd35e297', 0, 0, '2025-11-18 13:47:31', 0, 12),
+(102, 'trial', 1, 'MediaFolders/posts/176346818312691c6397cef5d', 0, 0, '2025-11-18 14:16:23', 0, 12);
 
 -- --------------------------------------------------------
 
@@ -571,7 +617,12 @@ CREATE TABLE `saved_posts` (
 --
 
 INSERT INTO `saved_posts` (`id`, `UID`, `PostID`, `SavedOn`) VALUES
-(7, 12, 9, '2025-10-28 03:13:10');
+(7, 12, 9, '2025-10-28 03:13:10'),
+(10, 12, 98, '2025-11-18 15:50:12'),
+(12, 12, 96, '2025-11-22 01:00:24'),
+(13, 12, 97, '2025-11-23 17:09:53'),
+(14, 12, 94, '2025-11-23 17:09:58'),
+(15, 12, 92, '2025-11-23 17:10:01');
 
 -- --------------------------------------------------------
 
@@ -594,29 +645,8 @@ CREATE TABLE `tokens` (
 --
 
 INSERT INTO `tokens` (`id`, `UID`, `Token`, `Token_2`, `IP`, `UserAgent`, `UpdatedOn`) VALUES
-(33, 12, '8e875f917d52a8fae23acacb5b128a7510504bc717c16ba036aa7dcc24f0965f', 'fa5a54c10f2c0476d60441fc6bb2152a2ea5f3321ec26df224cfff536fd52b95', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', 1756680481),
-(34, 12, '0b23fecf7195b8a087a91fc4c56fd3b5f11b80d1f582afe6442327c71f125b01', '96a6a89cde8545759f987bfb4676d13d222611b141dac44144d9ed43feeed398', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 1757373064),
-(35, 12, 'ef4eeea04f0b33745a27e6b61530d2b8f8d559f387667c09fc829a40748b9872', '50f22fdb8b5719a39e8718b39c51fb594f56dd7c7a321554d4b15c550c2cf55c', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 1757511084),
-(36, 12, '108007f0d14cb8696cdbf4d408b41a6774d588916aa6028ce9f3f67203ebeafc', 'dadd16b993685791d230205991c3461c59f03a2adb232af5d9b507c9d11c16c1', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 1758406376),
-(37, 12, '1e8f5a8f3ba27c0ea98fd8c62411a322dfa34b6914d6c54081f6854ab3410d6b', 'df076ea464b36e10c51602aa04d7d2b9538c1bc8b0fc769c461d9008e7335f11', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 1759013757),
-(38, 12, 'aaba9c7fa7a916b3938683dfe1b720ce59b929811d4a5f2c9caf3398c1fbf397', '731f4fb9f3bd1b6cde67e3d8d7672efa5613a9939bf6e674186b45a38d2b41ff', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 1759103861),
-(39, 12, 'eb82ff6f6653a9f0e83366899de97bafd2e5f142d7efe862f4cc06b10896a559', 'bf0ff67859d8d474a42c7055cedfc08a97bea653ed9805daf4fb6c3dfdbe3b80', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36', 1759104194),
-(40, 12, 'e72a5dfbbbd0c28c0ee94b908b9a2e292cc1fc4e377e907eaa2ed2407bc80601', '75231a90b384ab3a3c667f014e0be1666c55c5db0dea92af416ae27487135e2a', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1759788710),
-(41, 12, '9a4a5c4e217c38c8bd43045311ffd78fafe4d2e42edcd82a64bc8f8fde456cab', '6f1b19572adb1f36411097015ac8147520db0d636f7379bfe44ee009acf9d3b4', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1759792474),
-(42, 12, '564417b453df567f70f9895e82e6f8339844b16c85debe507cba82bf991e57f0', '6f224437f9f40d0d074ec4997b54dfdf2ce4112f0c6a7c1d87c111c223b9314d', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760053891),
-(43, 12, 'c17808210cba0e8dc7dea7fab519e5840670dbf611b4d2277313b4d4dc1ddbcc', 'a3546930e6571d551b2d9cd4fdc5b7ad9ead509059ecc95dce345a1882b17737', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760131222),
-(44, 12, 'ce4f852061eef8103de8b08e5b9830ca2b7cc5ded9c007475055c7f0c0f6063e', 'a64ebfd284ec342cd51a83c0fb6f89a3640b562e91587ba3b85cb96ac63526ca', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760134895),
-(45, 12, '2fc19387d28910fc2b9cda3e162e77f2e56dd042357fc9fec121ff548a93b579', 'ae7eda702c5a6ae8557f5d0c72a2981d26ec21fed7570279e32464d227343b19', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0', 1760136459),
-(46, 12, 'd0e87cae22dc2d6ae0c6420f2ed5e2525e2e518a3ceb11ec590735cf80d53a09', '7f73ad0852afd85d7b8854019b9112b62a2a64348ec4e59e1e1c6cb39fb7f280', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0', 1760140213),
-(47, 12, 'd8a02c777b4114f659781aa46a7724af94f0dee2e950ad439d50c529280759b6', '11d25ad91540f5786a7f74a84208f5d5aed753167669dbc5c87edde9709f8f4c', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760393941),
-(48, 12, '28850216f0320512c9dcb37bb7f9176112457ddbbaf95b0c1ecc672026149cd5', '0d2b6bf70276339dd7a1bd4c68f4b77e20472c3685783964d686ac7e6930e3d9', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0', 1760217604),
-(49, 12, '189500ccb364b49bef81332d11cfce097426d5ca5e2890bd30cf95ebe82730b7', '0b32d882718896a725535327a873ecbf46b19632bb2a647a1c8ec7105af8252f', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760470660),
-(50, 12, '155acf3f313d4e4fb7c6f3c24dd18f24f059d148fc9ca7b8d21d3d706b8f55f6', 'e011957b1870a69882b7fc21868b61a5e1f39c09a57865ca2cad7ce5cdcf6eaa', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760478791),
-(51, 12, '57132ce6fc74802b97bd39179a7b6c080a0550165eb447bb56aa85e34afbb2b1', '96d9ec549de07c43f1ba1eb4de4f125746c6d2fa7313d27876258303bc279386', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1760483929),
-(52, 12, '67896fbdf4e2c7125bd7ea2a7c803e60a23836d71396aba87f4b74a463e9cb6f', 'eece5de3f13f1f53a4e96c8a0e89ab5832129a57c536586a95c8ec6de2bd9ddb', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1761350571),
-(53, 12, 'd4c86c363f8caa7092bd68b6086e17752ca3ba9d588cf1524d3570256457ac26', '212751d1eccd8e91bc53bedc7ee8327f27adc21cedc1cecbff10e6409f706c7f', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1761512109),
-(54, 12, 'c120d5e83af34fbb32f36157adea7925420ef3c516ef6dea3942dd02a6160c83', '48fc3d7cbd406624facfb8a1f9f906b1b0ab258d35c9da16fcde62233874320e', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36', 1761777684),
-(55, 12, '8cd74bb84292b2ffaea311653d7f5e3176fb214ccaea9f1be0ef4cb4fd41d9bc', '69f0f223fa8ff00b98846c395d5189ce8b7799b99733d87b9879cda841ff181a', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', 1763038330);
+(57, 1, 'cf15db982ed118a51b9765d068e14165a38ba789d982ce4f0b3ae0e1c2d96aba', 'f82a554cb8900c707b99dca0b4ed651d45683093dee35b8ab03076d974c34315', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', 1763858048),
+(60, 12, '71ccf1aea65a0340cc44df3dd195bcc017781a6d14edfbc791c0db4e015af33e', '09c96dd80e32dfec579bcac58d5de2429787415355de8f79c1b5ee6c201efed3', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', 1763944082);
 
 -- --------------------------------------------------------
 
@@ -636,11 +666,22 @@ CREATE TABLE `topic_cache` (
 --
 
 INSERT INTO `topic_cache` (`id`, `Query`, `Results`, `LastCalculated`) VALUES
-(36, 'Spacex', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"SpaceX\",\"url\":\"index.php?target=search&query=SpaceX\"},{\"type\":\"suggestion\",\"query\":\"Haven One\",\"url\":\"index.php?target=search&query=Haven+One\"}]}', '2025-11-13 15:54:06'),
-(38, 'Space', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Space\",\"url\":\"index.php?target=search&query=Space\"},{\"type\":\"suggestion\",\"query\":\"Haven One\",\"url\":\"index.php?target=search&query=Haven+One\"}]}', '2025-11-13 15:54:05'),
+(36, 'Spacex', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"spacex\",\"url\":\"index.php?target=search&query=spacex\"},{\"type\":\"suggestion\",\"query\":\"Haven One\",\"url\":\"index.php?target=search&query=Haven+One\"}]}', '2025-11-15 02:15:14'),
+(38, 'Space', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"space\",\"url\":\"index.php?target=search&query=space\"},{\"type\":\"suggestion\",\"query\":\"Haven One\",\"url\":\"index.php?target=search&query=Haven+One\"}]}', '2025-11-15 01:44:28'),
 (41, 'Spacx', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Spacx\",\"url\":\"index.php?target=search&query=Spacx\"}]}', '2025-11-13 15:24:24'),
 (51, 'Spa', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Spa\",\"url\":\"index.php?target=search&query=Spa\"}]}', '2025-11-13 15:53:31'),
-(52, 'Spac', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Spac\",\"url\":\"index.php?target=search&query=Spac\"}]}', '2025-11-13 15:53:32');
+(52, 'Spac', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"Spac\",\"url\":\"index.php?target=search&query=Spac\"}]}', '2025-11-13 15:53:32'),
+(91, 'co', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"co\",\"url\":\"index.php?target=search&query=co\"},{\"type\":\"suggestion\",\"query\":\"Vision Pro\",\"url\":\"index.php?target=search&query=Vision+Pro\"}]}', '2025-11-24 15:40:54'),
+(92, 'comm', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"comm\",\"url\":\"index.php?target=search&query=comm\"}]}', '2025-11-24 15:40:51'),
+(93, 'com', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"com\",\"url\":\"index.php?target=search&query=com\"}]}', '2025-11-24 15:40:55'),
+(96, 'commune', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"commune\",\"url\":\"index.php?target=search&query=commune\"}]}', '2025-11-24 15:41:16'),
+(98, 'e;', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"e;\",\"url\":\"index.php?target=search&query=e%3B\"}]}', '2025-11-24 15:41:25'),
+(100, 'el', '{\"users\":[{\"id\":7,\"Fname\":\"Yael  \",\"Lname\":\"Lengoff\",\"Username\":\"yael cardenas_len goffd7e21dc4\",\"ProfilePic\":\"Imgs\\/Icons\\/unknown.png\",\"uid\":\"SCkrfL8siv15VYKqzv1zdQ%3D%3D\"}],\"topics\":[{\"type\":\"full_search\",\"query\":\"el\",\"url\":\"index.php?target=search&query=el\"}]}', '2025-11-24 16:04:22'),
+(101, 'elo', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"elo\",\"url\":\"index.php?target=search&query=elo\"}]}', '2025-11-24 16:04:23'),
+(103, 'elom', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"elom\",\"url\":\"index.php?target=search&query=elom\"}]}', '2025-11-24 15:41:34'),
+(105, 'elon', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"elon\",\"url\":\"index.php?target=search&query=elon\"}]}', '2025-11-24 16:05:38'),
+(106, 'Elon Musk', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"elon musk\",\"url\":\"index.php?target=search&query=elon+musk\"}]}', '2025-11-24 16:05:44'),
+(111, 'mod', '{\"users\":[],\"topics\":[{\"type\":\"full_search\",\"query\":\"mod\",\"url\":\"index.php?target=search&query=mod\"}]}', '2025-11-24 16:04:04');
 
 -- --------------------------------------------------------
 
@@ -671,12 +712,12 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `Fname`, `Lname`, `Username`, `Email`, `Password`, `BirthDay`, `Gender`, `Bio`, `CountryID`, `ProfilePic`, `CoverPhoto`, `Followers`, `Following`, `Privilege`) VALUES
-(1, 'Amir ', 'King', 'Amirking', 'testing_one@gmail.com', '', NULL, 0, NULL, 66, '', '', 0, 0, 0),
+(1, 'Amir ', 'King', 'Amirking', 'testing_one@gmail.com', '$2y$10$Qf87ObM0FFp7YIXjrSmTS.9j0.sZCvS6pz1pWgvBqxu0PmlD3BGVO', NULL, 0, NULL, 66, '', '', 0, 0, 0),
 (2, 'Sarah ', 'Ahmed', 'Sarah82', 'testing_two@gmail.com', '', NULL, 1, NULL, 66, '', '', 0, 0, 0),
 (3, 'Ahmed ', 'Aly', 'Ahmed_Aly73', 'testing_three@gmail.com', '', NULL, 0, NULL, 66, '', '', 0, 0, 0),
 (4, 'Teacher', '', 'Ter34', 'testing_four@gmail.com', '', NULL, 0, NULL, 66, '', '', 0, 0, 1),
 (7, 'Yael  ', 'Lengoff', 'yael cardenas_len goffd7e21dc4', 'hyfyd@mailinator.com', '$2y$10$/AFgiGFRSrzEquqJzZ10Gu5MBJwzPz0NbC14sFn54hAaRUhJ47oJm', '2007-04-16', 0, NULL, 66, '', '', 0, 0, 0),
-(12, 'amir', 'hamdy', 'amir_hamdy40f259c4', 'amirhamdy450@gmail.com', '$2y$10$BKjkavTff16oXjfjLEeY6.xZlj461bC4MtsIHSPyKLP65/0Sijo06', '2000-10-02', 0, 'a new bio', 61, '176269871712/12_6910a5dd15c8b.jfif', '176242986412/12_690c8ba8150c6.jpg', 0, 0, 0),
+(12, 'amir', 'hamdy', 'amir_hamdy40f259c4', 'amirhamdy45@gmail.com', '$2y$10$XS1ME7NGBnaJG2t/blAmoeLNe8rkuV90DCad5aB9GsMdtUvbrTjvK', '2000-10-02', 0, 'a new bio', 61, '176322413912/12_6918aa4b1c547.jfif', '176242986412/12_690c8ba8150c6.jpg', 0, 0, 0),
 (15, 'user', 'one', 'user_oned78bff33', 'user1@gmail.com', '$2y$10$SkbEy7QBNJkS7..WUjBG0ucweJBL2vpGFIbe97ogLDKXaVu31G0m.', '2000-07-05', 1, NULL, 11, NULL, NULL, 0, 0, 0);
 
 --
@@ -748,11 +789,27 @@ ALTER TABLE `likes`
   ADD KEY `Commune_Likes_UID` (`UID`);
 
 --
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_notif_to` (`ToUID`),
+  ADD KEY `idx_notif_from` (`FromUID`);
+
+--
+-- Indexes for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `token` (`token`);
+
+--
 -- Indexes for table `posts`
 --
 ALTER TABLE `posts`
   ADD PRIMARY KEY (`id`),
   ADD KEY `commune_posts_UID` (`UID`);
+ALTER TABLE `posts` ADD FULLTEXT KEY `ft_content` (`Content`);
 
 --
 -- Indexes for table `saved_posts`
@@ -792,13 +849,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `blocked_users`
 --
 ALTER TABLE `blocked_users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `comments_likes`
@@ -810,13 +867,13 @@ ALTER TABLE `comments_likes`
 -- AUTO_INCREMENT for table `comments_replies`
 --
 ALTER TABLE `comments_replies`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `comments_replies_likes`
 --
 ALTER TABLE `comments_replies_likes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `countries`
@@ -828,37 +885,49 @@ ALTER TABLE `countries`
 -- AUTO_INCREMENT for table `followers`
 --
 ALTER TABLE `followers`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `likes`
 --
 ALTER TABLE `likes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=233;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=239;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
 
 --
 -- AUTO_INCREMENT for table `saved_posts`
 --
 ALTER TABLE `saved_posts`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `tokens`
 --
 ALTER TABLE `tokens`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT for table `topic_cache`
 --
 ALTER TABLE `topic_cache`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -919,6 +988,13 @@ ALTER TABLE `followers`
 ALTER TABLE `likes`
   ADD CONSTRAINT `commune_Likes_PostID` FOREIGN KEY (`PostID`) REFERENCES `posts` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `commune_Likes_UID` FOREIGN KEY (`UID`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `fk_notif_from` FOREIGN KEY (`FromUID`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_notif_to` FOREIGN KEY (`ToUID`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `posts`

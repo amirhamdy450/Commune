@@ -261,3 +261,18 @@
     border-radius: 8px;
     font-size: 15px;
 }
+
+
+#ForgetPassLink {
+    text-decoration: none;
+    color: #144460;
+    align-self: end;
+    margin-top: -12px;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+#ForgetPassLink:hover {
+    text-decoration: underline;
+    color: #10415e;
+}

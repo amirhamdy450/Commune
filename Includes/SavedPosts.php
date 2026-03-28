@@ -22,7 +22,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 <body class="Posts"> <?php include 'Includes/NavBar.php'; ?>
 
     <div class="FlexContainer">
-        <div class="FeedContainer">
+        <div class="FeedContainer" id="SavedPostsContainer">
             <h2 style="text-align: center; width: 100%; margin: 15px 0;">My Saved Posts</h2>
             <?php
 
@@ -140,7 +140,12 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                 // Show a message if no saved posts are found
                 echo '<p style="font-style:italic; color:gray; text-align:center; margin-top:20px;">You haven\'t saved any posts yet.</p>';
             }
+
+            
             ?>
+            <div class="FeedLoader hidden" id="SavedPostsLoader">
+                <div class="Loader"></div>
+            </div>
         </div>
     </div>
 
@@ -152,5 +157,6 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
     <script src="Scripts/modal.js"></script>
     <script type="module" src="Scripts/Feed.js"></script>
+    <script type="module" src="Scripts/SavedPosts.js"></script>
 </body>
 </html>

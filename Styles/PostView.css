@@ -1,0 +1,102 @@
+/* Layout for the Single Post Page */
+.PostView .FlexContainer {
+    padding-top: 100px; /* More breathing room from Navbar */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Prevents vertical centering stretching */
+}
+
+/* The Expanded Post Card */
+.FeedPost.Opened {
+    background: #ffffff;
+    padding: 0; /* Let children handle padding for cleaner edges */
+    width: 100%;
+    max-width: 700px; /* Slightly wider than feed for emphasis */
+    border-radius: 15px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.08); /* Stronger shadow for focus */
+    overflow: hidden;
+    margin-bottom: 40px;
+    border: 1px solid #e1e8ed;
+}
+
+/* Header & Content Adjustments */
+.FeedPost.Opened .FeedPostHeader,
+.FeedPost.Opened .FeedPostContent,
+.FeedPost.Opened .FeedPostInteractionCounters,
+.FeedPost.Opened .FeedPostInteractions {
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+
+
+.FeedPost.Opened .FeedPostHeader {
+    padding-top: 20px;
+}
+
+.FeedPost.Opened .FeedPostInteractions {
+    border-bottom: 1px solid #efefef;
+    padding-bottom: 10px;
+    margin-bottom: 0;
+    justify-content: center;
+}
+
+.FeedPost.Opened .CommentContainer .FeedPostInteractions{
+    justify-content: flex-start;
+}
+
+/* Disable the hover effect on the Comment button since it's already open */
+.FeedPost.Opened .FeedPostComment {
+display: none;
+
+}
+
+.FeedPost.Opened .CommentContainer .FeedPostComment{
+    display: block;
+}
+
+.FeedPost.Opened .Interaction{
+    max-width: 250px;
+}
+
+.FeedPost.Opened .FeedPostComment:hover {
+    background: none;
+    transform: none;
+}
+
+/* --- Inline Comment Section (The "Cont") --- */
+.PostCommentsInline {
+    background-color: #f7f9fa; /* Slight contrast to show it's the comment area */
+    padding: 0px 25px 25px 25px;
+}
+
+.PostCommentsInline .ModalCommentsContainer {
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Reuse existing comment styles but ensure they fit */
+.PostCommentsInline .ModalComment {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    /* max-width: 366px; */
+}
+
+/* Input Form at bottom of card */
+.PostCommentsInline .CreateModalComment {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e1e8ed;
+    border-radius: 25px;
+    padding: 8px 15px;
+    margin-top: 10px;
+    box-shadow: none;
+}
+
+.PostCommentsInline .CommentInput {
+    background: transparent;
+    font-size: 15px;
+}

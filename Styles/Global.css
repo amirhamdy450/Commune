@@ -865,7 +865,7 @@ body.ModalOpen {
 
 #NavMenuDrop {
     position: absolute;
-    top: 45px;
+    top: 55px;
     right: -8px;
     background-color: #ffffff;
     min-width: 160px;
@@ -891,3 +891,219 @@ body.ModalOpen {
 .DropdownItem:hover {
     background-color: #f1f1f1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* --- LAYOUT SYSTEM (FLEXBOX) --- */
+.FlexContainer {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Crucial: Prevents columns from stretching to full height */
+    gap: 30px;
+    max-width: 1250px;
+    margin: 0 auto;
+    padding-top: 90px;
+    padding-bottom: 40px;
+}
+
+/* 1. Left Sidebar */
+.LeftSidebar {
+    width: 275px;
+    flex-shrink: 0; /* Prevent shrinking */
+    position: sticky;
+    top: 90px;
+    height: fit-content;
+    max-height: calc(100vh - 100px);
+}
+
+/* 2. Middle Feed */
+.FeedContainer {
+    width: 600px; /* Fixed width for consistency */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* 3. Right Sidebar */
+.RightSidebar {
+    width: 320px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 90px;
+    height: fit-content;
+}
+
+/* --- RESPONSIVENESS --- */
+
+/* Tablet: Hide Right Sidebar */
+@media (max-width: 1100px) {
+    .RightSidebar {
+        display: none;
+    }
+    .LeftSidebar {
+        width: 80px; /* Shrink to icon-only mode? Or keep standard. Let's keep standard for now */
+    }
+    .FeedContainer {
+        width: 550px;
+    }
+}
+
+/* Mobile: Hide Both Sidebars, Full Width Feed */
+@media (max-width: 750px) {
+    .LeftSidebar, .RightSidebar {
+        display: none;
+    }
+    
+    .FlexContainer {
+        justify-content: center;
+        gap: 0;
+        padding-top: 80px;
+    }
+
+    .FeedContainer {
+        width: 100%;
+        max-width: 500px;
+        padding: 0 10px;
+    }
+    
+    /* Ensure posts don't overflow */
+    .FeedPost {
+        min-width: 100%;
+    }
+}
+
+/* --- SIDEBAR COMPONENT STYLES --- */
+
+/* Profile Card */
+.SideProfileCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    text-decoration: none;
+    color: #333;
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+    border: 1px solid #f0f0f0;
+}
+.SideProfileCard:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.SideProfileCard img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+.SideProfileInfo .Name { font-weight: 700; font-size: 15px; }
+.SideProfileInfo .Handle { font-size: 13px; color: #666; }
+
+/* Navigation */
+.SideNav {
+    background: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #f0f0f0;
+}
+.SideNav .NavItem {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: #444;
+    font-weight: 500;
+    transition: background 0.2s;
+    font-size: 16px;
+}
+.SideNav .NavItem:hover { background: #f7f9fa; }
+.SideNav .NavItem.Active { 
+    border-left: 4px solid var(--accent-color); 
+    background: #f0f7ff; 
+    color: var(--accent-color); 
+    font-weight: 600;
+}
+.SideNav .NavItem img { width: 22px; height: 22px; opacity: 0.7; }
+/* Filter to colorize icons to accent color (approximate blue) */
+.SideNav .NavItem.Active img { 
+    opacity: 1; 
+    filter: invert(36%) sepia(61%) saturate(2283%) hue-rotate(202deg) brightness(98%) contrast(93%); 
+}
+
+.SideLogoutBtn {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    color: #e0245e;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+.SideLogoutBtn:hover { background: #fff0f0; }
+
+/* Right Sidebar Components */
+.SidebarSection {
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    margin-bottom: 20px;
+    border: 1px solid #f0f0f0;
+}
+.SidebarSection h3 { 
+    font-size: 17px; 
+    font-weight: 800; 
+    margin-bottom: 15px; 
+    padding-bottom: 10px; 
+    border-bottom: 1px solid #eee; 
+    color: #1a1a1a;
+}
+
+.SuggestionItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+.SugUser { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #333; }
+.SugUser img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.SugInfo .Name { font-size: 14px; font-weight: 600; }
+.SugInfo .Handle { font-size: 12px; color: #888; }
+
+.FollowBtn.Small {
+    padding: 6px 15px;
+    font-size: 13px;
+    border-radius: 20px;
+}
+
+.SidebarFooter { font-size: 12px; color: #999; padding: 0 10px; line-height: 1.6; text-align: center;}
+.SidebarFooter a { color: #999; text-decoration: none; margin: 0 5px;}
+.SidebarFooter a:hover { text-decoration: underline; }

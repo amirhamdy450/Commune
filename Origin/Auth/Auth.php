@@ -217,7 +217,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $emailExists = $stmt->rowCount() > 0;
 
 
-        $UserID=$user['id'];
+        /* $UserID=$user['id']; */
 
         if(!$emailExists){
             echo json_encode([

@@ -60,7 +60,7 @@ if(!isset($PATH)){
 
 
 
-               <a href="index.php?redirect=forgot-password" class="FormLink">Forgot your password?</a>
+               <a href="index.php?redirect=forgot-password" class="FormLink" id="ForgetPassLink">Forgot your password?</a>
                 <input type="submit" name="Login" value="Login" class="BrandBtn">
 
 

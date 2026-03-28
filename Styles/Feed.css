@@ -185,10 +185,15 @@
 
 /* Compact Options for Comments */
 .ActionMenu.CommentContext .ActionOption {
-    padding: 3px 12px;
+    padding: 8px 12px;
     font-size: 14px;
 }
 
+
+.ActionMenu.CommentContext .ActionOption img {
+    width: 24px;
+    height: 24px;
+}
 .ActionOption:hover {
     background-color: #f5f5f5;
 }
@@ -268,13 +273,12 @@
 }
 
 
-
-.FeedPost.Opened {
+/* (TOBEDELETED) */
+/* .FeedPost.Opened {
     background: #f0f0f0;
     padding: 20px;
     min-width: 650px;
-    /* width: 100%; */
-}
+} */
 
 
 .FeedPostContent {
@@ -340,11 +344,11 @@
     user-select: none;
 }
 
-
-.FeedPost.Opened .FeedPostInteractions {
+/* (TOBEDELETED) */
+/* .FeedPost.Opened .FeedPostInteractions {
 border-bottom: 1px solid #9e9e9e;
 
-}
+} */
 
 .Interaction {
     width: 100%;
@@ -639,18 +643,17 @@ input.CommentSubmitBtn:hover {
     transform: scale(1);
 }
 
+/* (TOBEDELETED) */
 /* Expanded Post  Comments*/
-.FeedPost.Opened .Cont {
+/* .FeedPost.Opened .Cont {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    /* z-index: 11111111; */
-    /* padding-top: 20px; */
-    /* height: 100vh; */
+
     max-height: 380px;
     overflow-y: auto;
     padding-top: 20px;
-}
+} 
 
 
 .FeedPost.Opened .ModalComment {
@@ -659,7 +662,6 @@ input.CommentSubmitBtn:hover {
 
 .FeedPost.Opened .ViewRepliesBtn {
     background: #f6f6f6;
-    /* display: flex; */
     border: 2px solid #c8c8c8;
 }
 .FeedPost.Opened .ViewRepliesBtn:hover {
@@ -674,13 +676,12 @@ input.CommentSubmitBtn:hover {
     padding: 8px;
     max-width: 100%;
     border-top: 1px solid #cacaca;
-    /* max-width: 530px; */
     margin-top: 15px;
 }
 .FeedPost.Opened  .CreateModalComment .CommentInput {
     background: white;
 }
-
+*/
 
 .InfoBox {
     position: fixed;

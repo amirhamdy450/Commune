@@ -421,6 +421,89 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         echo json_encode(['success' => true, 'notifications' => $formatted]);
         die();
+    }else if ($_POST["ReqType"] == 8) { // FETCH MORE SAVED POSTS
+        $EncPostAtr = $_POST['LastPostID']; 
+        $LastPostID = (int)Decrypt($EncPostAtr, "Positioned");
+
+        // 1. Find the 'SavedID' cursor for this PostID
+        // We need to know WHERE in the saved list this post sits.
+        $cursorSql = "SELECT id FROM saved_posts WHERE PostID = ? AND UID = ?";
+        $cursorStmt = $pdo->prepare($cursorSql);
+        $cursorStmt->execute([$LastPostID, $UID]);
+        $CursorSavedID = $cursorStmt->fetchColumn();
+
+        if (!$CursorSavedID) {
+            // Edge case: User might have unsaved the post while viewing.
+            // In a strict system, we'd fail. Here, we return empty to stop scrolling.
+            echo json_encode(['success' => true, 'posts' => []]); // Return empty list
+            die();
+        }
+
+        // 2. Fetch next 5 saved posts OLDER than that cursor
+        $sql = "SELECT 
+                posts.id AS PID,
+                posts.*, 
+                users.*,
+                CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
+                CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
+                TRUE AS saved
+                FROM saved_posts sp
+                INNER JOIN posts ON sp.PostID = posts.id
+                INNER JOIN users ON posts.UID = users.id
+                LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
+                LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
+                LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
+                WHERE sp.UID = ? AND posts.Status = 1 AND b.id IS NULL 
+                AND sp.id < ?  -- Pagination Logic
+                ORDER BY sp.id DESC 
+                LIMIT 5";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$UID, $UID, $UID, $UID, $CursorSavedID]);
+        $NewPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $response = [];
+
+        foreach ($NewPosts as $FeedPost) {
+            // Standard formatting logic (Same as ReqType 5)
+            $timestamp = strtotime($FeedPost['Date']);
+            $encryptedFeedPostID = Encrypt($FeedPost['PID'],"Positioned",["Timestamp"=>$timestamp]);
+            $encryptedUserID = Encrypt($FeedPost['UID'],"Positioned",["Timestamp"=>$timestamp]);
+
+            $PostProfilePic = (isset($FeedPost['ProfilePic']) && !empty($FeedPost['ProfilePic']))
+                ? 'MediaFolders/profile_pictures/' . htmlspecialchars($FeedPost['ProfilePic'])
+                : 'Imgs/Icons/unknown.png';
+
+            $MediaFolder = $PATH.$FeedPost['MediaFolder'];
+            $media = [];
+            if (is_dir($MediaFolder)) {
+                $MediaFiles = scandir($MediaFolder);
+                foreach ($MediaFiles as $file) {
+                    if (!in_array($file, ['.', '..'])) {
+                        $media[] = ['name'=>$file, 'path' => $FeedPost['MediaFolder'] . '/' . $file];
+                    }
+                }
+            }
+        
+            $response[] = [
+                'PID' => $encryptedFeedPostID,
+                'UID' => $encryptedUserID,
+                'name' => $FeedPost['Fname'] . ' ' . $FeedPost['Lname'],
+                'Content' => $FeedPost['Content'],
+                'LikeCounter' => $FeedPost['LikeCounter'],
+                'CommentCounter' => $FeedPost['CommentCounter'],
+                'MediaFolder' => $media,
+                'MediaType'=> (int)$FeedPost['Type'],
+                'CurrentUserPrivilege'=> (int)$User['Privilege'],
+                'liked'=>$FeedPost['liked'],
+                'following'=>$FeedPost['following'],
+                'Self' => (int)($FeedPost['UID'] == $UID),
+                'saved'=> 1,
+                'ProfilePic' => $PostProfilePic
+            ];
+        }
+        echo json_encode($response);
+        die();
     }
     // --- END OF NEW BLOCK ---
 
