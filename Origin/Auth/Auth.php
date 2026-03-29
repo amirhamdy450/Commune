@@ -156,14 +156,42 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
 
 
-        //insert into DB
-        $sql = "INSERT INTO `users` (`Fname`, `Lname`,`Username`, `Email`, `Birthday` , `Gender`, `CountryID`, `Password`) VALUES ( ?, ? ,?, ?, ?, ?, ?, ?)";
+        //insert into DB (IsVerified=0 until email is confirmed)
+        $sql = "INSERT INTO `users` (`Fname`, `Lname`,`Username`, `Email`, `Birthday` , `Gender`, `CountryID`, `Password`, `IsVerified`) VALUES ( ?, ? ,?, ?, ?, ?, ?, ?, 0)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$FirstName, $LastName, $Suggested_Username, $Email, $Birthday, $Gender, $CountryID, $Password]);
 
+        // Generate email verification token and send it
+        $verifyToken = bin2hex(random_bytes(32));
+        $verifyExpires = time() + 86400; // 24 hours
+
+        $pdo->prepare("DELETE FROM email_verifications WHERE email = ?")->execute([$Email]);
+        $pdo->prepare("INSERT INTO email_verifications (email, token, expires) VALUES (?, ?, ?)")->execute([$Email, $verifyToken, $verifyExpires]);
+
+        try {
+            $mail = new PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = MAIL_HOST;
+            $mail->SMTPAuth   = true;
+            $mail->Username   = MAIL_USERNAME;
+            $mail->Password   = MAIL_PASSWORD;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = MAIL_PORT;
+            $mail->setFrom(MAIL_FROM, MAIL_FROM_NAME);
+            $mail->addAddress($Email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Verify your Commune account';
+            $verifyLink = APP_URL . '/index.php?target=verify-email&token=' . $verifyToken;
+            $mail->Body = "Hi " . htmlspecialchars($FirstName) . ",<br><br>Please click the link below to verify your email address:<br><a href='$verifyLink'>$verifyLink</a><br><br>This link will expire in 24 hours.";
+            $mail->send();
+        } catch (Exception $e) {
+            error_log("Verification email error: " . $mail->ErrorInfo);
+        }
+
         echo json_encode([
             'status' => true,
-            'message' => 'User Registered Successfully !'
+            'verify' => true,
+            'message' => 'Registration successful! Please check your email to verify your account.'
         ]);
 
 
@@ -211,7 +239,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 
         //check if email exists
-        $stmt = $pdo->prepare("SELECT id, Password FROM users WHERE Email = ?");
+        $stmt = $pdo->prepare("SELECT id, Password, IsVerified FROM users WHERE Email = ?");
         $stmt->execute([$Email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -220,6 +248,16 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'status' => false,
                 'code'=>40, //db entry not found
                 'message' => '<p><b>Email does not exist : </b> This email is not registered with us.</p>'
+            ]);
+            die();
+        }
+
+        // Block unverified accounts
+        if (!$user['IsVerified']) {
+            echo json_encode([
+                'status' => false,
+                'code' => 54,
+                'message' => '<p><b>Email not verified:</b> Please check your inbox and click the verification link before logging in.</p>'
             ]);
             die();
         }
@@ -373,6 +411,30 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             'status' => true,
             'message' => 'Password reset successfully! You can now login.'
         ]);
+        die();
+
+    }else if($_POST['ReqType'] == 5){ // Verify Email
+
+        $token = $_POST['token'] ?? '';
+
+        if (empty($token)) {
+            echo json_encode(['status' => false, 'message' => 'Invalid verification link.']);
+            die();
+        }
+
+        $stmt = $pdo->prepare("SELECT email FROM email_verifications WHERE token = ? AND expires > ?");
+        $stmt->execute([$token, time()]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            echo json_encode(['status' => false, 'message' => 'This verification link is invalid or has expired.']);
+            die();
+        }
+
+        $pdo->prepare("UPDATE users SET IsVerified = 1 WHERE Email = ?")->execute([$row['email']]);
+        $pdo->prepare("DELETE FROM email_verifications WHERE email = ?")->execute([$row['email']]);
+
+        echo json_encode(['status' => true, 'message' => 'Email verified! You can now log in.']);
         die();
     }
 

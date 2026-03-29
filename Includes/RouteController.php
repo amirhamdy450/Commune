@@ -93,6 +93,17 @@ if(isset($_GET['target'])){
     }
 
 
+    if($target == "verify-email"){
+        if (isset($_GET['token'])) {
+            $VerifyToken = $_GET['token'];
+            include $PATH.'Includes/Access/VerifyEmail.php';
+            die();
+        } else {
+            header("Location: index.php");
+            exit();
+        }
+    }
+
     if($target == "reset-password"){
         if (isset($_GET['token'])) {
             $ResetToken = $_GET['token']; // This var will be used by reset-password.php

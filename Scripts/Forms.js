@@ -130,9 +130,20 @@ export function ValidateDate(date) {
       Errors: Errors
     };
   }else{
-    return {
-      IsValid: true
-    };
+    const parsed = new Date(date);
+    const minAge = new Date();
+    minAge.setFullYear(minAge.getFullYear() - 13);
+    const minYear = new Date('1900-01-01');
+
+    if (parsed > minAge) {
+      Errors.push(['Invalid Date: ', 'You must be at least 13 years old.']);
+      IsValid = false;
+    } else if (parsed < minYear) {
+      Errors.push(['Invalid Date: ', 'Please enter a valid birth year.']);
+      IsValid = false;
+    }
+
+    return { IsValid, Errors };
   }
 
 }

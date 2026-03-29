@@ -177,8 +177,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 let res = await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
                 if (res.status) {
-                    // Potentially redirect to login or show a success message
-                    window.location.href = "index.php";
+                    form.innerHTML = `<div class="AuthBoxMessage">
+                        <h1>Check Your Email</h1>
+                        <p>${res.message}</p>
+                        <a href="index.php" class="BrandBtn">Go to Login</a>
+                    </div>`;
                 } else {
                     alert(res.message || "An unexpected error occurred.");
                 }
@@ -382,6 +385,33 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
         // --- END NEW LOGIC ---
+
+    }else if(document.body.classList.contains("VerifyEmail")){
+
+        const verifyBtn = document.getElementById("VerifyEmailBtn");
+        if (verifyBtn) {
+            verifyBtn.addEventListener("click", async () => {
+                const token = verifyBtn.getAttribute("data-token");
+                const formResponse = document.querySelector(".FormResponse");
+                verifyBtn.disabled = true;
+
+                const formData = new FormData();
+                formData.append("ReqType", 5);
+                formData.append("token", token);
+
+                let res = await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
+
+                formResponse.innerHTML = `<p>${res.message}</p>`;
+                formResponse.className = `FormResponse ${res.status ? 'Success' : 'Error'}`;
+
+                if (res.status) {
+                    verifyBtn.remove();
+                    setTimeout(() => { window.location.href = "index.php"; }, 2500);
+                } else {
+                    verifyBtn.disabled = false;
+                }
+            });
+        }
 
     }else{
         console.warn("No Auth");

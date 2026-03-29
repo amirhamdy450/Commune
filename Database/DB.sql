@@ -160,6 +160,21 @@ CREATE TABLE `password_reset_tokens` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `email_verifications`
+--
+
+CREATE TABLE `email_verifications` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `email` varchar(100) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires` bigint NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `email_verif_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `posts`
 --
 
@@ -238,7 +253,8 @@ CREATE TABLE `users` (
   `CoverPhoto` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `Followers` int NOT NULL DEFAULT '0',
   `Following` int NOT NULL DEFAULT '0',
-  `Privilege` int NOT NULL DEFAULT '0'
+  `Privilege` int NOT NULL DEFAULT '0',
+  `IsVerified` tinyint NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -95,17 +95,15 @@ function validateBirthYear($Date){
         return false;
     }
 
-    $year = date('Y', strtotime($Date));
-    $currentYear = date('Y');
+    $birthTimestamp = strtotime($Date);
+    $minAgeTimestamp = strtotime('-13 years');
+    $minYearTimestamp = strtotime('1900-01-01');
 
-    if($year < 1900 || $year > $currentYear){
+    if($birthTimestamp > $minAgeTimestamp || $birthTimestamp < $minYearTimestamp){
         return false;
     }
 
-
-
     return true;
-
 
 }
 
