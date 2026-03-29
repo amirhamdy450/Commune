@@ -131,8 +131,16 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 
                 // 5. Update Database
                 try {
-                    // TODO: Add logic to delete the OLD profile picture from the server
-                    
+                    // Delete the old profile picture folder if it exists
+                    $OldProfilePic = $User['ProfilePic'] ?? '';
+                    if (!empty($OldProfilePic)) {
+                        $OldFolder = $ProfilePicsFolder . dirname($OldProfilePic);
+                        if (is_dir($OldFolder)) {
+                            array_map('unlink', glob($OldFolder . '/*'));
+                            rmdir($OldFolder);
+                        }
+                    }
+
                     $sql = "UPDATE users SET ProfilePic = ? WHERE id = ?";
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute([$dbPath, $UID]);
@@ -276,8 +284,19 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 
                 // 5. Update Database
                 try {
-                    // TODO: Add logic to delete the OLD cover photo from the server
-                    
+                    // Delete the old cover photo folder if it exists
+                    $OldCoverStmt = $pdo->prepare("SELECT CoverPhoto FROM users WHERE id = ?");
+                    $OldCoverStmt->execute([$UID]);
+                    $OldCoverRow = $OldCoverStmt->fetch(PDO::FETCH_ASSOC);
+                    $OldCoverPhoto = $OldCoverRow['CoverPhoto'] ?? '';
+                    if (!empty($OldCoverPhoto)) {
+                        $OldFolder = $CoverPicsFolder . dirname($OldCoverPhoto);
+                        if (is_dir($OldFolder)) {
+                            array_map('unlink', glob($OldFolder . '/*'));
+                            rmdir($OldFolder);
+                        }
+                    }
+
                     $sql = "UPDATE users SET CoverPhoto = ? WHERE id = ?";
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute([$dbPath, $UID]);

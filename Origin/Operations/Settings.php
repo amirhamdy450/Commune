@@ -207,13 +207,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("SELECT MediaFolder FROM posts WHERE UID = ?");
             $stmt->execute([$UID]);
             while ($row = $stmt->fetch()) {
-                // Recursive delete function would go here for folders
-                // For now, we rely on the fact that we store full paths
-                // Ideally, delete the actual files from disk here
+                $FolderPath = $PATH . $row['MediaFolder'];
+                if (!empty($row['MediaFolder']) && is_dir($FolderPath)) {
+                    array_map('unlink', glob($FolderPath . '/*'));
+                    rmdir($FolderPath);
+                }
             }
             $pdo->prepare("DELETE FROM posts WHERE UID = ?")->execute([$UID]);
 
-            // 3. Delete User
+            // 3. Delete profile and cover picture folders
+            $userRow = $pdo->prepare("SELECT ProfilePic, CoverPhoto FROM users WHERE id = ?");
+            $userRow->execute([$UID]);
+            $userMedia = $userRow->fetch(PDO::FETCH_ASSOC);
+
+            if (!empty($userMedia['ProfilePic'])) {
+                $PicFolder = $PATH . 'MediaFolders/profile_pictures/' . dirname($userMedia['ProfilePic']);
+                if (is_dir($PicFolder)) {
+                    array_map('unlink', glob($PicFolder . '/*'));
+                    rmdir($PicFolder);
+                }
+            }
+            if (!empty($userMedia['CoverPhoto'])) {
+                $CoverFolder = $PATH . 'MediaFolders/cover_pictures/' . dirname($userMedia['CoverPhoto']);
+                if (is_dir($CoverFolder)) {
+                    array_map('unlink', glob($CoverFolder . '/*'));
+                    rmdir($CoverFolder);
+                }
+            }
+
+            // 4. Delete User
             $pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$UID]);
 
             $pdo->commit();

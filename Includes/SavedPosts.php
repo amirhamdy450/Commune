@@ -67,7 +67,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                     }
 
                     // This post-rendering loop is identical to index.php
-                    echo '<div class="FeedPost" PID=' . $encryptedFeedPostID . ' UID=' . $encryptedUserID . ' Self=' . $IsSelfPost . ' Saved=' . $IsSavedPost . '>
+                    echo '<div class="FeedPost" PID="' . $encryptedFeedPostID . '" UID="' . $encryptedUserID . '" Self="' . $IsSelfPost . '" Saved="' . $IsSavedPost . '">
                         <div class="FeedPostHeader">
                             <div class="FeedPostAuthorContainer">
                                 <a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID). '">

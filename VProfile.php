@@ -253,6 +253,7 @@
     <?php include 'Includes/Modals/Confirmation.php'; ?>
 </body>
 
+<script src="Scripts/modal.js"></script>
 <script src="Scripts/Feed.js" type="module"></script>
 <script src="Scripts/Profile.js" type="module"></script>
 </html>

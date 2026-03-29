@@ -63,7 +63,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }else if(!ValidateName($LastName)){
              echo json_encode([
                 'status' => false,
-                'message' => 'Invalid First Name'
+                'message' => 'Invalid Last Name'
             ]);
             die();
 

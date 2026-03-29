@@ -434,17 +434,18 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
         window.addEventListener('scroll', checkAndLoadPosts);
         setTimeout(checkAndLoadPosts, 500); // Initial load delay
     }
-    function clearFormErrors() {
-        const errorFields = editProfileForm.querySelectorAll(".TextField.Error");
-        errorFields.forEach(field => {
+    function clearFormErrors(form) {
+        const target = form || editProfileForm;
+        target.querySelectorAll(".TextField.Error").forEach(field => {
             field.classList.remove("Error");
             const errorMsg = field.querySelector(".FieldError");
             if (errorMsg) errorMsg.innerHTML = "";
         });
-        
-        const formResponse = editProfileForm.querySelector(".FormResponse");
-        formResponse.textContent = "";
-        formResponse.className = "FormResponse";
+        const formResponse = target.querySelector(".FormResponse");
+        if (formResponse) {
+            formResponse.textContent = "";
+            formResponse.className = "FormResponse";
+        }
     }
 
 

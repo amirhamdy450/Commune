@@ -771,7 +771,11 @@ export function attachCommentInteractions(specificContainer = null) {
         formData.append('CommentID', CommentID);
         formData.append('Reply', Reply);
 
-        Submit('POST', 'Origin/Operations/Feed.php', formData);
+        Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
+          if (data.success) {
+            CreateReply.remove();
+          }
+        });
 
         //createReply(comment,);
       })

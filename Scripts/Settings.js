@@ -100,7 +100,7 @@ async function loadActiveSessions() {
                 html += `
                 <div class="SessionItem ${badgeClass}">
                     <div class="SessionInfo">
-                        <div class="SessionIcon"><img src="Imgs/Icons/monitor.svg"></div>
+                        <div class="SessionIcon"><img src="Imgs/Icons/notification.svg"></div>
                         <div class="SessionDetails">
                             <p>${s.Device}</p>
                             <span>${s.IP} • ${s.LastActive}</span>

@@ -4,6 +4,7 @@ $PATH = "../../";
 require_once $PATH . "Includes/Config.php";
 require_once $PATH . 'Includes/UserAuth.php';
 require_once $PATH . 'Includes/Encryption.php';
+require_once $PATH . 'Origin/Validation.php';
 
 header('Content-Type: application/json');
 ValidateCsrf();
