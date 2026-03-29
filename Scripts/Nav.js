@@ -201,7 +201,7 @@ async function fetchSearchResults(query) {
             suggestionsBox.innerHTML += `<div class="SuggestionSectionTitle">People</div>`;
             data.users.forEach(user => {
                 const userHtml = `
-                    <a class="SearchSuggestionItem UserSearch" href="index.php?target=profile&uid=${user.uid}">
+                    <a class="SearchSuggestionItem UserSearch" href="index.php?target=profile&uid=${encodeURIComponent(user.uid)}">
                         <img src="${user.ProfilePic}" alt="${user.Username}">
                         <div class="UserInfo">
                             <span class="Name">${htmlspecialchars(user.Fname)} ${htmlspecialchars(user.Lname)}</span>

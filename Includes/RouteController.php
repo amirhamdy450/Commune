@@ -64,7 +64,7 @@ if(isset($_GET['target'])){
     if($target == "search"){
         if (isset($_GET['query'])) {
             $SearchQuery = $_GET['query']; // This var will be used by search.php
-            include 'Search.php';
+            include $PATH.'Includes/Search.php';
             die();
         } else {
             // No query? Just go to the main page.

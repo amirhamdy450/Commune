@@ -133,13 +133,19 @@ document.addEventListener("DOMContentLoaded", function () {
             submitBtn.style.display = stepIndex === steps.length - 1 ? "block" : "none"; */
         };
 
+        const clearFieldError = (field) => {
+            field.classList.remove("Error");
+            const fieldError = field.querySelector(".FieldError");
+            if (fieldError) fieldError.innerHTML = "";
+        };
+
         const validateStep = (stepIndex) => {
             const currentStepFields = steps[stepIndex].getElementsByClassName("TextField");
             let errors = 0;
-            
+
             [...currentStepFields].forEach(field => {
                 const input = field.querySelector("input:not([type=radio]), select");
-                 if (input) {
+                if (input) {
                     const name = input.getAttribute("name");
                     if (AuthValidationMap[name]) {
                         const res = AuthValidationMap[name](input.value);
@@ -147,13 +153,35 @@ document.addEventListener("DOMContentLoaded", function () {
                             errors++;
                             Forms.PopulateFieldError(field, res.Errors);
                         } else {
-                             field.classList.remove("Error");
-                             const fieldError = field.querySelector(".FieldError");
-                             if (fieldError) fieldError.innerHTML = "";
+                            clearFieldError(field);
                         }
                     }
-                 }
+                }
             });
+
+            // Step 2: confirm password must match password
+            if (stepIndex === 1) {
+                const passField = steps[1].querySelector("input[name='pass']");
+                const cpassField = steps[1].querySelector("input[name='cpass']");
+                const cpassWrapper = cpassField.closest(".TextField");
+                if (passField.value !== cpassField.value) {
+                    errors++;
+                    Forms.PopulateFieldError(cpassWrapper, [["Passwords don't match: ", "Both passwords must be identical."]]);
+                }
+            }
+
+            // Step 3: gender radio must be selected
+            if (stepIndex === 2) {
+                const genderField = steps[2].querySelector(".TextField:has(.RadioGroup)");
+                const genderSelected = steps[2].querySelector("input[name='gender']:checked");
+                if (!genderSelected) {
+                    errors++;
+                    Forms.PopulateFieldError(genderField, [["Required: ", "Please select a gender."]]);
+                } else {
+                    clearFieldError(genderField);
+                }
+            }
+
             return errors === 0;
         };
 

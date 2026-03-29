@@ -115,19 +115,23 @@ async function loadActiveSessions() {
 
             // 2. --- THIS WAS MISSING: Attach Revoke Listeners ---
             container.querySelectorAll('.RevokeBtn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    // Optional: Add a loading state to the button
-                    btn.textContent = '...';
-                    btn.disabled = true;
+                btn.addEventListener('click', () => {
+                    ShowConfirmModal({
+                        Title: "Revoke this session?",
+                        ConfirmText: "Revoke",
+                        Action: "Close",
+                        onConfirm: async () => {
+                            btn.textContent = '...';
+                            btn.disabled = true;
 
-                    const formData = new FormData();
-                    formData.append('ReqType', 4);
-                    formData.append('SessionID', btn.dataset.id);
-                    
-                    await Submit('POST', 'Origin/Operations/Settings.php', formData);
-                    
-                    // Reload the list to reflect changes
-                    loadActiveSessions(); 
+                            const formData = new FormData();
+                            formData.append('ReqType', 4);
+                            formData.append('SessionID', btn.dataset.id);
+
+                            await Submit('POST', 'Origin/Operations/Settings.php', formData);
+                            loadActiveSessions();
+                        }
+                    });
                 });
             });
             // ----------------------------------------------------
@@ -168,11 +172,16 @@ async function loadActiveSessions() {
             // Attach Unblock Listeners
             container.querySelectorAll('.UnblockBtn').forEach(btn => {
                 btn.addEventListener('click', async () => {
+                    btn.disabled = true;
                     const formData = new FormData();
                     formData.append('ReqType', 6);
                     formData.append('BlockID', btn.dataset.id);
-                    await Submit('POST', 'Origin/Operations/Settings.php', formData);
-                    loadBlockedUsers(); // Reload list
+                    const data = await Submit('POST', 'Origin/Operations/Settings.php', formData);
+                    if (data.success) {
+                        loadBlockedUsers();
+                    } else {
+                        btn.disabled = false;
+                    }
                 });
             });
         }

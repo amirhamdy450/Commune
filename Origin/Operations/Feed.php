@@ -420,7 +420,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
             echo json_encode([
                 'success' => true,
-                'message' => "Error: Failed To insert comment"
+                'message' => "Comment added successfully"
 
             ]);
 
