@@ -240,32 +240,7 @@ if ($ReqType == 3) {
     exit;
 }
 
-// --- REQTYPE 4: Fetch More Users (Unchanged) ---
-if ($ReqType == 4) {
-    $offset = isset($_POST['offset']) ? (int)$_POST['offset'] : 0;
 
-    $sqlUsers = "SELECT id, Fname, Lname, Username, ProfilePic 
-                 FROM users 
-                 WHERE ((CONCAT(TRIM(Fname), ' ', TRIM(Lname)) LIKE ?) OR (Username LIKE ?)) AND id != ?
-                 LIMIT 6 OFFSET ?";
-    $stmtUsers = $pdo->prepare($sqlUsers);
-    $stmtUsers->bindValue(1, $searchTermLike);
-    $stmtUsers->bindValue(2, $searchTermLike);
-    $stmtUsers->bindValue(3, $UID, PDO::PARAM_INT);
-    $stmtUsers->bindValue(4, $offset, PDO::PARAM_INT);
-    $stmtUsers->execute();
-    
-    $users = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
-
-    $response['hasMoreUsers'] = count($users) > 5;
-    $users = array_slice($users, 0, 5);
-    foreach ($users as $user) {
-        $response['users'][] = FormatUserForClient($user);
-    }
-    $response['success'] = true;
-    echo json_encode($response);
-    exit;
-}
 
 // --- REQTYPE 4: Fetch More Users (Unchanged) ---
 if ($ReqType == 4) {

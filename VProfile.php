@@ -8,6 +8,8 @@
     include $PATH.'Includes/UserAuth.php';
     include_once $PATH.'Includes/Encryption.php';
 
+    $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
+
 
 
     $hasCoverPhoto = false; 

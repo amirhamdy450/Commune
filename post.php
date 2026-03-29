@@ -2,6 +2,8 @@
 include 'Includes/UserAuth.php';
 include 'Includes/Encryption.php';
 
+$DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
+
 // Decrypt the Post ID from URL
 $PostID = (int)Decrypt($PostID, "Positioned");
 if($PostID <= 0){ header("Location: 404.php"); exit(); }

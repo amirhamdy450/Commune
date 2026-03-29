@@ -17,14 +17,19 @@ if($Followings){
 
     foreach($Followings as $Following){
 
-        echo '<a class="UserCard Follower" href='.$PATH.'"index.php?target=profile&uid='.$Following['FollowingID'].'">
+        $EncFollowingID = urlencode(Encrypt($Following['FollowingID'], "Positioned", ["Timestamp" => time()]));
+        $FollowingProfilePic = (!empty($Following['ProfilePic']))
+            ? 'MediaFolders/profile_pictures/' . htmlspecialchars($Following['ProfilePic'])
+            : 'Imgs/Icons/unknown.png';
+
+        echo '<a class="UserCard Follower" href="index.php?target=profile&uid='.$EncFollowingID.'">
         <div class="Info">
             <div class="ProfilePictureContainer">
-                <img src="Imgs/Icons/unknown.png" alt="Profile Picture">
+                <img src="'.$FollowingProfilePic.'" alt="Profile Picture">
             </div>
             <div class="ProfileInfo">
-                <p class="UserName">'.$Following['Fname'].' '.$Following['Lname'].'</p>
-                <p class="UserUsername">@'.$Following['Username'].'</p>
+                <p class="UserName">'.htmlspecialchars($Following['Fname'].' '.$Following['Lname']).'</p>
+                <p class="UserUsername">@'.htmlspecialchars($Following['Username']).'</p>
             </div>
         </div>
         <div class=" BrandBtn Unfollow ">Unfollow</div>

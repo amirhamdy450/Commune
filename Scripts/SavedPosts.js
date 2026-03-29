@@ -33,12 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('ReqType', 8); // Assuming ReqType 8 in User.php
                 formData.append('LastPostID', lastPostID);
 
-                console.log("Fetching more posts... LastPID:", lastPostID); // DEBUG
-
                 Submit('POST', 'Origin/Operations/User.php', formData)
                     .then(data => {
-                        console.log("API Response:", data); // DEBUG
-
                         if (data && data.length > 0) {
                             data.forEach(post => {
                                 const postHTML = createPostHTML(post);
@@ -46,10 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const newPostElement = loader.previousElementSibling;
                                 attachPostInteractions(newPostElement);
                             });
-                            
+
                             setTimeout(loadMoreSavedPosts, 100);
                         } else {
-                            console.log("No more posts returned."); // DEBUG
                             noMorePosts = true;
                             if (!container.querySelector('.NoMorePosts')) {
                                 loader.insertAdjacentHTML('beforebegin', '<p class="NoMorePosts">No more saved posts.</p>');

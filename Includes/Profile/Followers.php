@@ -20,14 +20,19 @@ if($Followers){
             $FollowStatus="FollowingBtn";
         }
 
-        echo '<a class="UserCard Follower" href='.$PATH.'"index.php?target=profile&uid='.$Follower['FollowerID'].'">
+        $EncFollowerID = urlencode(Encrypt($Follower['FollowerID'], "Positioned", ["Timestamp" => time()]));
+        $FollowerProfilePic = (!empty($Follower['ProfilePic']))
+            ? 'MediaFolders/profile_pictures/' . htmlspecialchars($Follower['ProfilePic'])
+            : 'Imgs/Icons/unknown.png';
+
+        echo '<a class="UserCard Follower" href="index.php?target=profile&uid='.$EncFollowerID.'">
         <div class="Info">
             <div class="ProfilePictureContainer">
-                <img src="Imgs/Icons/unknown.png" alt="Profile Picture">
+                <img src="'.$FollowerProfilePic.'" alt="Profile Picture">
             </div>
             <div class="ProfileInfo">
-                <p class="UserName">'.$Follower['Fname'].' '.$Follower['Lname'].'</p>
-                <p class="UserUsername">@'.$Follower['Username'].'</p>
+                <p class="UserName">'.htmlspecialchars($Follower['Fname'].' '.$Follower['Lname']).'</p>
+                <p class="UserUsername">@'.htmlspecialchars($Follower['Username']).'</p>
             </div>
         </div>
         <div class=" BrandBtn FollowBtn '.$FollowStatus.'">Follow Back</div>
