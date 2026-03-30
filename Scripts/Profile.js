@@ -112,7 +112,13 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
 
                 if (data.success) {
                     // Update page with new datao97p
-                    document.querySelector(".ProfileInfo .UserName").textContent = data.newData.Fname + ' ' + data.newData.Lname;
+                    const UserNameEl = document.querySelector(".ProfileInfo .UserName");
+                    const TextNode = Array.from(UserNameEl.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+                    if (TextNode) {
+                        TextNode.textContent = data.newData.Fname + ' ' + data.newData.Lname;
+                    } else {
+                        UserNameEl.prepend(document.createTextNode(data.newData.Fname + ' ' + data.newData.Lname));
+                    }
                     document.querySelector(".ProfileInfo .UserUsername").textContent = '@' + data.newData.Username;
                     
                     formResponse.textContent = data.message;

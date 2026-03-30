@@ -276,3 +276,93 @@
     text-decoration: underline;
     color: #10415e;
 }
+
+/* ── Responsive: Tablet (≤1050px) ─────────────────────────────────────── */
+@media (max-width: 1050px) {
+    .BrandPanel {
+        min-width: 220px;
+        flex: 0 0 38%;
+    }
+
+    .HeroContainer {
+        padding-left: 8%;
+    }
+
+    .HeroContainer p {
+        font-size: 16px;
+    }
+
+    .AuthContainer .Logo {
+        font-size: 32px;
+    }
+
+    .AuthContainer .Logo img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .AuthBox {
+        flex: 1 1 0;
+        max-width: none;
+    }
+}
+
+/* ── Responsive: Mobile (≤680px) ──────────────────────────────────────── */
+@media (max-width: 680px) {
+    .AuthContainer {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        gap: 0;
+    }
+
+    /* Collapse brand panel into a compact top header */
+    .BrandPanel {
+        width: 100%;
+        height: auto;
+        flex: none;
+        padding: 24px 20px;
+        justify-content: center;
+    }
+
+    .HeroContainer {
+        padding-left: 0;
+        align-items: center;
+        text-align: center;
+        gap: 8px;
+        max-width: 100%;
+    }
+
+    .HeroContainer p {
+        display: none; /* hide tagline on mobile, keep logo only */
+    }
+
+    .AuthContainer .Logo {
+        font-size: 28px;
+    }
+
+    .AuthContainer .Logo img {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Form fills remaining space */
+    .AuthBox {
+        width: 100%;
+        max-width: 100%;
+        max-height: none;
+        height: auto;
+        flex: 1;
+        padding: 30px 24px 40px;
+    }
+
+    .AuthBox.Reg {
+        padding: 20px 24px 40px;
+    }
+
+    .AuthBox form {
+        max-width: 100%;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+}

@@ -17,7 +17,7 @@
     $hasCoverPhoto = false; 
 
     //get user data (ignore data in session to get fresh data)
-    $sql="SELECT id, Fname, Lname, Username, Email , Bio, BirthDay, Gender, ProfilePic, Privilege, CoverPhoto, CountryID  FROM users WHERE id=?";
+    $sql="SELECT id, Fname, Lname, Username, Email , Bio, BirthDay, Gender, ProfilePic, Privilege, CoverPhoto, CountryID, IsBlueTick  FROM users WHERE id=?";
     $stmt=$pdo->prepare($sql);
     $stmt->execute([$UID]);
     $User=$stmt->fetch(PDO::FETCH_ASSOC);

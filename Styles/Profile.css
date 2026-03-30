@@ -143,6 +143,9 @@ body{
 .ProfileInfo .UserName {
     font-size: 28px;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .ProfileInfo .UserUsername {
