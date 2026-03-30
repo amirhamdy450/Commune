@@ -111,6 +111,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                                 <div class="FeedPostAuthorInfo">
                                     <div class="FeedPostNameRow">
                                         <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
+                                        ' . ($FeedPost['IsBlueTick'] ? '<span class="BlueTick" title="Verified"></span>' : '') . '
                                         <span class="FeedPostTime" data-date="' . $PostTimestamp . '"></span>
                                     </div>
                                     <span class="FeedPostUsername">@' . htmlspecialchars($FeedPost['Username']) . '</span>

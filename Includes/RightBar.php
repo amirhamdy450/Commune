@@ -1,8 +1,8 @@
 <?php
     // Fetch 5 Random Users NOT followed by current user
-    $sqlSug = "SELECT id, Fname, Lname, Username, ProfilePic 
-               FROM users 
-               WHERE id != ? 
+    $sqlSug = "SELECT id, Fname, Lname, Username, ProfilePic, IsBlueTick
+               FROM users
+               WHERE id != ?
                AND id NOT IN (SELECT UserID FROM followers WHERE FollowerID = ?)
                ORDER BY RAND() LIMIT 5";
     
@@ -25,7 +25,12 @@
                         <a href="index.php?target=profile&uid=<?php echo urlencode($sugEncID); ?>" class="SugUser">
                             <img src="<?php echo $sugPic; ?>" alt="">
                             <div class="SugInfo">
-                                <div class="Name"><?php echo htmlspecialchars($sug['Fname'] . ' ' . $sug['Lname']); ?></div>
+                                <div class="Name">
+                                    <?php echo htmlspecialchars($sug['Fname'] . ' ' . $sug['Lname']); ?>
+                                    <?php if (!empty($sug['IsBlueTick'])): ?>
+                                        <span class="BlueTick" title="Verified"></span>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="Handle">@<?php echo htmlspecialchars($sug['Username']); ?></div>
                             </div>
                         </a>

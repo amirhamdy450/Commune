@@ -32,7 +32,7 @@ if($PostID <= 0){ header("Location: 404.php"); exit(); }
 
     <?php
         // 1. Fetch Post
-        $sql = "SELECT posts.id AS PID, posts.*, users.Fname, users.Lname, users.Username, users.ProfilePic,
+        $sql = "SELECT posts.id AS PID, posts.*, users.Fname, users.Lname, users.Username, users.ProfilePic, users.IsBlueTick,
                 CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
                 CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
                 CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved
@@ -116,7 +116,8 @@ if($PostID <= 0){ header("Location: 404.php"); exit(); }
                     'liked' => (bool)$post['liked'],
                     'following' => (bool)$post['following'],
                     'Self' => (int)($post['UID'] == $UID),
-                    'saved' => (int)$post['saved']
+                    'saved' => (int)$post['saved'],
+                    'IsBlueTick' => (int)$post['IsBlueTick']
                 ],
                 'comments' => $formattedComments
             ];

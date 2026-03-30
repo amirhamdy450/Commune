@@ -32,6 +32,9 @@ include_once $PATH . 'Includes/Encryption.php';
             <div class="SettingsNavItem" data-tab="PrivacyTab">
                 <img src="Imgs/Icons/block.svg" alt=""> Privacy
             </div>
+            <div class="SettingsNavItem" data-tab="VerificationTab">
+                <img src="Imgs/Icons/Checkmark.svg" alt=""> Verification
+            </div>
         </div>
 
         <div class="SettingsContent">
@@ -89,10 +92,50 @@ include_once $PATH . 'Includes/Encryption.php';
             <div class="SettingsSection" id="PrivacyTab">
                 <h2 class="SectionTitle">Blocked Users</h2>
                 <p class="SubText" style="margin-bottom:15px;">People you have blocked cannot see your posts or interact with you.</p>
-                
+
                 <div id="BlockedUsersList">
                     <div class="Loader"></div>
                 </div>
+            </div>
+
+            <div class="SettingsSection" id="VerificationTab">
+                <h2 class="SectionTitle">Verification</h2>
+
+                <?php if ((int)$User['IsBlueTick'] === 1): ?>
+                    <div class="VerifSettingsState">
+                        <span class="BlueTick Large" title="Verified"></span>
+                        <div>
+                            <p class="VerifSettingsTitle">Your account is verified</p>
+                            <p class="SubText">The blue badge is shown on your profile and posts.</p>
+                        </div>
+                    </div>
+
+                <?php else:
+                    $stmt = $pdo->prepare("SELECT Status, SubmittedAt FROM verification_requests WHERE UID = ? ORDER BY SubmittedAt DESC LIMIT 1");
+                    $stmt->execute([$UID]);
+                    $LastVerifReq = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $HasPending = $LastVerifReq && (int)$LastVerifReq['Status'] === 0;
+                    $WasRejected = $LastVerifReq && (int)$LastVerifReq['Status'] === 2;
+                ?>
+                    <?php if ($HasPending): ?>
+                        <div class="VerifSettingsState Pending">
+                            <div class="VerifPendingIcon">⏳</div>
+                            <div>
+                                <p class="VerifSettingsTitle">Request under review</p>
+                                <p class="SubText">Submitted on <?php echo date('M j, Y', strtotime($LastVerifReq['SubmittedAt'])); ?>. We'll notify you when a decision is made.</p>
+                            </div>
+                        </div>
+
+                    <?php else: ?>
+                        <p class="SubText" style="margin-bottom:20px;">
+                            Get a blue badge that shows the community your account is authentic.
+                            <?php if ($WasRejected): ?>
+                                <span class="VerifRejectedInline">Your previous request was not approved.</span>
+                            <?php endif; ?>
+                        </p>
+                        <a href="index.php?target=get-verified" class="BrandBtn VerifApplyBtn">Apply for Verification</a>
+                    <?php endif; ?>
+                <?php endif; ?>
             </div>
 
         </div>

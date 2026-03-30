@@ -119,6 +119,7 @@ export function createPostHTML(post) {
             <div class="FeedPostAuthorInfo">
               <div class="FeedPostNameRow">
                 <p class="FeedPostAuthorName">${post.name}</p>
+                ${post.IsBlueTick ? '<span class="BlueTick" title="Verified"></span>' : ''}
                 ${post.Date ? `<span class="FeedPostTime">· ${TimeAgo(post.Date)}</span>` : ''}
               </div>
               ${post.Username ? `<span class="FeedPostUsername">@${post.Username}</span>` : ''}

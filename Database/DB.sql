@@ -175,6 +175,24 @@ CREATE TABLE `email_verifications` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `verification_requests`
+--
+
+CREATE TABLE `verification_requests` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `UID` int NOT NULL,
+  `Reason` text NOT NULL,
+  `Status` tinyint NOT NULL DEFAULT '0' COMMENT '0=pending, 1=approved, 2=rejected',
+  `SubmittedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ReviewedAt` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_verif_uid` (`UID`),
+  CONSTRAINT `fk_verif_uid` FOREIGN KEY (`UID`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `posts`
 --
 
@@ -254,7 +272,8 @@ CREATE TABLE `users` (
   `Followers` int NOT NULL DEFAULT '0',
   `Following` int NOT NULL DEFAULT '0',
   `Privilege` int NOT NULL DEFAULT '0',
-  `IsVerified` tinyint NOT NULL DEFAULT '0'
+  `IsVerified` tinyint NOT NULL DEFAULT '0',
+  `IsBlueTick` tinyint NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

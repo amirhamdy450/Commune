@@ -1,0 +1,264 @@
+.VerifiedPageContainer {
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px 80px;
+}
+
+.VerifiedPageCard {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 580px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+/* Badge circle */
+.VerifBadgeLarge {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    color: white;
+    font-size: 32px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    box-shadow: 0 4px 16px rgba(44,121,232,0.35);
+}
+
+.VerifBadgeLarge.Pending {
+    background: #f5a623;
+    box-shadow: 0 4px 16px rgba(245,166,35,0.35);
+    font-size: 28px;
+}
+
+/* Header block */
+.VerifPageHeader {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.VerifPageHeader h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #14171a;
+    margin: 0;
+}
+
+.VerifSubtitle {
+    font-size: 14px;
+    color: #657786;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* States */
+.VerifState {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.VerifState h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #14171a;
+    margin: 0;
+}
+
+.VerifState p {
+    font-size: 14px;
+    color: #657786;
+    max-width: 380px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.VerifSubmittedDate {
+    font-size: 12px;
+    color: #9aabb8;
+    margin-top: 4px;
+}
+
+/* Rejection notice */
+.VerifRejectedNotice {
+    background: #fff5f5;
+    border: 1px solid #fdd;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #c0392b;
+    text-align: center;
+}
+
+/* Criteria list */
+.VerifCriteria {
+    background: #f7f9fb;
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+.VerifCriteria h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #14171a;
+    margin: 0 0 10px;
+}
+
+.VerifCriteria ul {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.VerifCriteria ul li {
+    font-size: 13px;
+    color: #536471;
+    line-height: 1.5;
+}
+
+/* Form */
+.VerifForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.VerifFormSection {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+}
+
+.VerifFormSection label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #14171a;
+}
+
+.VerifFormSection textarea {
+    border: 1.5px solid #e1e8ed;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #14171a;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+.VerifFormSection textarea:focus {
+    border-color: var(--accent-color);
+}
+
+.VerifCharCount {
+    font-size: 12px;
+    color: #9aabb8;
+    text-align: right;
+}
+
+/* Fee box */
+.VerifFeeBox {
+    background: #f0f7ff;
+    border: 1.5px solid #c5dcf8;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.VerifFeeAmount {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--accent-color);
+    line-height: 1;
+}
+
+.VerifFeeAmount span {
+    font-size: 13px;
+    font-weight: 400;
+    color: #657786;
+}
+
+.VerifFeeInfo p {
+    font-size: 13px;
+    color: #536471;
+    margin: 6px 0 0;
+    line-height: 1.5;
+}
+
+.VerifFeeCheck {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.VerifFeeCheck input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    accent-color: var(--accent-color);
+    cursor: pointer;
+}
+
+.VerifFeeCheck span {
+    font-size: 13px;
+    color: #14171a;
+    line-height: 1.5;
+}
+
+/* Submit button */
+.VerifSubmitBtn {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.VerifSubmitBtn:disabled {
+    background: #c5dcf8;
+    cursor: not-allowed;
+}
+
+/* Form response */
+#VerifFormResponse {
+    font-size: 13px;
+    border-radius: 8px;
+    padding: 0;
+}
+
+#VerifFormResponse.Success {
+    background: #f0faf4;
+    border: 1px solid #b2dfca;
+    color: #1a7a45;
+    padding: 10px 14px;
+}
+
+#VerifFormResponse.Error {
+    background: #fff5f5;
+    border: 1px solid #fdd;
+    color: #c0392b;
+    padding: 10px 14px;
+}

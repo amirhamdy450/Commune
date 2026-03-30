@@ -81,14 +81,15 @@
 
 .FeedPostNameRow {
     display: flex;
-    align-items: baseline;
-    gap: 6px;
+    align-items: center;
+    gap: 3px;
 }
 
 .FeedPostTime {
     font-size: 13px;
     color: #9aabb8;
     font-weight: 400;
+    margin-left: 3px;
 }
 
 .FeedPostUsername {

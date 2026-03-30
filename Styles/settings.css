@@ -223,3 +223,53 @@
     border-color: #b7dfc5; /* Green border for current session box */
     background-color: #fcfdfc;
 }
+
+.SessionIcon img {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+/* Verification tab */
+.VerifSettingsState {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #f0f7ff;
+    border: 1.5px solid #c5dcf8;
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+.VerifSettingsState.Pending {
+    background: #fffbf0;
+    border-color: #f5e3a0;
+}
+
+.VerifPendingIcon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.VerifSettingsTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #14171a;
+    margin: 0 0 4px;
+}
+
+.VerifRejectedInline {
+    color: #c0392b;
+    font-size: 13px;
+    display: block;
+    margin-top: 4px;
+}
+
+.VerifApplyBtn {
+    display: inline-block;
+    text-decoration: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}

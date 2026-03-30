@@ -1107,3 +1107,18 @@ body.ModalOpen {
 .SidebarFooter { font-size: 12px; color: #999; padding: 0 10px; line-height: 1.6; text-align: center;}
 .SidebarFooter a { color: #999; text-decoration: none; margin: 0 5px;}
 .SidebarFooter a:hover { text-decoration: underline; }
+
+/* --- BLUE TICK VERIFICATION BADGE --- */
+.BlueTick {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background: url('../Imgs/Icons/bluetick.svg') center / contain no-repeat;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.BlueTick.Large {
+    width: 24px;
+    height: 24px;
+}

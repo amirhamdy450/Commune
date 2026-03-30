@@ -289,7 +289,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             'MediaType' => (int)$newPost['Type'],
             'CurrentUserPrivilege' => (int)$User['Privilege'],
             'liked' => false,
-            'ProfilePic' => $PostProfilePic
+            'ProfilePic' => $PostProfilePic,
+            'IsBlueTick' => (int)$newPost['IsBlueTick']
         ];
 
         echo json_encode([
@@ -580,7 +581,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'following'=>$FeedPost['following'],
                 'Self' => (int)($FeedPost['UID'] == $UID), //identify if the post belongs to the user
                 'saved'=>(int)$FeedPost['saved'],
-                'ProfilePic' => $PostProfilePic
+                'ProfilePic' => $PostProfilePic,
+                'IsBlueTick' => (int)$FeedPost['IsBlueTick']
             ];
 
 
@@ -1220,7 +1222,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             'liked'=> (bool)$updatedPost['liked'],
             'following'=> (bool)$updatedPost['following'],
             'Self' => (int)($updatedPost['UID'] == $UID),
-            'saved'=>(int)$updatedPost['saved']
+            'saved'=>(int)$updatedPost['saved'],
+            'IsBlueTick' => (int)$updatedPost['IsBlueTick']
         ];
 
         echo json_encode([

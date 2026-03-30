@@ -380,7 +380,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'CurrentUserPrivilege' => (int)$User['Privilege'],
                 'liked' => $FeedPost['liked'],
                 'ProfilePic' => $PostProfilePic,
-                'Self' => ($FeedPost['UID'] == $UID) ? 1 : 0
+                'Self' => ($FeedPost['UID'] == $UID) ? 1 : 0,
+                'IsBlueTick' => (int)$FeedPost['IsBlueTick']
             ];
         }
 
@@ -522,7 +523,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'following'=>$FeedPost['following'],
                 'Self' => (int)($FeedPost['UID'] == $UID),
                 'saved'=> 1,
-                'ProfilePic' => $PostProfilePic
+                'ProfilePic' => $PostProfilePic,
+                'IsBlueTick' => (int)$FeedPost['IsBlueTick']
             ];
         }
         echo json_encode($response);

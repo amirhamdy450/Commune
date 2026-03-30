@@ -97,6 +97,11 @@ if(isset($_GET['target'])){
         die();
     }
 
+    if($target == "get-verified"){
+        include $PATH.'Includes/Access/GetVerified.php';
+        die();
+    }
+
 
     if($target == "verify-email"){
         if (isset($_GET['token'])) {

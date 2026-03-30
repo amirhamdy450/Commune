@@ -7,7 +7,7 @@ $LoggedIn = false;
 function fetchUserData($UID) {
     global $pdo;
     // This function fetches the CORE user data for the session.
-    $sql = "SELECT id, Fname, Lname, Username, Email, ProfilePic, Privilege FROM users WHERE id = :UID";
+    $sql = "SELECT id, Fname, Lname, Username, Email, ProfilePic, Privilege, IsBlueTick FROM users WHERE id = :UID";
     $stmt = $pdo->prepare($sql);
     $stmt->bindParam(":UID", $UID, PDO::PARAM_INT);
     $stmt->execute();
@@ -75,13 +75,13 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
 
         //echo $UID;
         // Check if user data is already in the session to avoid a database query
-        if (isset($_SESSION['user_data']) && $_SESSION['user_data']['id'] == $UID) {
+        if (isset($_SESSION['user_data']) && $_SESSION['user_data']['id'] == $UID && isset($_SESSION['user_data']['IsBlueTick'])) {
             $User = $_SESSION['user_data'];
         } else {
-            // If not in session, fetch from DB and store it in the session
-            $User = fetchUserData( $UID);
+            // If not in session or schema has changed, fetch from DB and store it in the session
+            $User = fetchUserData($UID);
             $_SESSION['user_data'] = $User;
-        } 
+        }
 
 /*         ENCRYPTION_KEY='Commune'; 
         ENCRYPTION_IV = "COMMUNE2025_9831"; //like secret key and will be used for decrypting AES later */

@@ -114,8 +114,13 @@
 
 
                     <div class="ProfileInfo">
-                        <p class="UserName"><?php echo $User['Fname'].' '.$User['Lname']; ?></p>
-                        <p class="UserUsername">@<?php echo $User['Username']; ?></p>
+                        <p class="UserName">
+                            <?php echo htmlspecialchars($User['Fname'].' '.$User['Lname']); ?>
+                            <?php if (!empty($User['IsBlueTick'])): ?>
+                                <span class="BlueTick Large" title="Verified"></span>
+                            <?php endif; ?>
+                        </p>
+                        <p class="UserUsername">@<?php echo htmlspecialchars($User['Username']); ?></p>
                     </div>
                 </div>
 
