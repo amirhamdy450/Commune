@@ -31,6 +31,11 @@ if (isset($_GET['redirect'])) {
         die();
     }
 
+    if($Redirect == "pending-verification"){
+        include $PATH.'Includes/Access/PendingVerification.php';
+        die();
+    }
+
     if($Redirect == "logout"){
         include $PATH.'Includes/Access/Logout.php';
         die();

@@ -108,6 +108,8 @@ include_once $PATH."Includes/DB.php";
                     </div>
                 </div>
 
+                <div class="FormResponse" id="RegisterFormResponse"></div>
+
                 <!-- Navigation Buttons -->
                 <div class="FormNavigation">
                     <button type="button" class="BrandBtn Dark hidden" id="BackBtn" >Back</button>

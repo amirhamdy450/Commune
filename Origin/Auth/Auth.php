@@ -1,5 +1,4 @@
 <?php
-session_start();
 $PATH="../../";
 include_once $PATH.'Includes/DB.php';
 include_once $PATH.'Origin/Validation.php';
@@ -435,6 +434,55 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $pdo->prepare("DELETE FROM email_verifications WHERE email = ?")->execute([$row['email']]);
 
         echo json_encode(['status' => true, 'message' => 'Email verified! You can now log in.']);
+        die();
+
+    }else if($_POST['ReqType'] == 6){ // Resend Verification Email
+
+        $Email = $_POST['email'] ?? '';
+
+        if (!ValidateEmail($Email)) {
+            echo json_encode(['status' => false, 'message' => 'Invalid email address.']);
+            die();
+        }
+
+        // Only resend if user exists and is NOT yet verified
+        $stmt = $pdo->prepare("SELECT id, Fname FROM users WHERE Email = ? AND IsVerified = 0");
+        $stmt->execute([$Email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Always respond the same way to avoid email enumeration
+        if (!$user) {
+            echo json_encode(['status' => true, 'message' => 'If your email is pending verification, a new link has been sent.']);
+            die();
+        }
+
+        $verifyToken = bin2hex(random_bytes(32));
+        $verifyExpires = time() + 86400;
+
+        $pdo->prepare("DELETE FROM email_verifications WHERE email = ?")->execute([$Email]);
+        $pdo->prepare("INSERT INTO email_verifications (email, token, expires) VALUES (?, ?, ?)")->execute([$Email, $verifyToken, $verifyExpires]);
+
+        try {
+            $mail = new PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = MAIL_HOST;
+            $mail->SMTPAuth   = true;
+            $mail->Username   = MAIL_USERNAME;
+            $mail->Password   = MAIL_PASSWORD;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = MAIL_PORT;
+            $mail->setFrom(MAIL_FROM, MAIL_FROM_NAME);
+            $mail->addAddress($Email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Verify your Commune account';
+            $verifyLink = APP_URL . '/index.php?target=verify-email&token=' . $verifyToken;
+            $mail->Body = "Hi " . htmlspecialchars($user['Fname']) . ",<br><br>Here is your new verification link:<br><a href='$verifyLink'>$verifyLink</a><br><br>This link will expire in 24 hours.";
+            $mail->send();
+        } catch (Exception $e) {
+            error_log("Resend verification email error: " . $mail->ErrorInfo);
+        }
+
+        echo json_encode(['status' => true, 'message' => 'If your email is pending verification, a new link has been sent.']);
         die();
     }
 

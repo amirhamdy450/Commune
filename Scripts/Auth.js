@@ -203,15 +203,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 let formData = new FormData(form);
                 formData.append("ReqType", 1);
                 
+                const formResponse = document.getElementById("RegisterFormResponse");
+                formResponse.innerHTML = "";
+
                 let res = await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
                 if (res.status) {
-                    form.innerHTML = `<div class="AuthBoxMessage">
-                        <h1>Check Your Email</h1>
-                        <p>${res.message}</p>
-                        <a href="index.php" class="BrandBtn">Go to Login</a>
-                    </div>`;
+                    const email = encodeURIComponent(formData.get("email"));
+                    window.location.href = `index.php?redirect=pending-verification&email=${email}`;
                 } else {
-                    alert(res.message || "An unexpected error occurred.");
+                    formResponse.innerHTML = `<p>${res.message || "An unexpected error occurred."}</p>`;
+                    formResponse.className = "FormResponse Error";
                 }
             }
         });
@@ -220,18 +221,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }else if(document.body.classList.contains("Login")){
 
+        // Show success banner if redirected after email verification
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("verified") === "1") {
+            const loginBox = document.querySelector(".AuthBox");
+            loginBox.insertAdjacentHTML("afterbegin", `<div class="FormResponse Success" style="margin-bottom:16px;"><p>Email verified! You can now log in.</p></div>`);
+        }
+
         //select form
         let Loginform = document.getElementById("LoginForm");
-        console.log(Loginform);
         if(Loginform){
         //submit form
             Loginform.addEventListener("submit", async (e)=>{
                 //validate form
                 e.preventDefault();
-                
-                let Errors = Forms.ValidateTextFields(Loginform,AuthValidationMap);
 
-                console.log("Errors count: ",Errors);
+                let Errors = Forms.ValidateTextFields(Loginform,AuthValidationMap);
 
 
                 let protected_pass=document.getElementById('protected_pass');
@@ -264,9 +269,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 //validating password format without specifying the exact error (for security reasons)
                 let pr_Res=Forms.ValidatePassword(protected_pass.value);
                 if(!pr_Res.IsValid){
-                    console.log("Invalid password format: ",protected_pass.value);
-                    console.log(pr_Res.Errors);
-                    
                     Errors++;
                     //keep it vague unlike register 
                     let Parent = protected_pass.parentElement.parentElement;
@@ -288,15 +290,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     //submit form
                     let formData = new FormData(Loginform);
                     formData.append("ReqType", 2);
-                    console.log(formData);
                     let Res=await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
                     if(Res.status){
                         window.location.href = "index.php";
+                    }else if(Res.code === 54){
+                        const email = encodeURIComponent(formData.get("email"));
+                        window.location.href = `index.php?redirect=pending-verification&email=${email}`;
                     }else{
-                        console.log(Res);
                         let Parent = protected_pass.parentElement.parentElement;
                         FillFormResponse(Parent,Res.message);
-                        
                     }
                 }
 
@@ -414,6 +416,39 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         // --- END NEW LOGIC ---
 
+    }else if(document.body.classList.contains("PendingVerification")){
+
+        // Populate email from URL param
+        const urlParams = new URLSearchParams(window.location.search);
+        const pendingEmail = urlParams.get("email") || "";
+        const emailDisplay = document.getElementById("PendingEmail");
+        if (emailDisplay && pendingEmail) {
+            emailDisplay.textContent = decodeURIComponent(pendingEmail);
+        }
+
+        const resendBtn = document.getElementById("ResendVerificationBtn");
+        const resendResponse = document.getElementById("ResendResponse");
+        if (resendBtn) {
+            resendBtn.addEventListener("click", async () => {
+                resendBtn.disabled = true;
+                resendBtn.textContent = "Sending...";
+                resendResponse.innerHTML = "";
+
+                const formData = new FormData();
+                formData.append("ReqType", 6);
+                formData.append("email", decodeURIComponent(pendingEmail));
+
+                const res = await Forms.Submit("POST", "Origin/Auth/Auth.php", formData);
+
+                resendResponse.innerHTML = `<p>${res.message}</p>`;
+                resendResponse.className = `FormResponse ${res.status ? 'Success' : 'Error'}`;
+                resendBtn.textContent = "Resend Email";
+
+                // Disable for 30s to prevent spam
+                setTimeout(() => { resendBtn.disabled = false; }, 30000);
+            });
+        }
+
     }else if(document.body.classList.contains("VerifyEmail")){
 
         const verifyBtn = document.getElementById("VerifyEmailBtn");
@@ -434,7 +469,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (res.status) {
                     verifyBtn.remove();
-                    setTimeout(() => { window.location.href = "index.php"; }, 2500);
+                    setTimeout(() => { window.location.href = "index.php?verified=1"; }, 2000);
                 } else {
                     verifyBtn.disabled = false;
                 }

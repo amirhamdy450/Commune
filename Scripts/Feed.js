@@ -1,11 +1,6 @@
 
 import { Submit, CsrfToken } from "./Forms.js";
 
-function EscapeHtml(str) { //safe filter strings
-    if (typeof str !== 'string') return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-}
-
 //GLOBALS
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB in bytes
 const MAX_FILE_COUNT = 2;
@@ -16,8 +11,6 @@ let validSelectedFiles = [];
 let filesToDelete = []; //for editing posts
 let currentPostID = null;
 
-
-let CurrentConfirmModalFunction = null;
 
 //check if pid is set in the URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -387,7 +380,6 @@ function fetchMorePosts() {
 
 // Attaches interaction event listeners to a post
 export function attachPostInteractions(post) {
-  console.log('Attaching interactions to post:', post);
   const postId = post.getAttribute('PID');
   const uid = post.getAttribute('UID');
   const followButton= post.getElementsByClassName('FollowBtn')[0];
@@ -436,8 +428,6 @@ export function attachPostInteractions(post) {
     formData.append('ReqType', 4);
     formData.append('FeedPostID', postId);
 
-    let likeIcon = 'Imgs/Icons/like.svg'; 
-
     fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
       .then(response => response.json())
       .then(data => {
@@ -470,7 +460,6 @@ export function attachPostInteractions(post) {
       .catch(error => console.error('Error:', error));
 
     currentPostID = postId;
-    console.log('Current Post ID:', currentPostID);
 
   });
 
@@ -498,7 +487,7 @@ export function attachPostInteractions(post) {
       }, 2000);
 
     }catch (error) {
-      alert('Failed to copy link. Please try again.');
+      showInfoBox('Failed to copy link. Please try again.', 2);
     }
 
 
@@ -506,20 +495,6 @@ export function attachPostInteractions(post) {
 
 
   });
-
-  if (false) {
-    deleteButton.addEventListener('click', () => {
-      //toggleModal('DelPostBox', true);
-      currentPostID = postId;
-
-      ShowConfirmModal({
-        Title: 'Are You Sure You Want To Delete This Post?',
-        ConfirmText: 'Delete',
-        onConfirm: () =>DeletePost()
-      });
-    });
-  }
-
 
 if (actionButton) {
     actionButton.addEventListener('click', (e) => {
@@ -651,7 +626,7 @@ function toggleCommentMenu(event, type, id, element, isSelf) {
                     if (data.success) {
                         element.remove();
                     } else {
-                        alert(data.message);
+                        showInfoBox(data.message || 'Failed to delete.', 2);
                     }
                 },
                 Action: 'Close'
@@ -694,15 +669,12 @@ export function attachCommentInteractions(specificContainer = null) {
     const likeButton = comment.getElementsByClassName('FeedPostLike')[0];
     const commentButton = comment.getElementsByClassName('FeedPostComment')[0];
     const ViewRepliesButton = comment.getElementsByClassName('ViewRepliesBtn')[0];
-    console.log(comment);
-    console.log(ViewRepliesButton);
    
 
     let meta = comment.getElementsByClassName('meta')[0];
     let attrs = meta.getElementsByClassName('CMDI073')[0]; //for encryption
 
     const CommentID = attrs.getAttribute('cid');
-    const UserID = attrs.getAttribute('uid');
 
 
     let ModalComment = comment.getElementsByClassName('ModalComment')[0];
@@ -774,6 +746,9 @@ export function attachCommentInteractions(specificContainer = null) {
         Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
           if (data.success) {
             CreateReply.remove();
+            showInfoBox('Reply posted!', 1);
+          } else {
+            showInfoBox(data.message || 'Failed to post reply.', 2);
           }
         });
 
@@ -932,7 +907,14 @@ function attachReplyInteractions(reply, parentComment) {
         formData.append('Reply', Reply);
         formData.append('ReplyTo', ReplyUserID);
 
-        Submit('POST', 'Origin/Operations/Feed.php', formData);
+        Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
+          if (data.success) {
+            CreateReply.remove();
+            showInfoBox('Reply posted!', 1);
+          } else {
+            showInfoBox(data.message || 'Failed to post reply.', 2);
+          }
+        });
 
         //createReply(comment,);
       })
@@ -1419,7 +1401,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Post submission
   const postForm = document.getElementsByClassName('CPost')[0];
-  const postContent = document.getElementById('CPostContent');
 /*   postForm.addEventListener('submit', e => {
     e.preventDefault();
     const formData = new FormData();
@@ -1477,7 +1458,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const commentForm = document.getElementById('CreateNewComment');
   commentForm.addEventListener('submit', e => {
     e.preventDefault();
-    console.log('Current Post ID (Submission):', currentPostID);
     const commentContent = commentForm.getElementsByClassName('CommentInput')[0].value;
     const formData = new FormData();
     formData.append('ReqType', 3);
@@ -1486,11 +1466,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
       .then(response => response.json())
-      .then(() => {
-        commentForm.getElementsByClassName('CommentInput')[0].value = '';
-        window.location.reload();
+      .then(data => {
+        if (data.success) {
+          commentForm.getElementsByClassName('CommentInput')[0].value = '';
+          showInfoBox('Comment posted!', 1);
+          setTimeout(() => window.location.reload(), 800);
+        } else {
+          showInfoBox(data.message || 'Failed to post comment.', 2);
+        }
       })
-      .catch(error => console.error('Error:', error));
+      .catch(() => showInfoBox('An unexpected error occurred.', 2));
   });
 
 
