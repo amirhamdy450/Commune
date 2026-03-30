@@ -287,6 +287,19 @@ export function ValidateTextFields(form,RuleMap){
 }
 
 
+export function TimeAgo(unixTimestamp) {
+    const now = Math.floor(Date.now() / 1000);
+    const diff = now - unixTimestamp;
+
+    if (diff < 60) return diff <= 1 ? 'just now' : `${diff} seconds ago`;
+    if (diff < 3600) { const m = Math.floor(diff / 60); return m === 1 ? '1 minute ago' : `${m} minutes ago`; }
+    if (diff < 86400) { const h = Math.floor(diff / 3600); return h === 1 ? '1 hour ago' : `${h} hours ago`; }
+    if (diff < 604800) { const d = Math.floor(diff / 86400); return d === 1 ? 'yesterday' : `${d} days ago`; }
+    if (diff < 2592000) { const w = Math.floor(diff / 604800); return w === 1 ? '1 week ago' : `${w} weeks ago`; }
+    if (diff < 31536000) { const mo = Math.floor(diff / 2592000); return mo === 1 ? '1 month ago' : `${mo} months ago`; }
+    const y = Math.floor(diff / 31536000); return y === 1 ? '1 year ago' : `${y} years ago`;
+}
+
 export function InitPasswordViewers(){
 	
 	let PassFields=document.getElementsByClassName("Pass");

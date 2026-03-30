@@ -370,6 +370,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'PID' => $encryptedFeedPostID,
                 'UID' => $encryptedUserID,
                 'name' => $FeedPost['Fname'] . ' ' . $FeedPost['Lname'],
+                'Username' => $FeedPost['Username'],
+                'Date' => $timestamp,
                 'Content' => $FeedPost['Content'],
                 'LikeCounter' => $FeedPost['LikeCounter'],
                 'CommentCounter' => $FeedPost['CommentCounter'],
@@ -378,7 +380,6 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'CurrentUserPrivilege' => (int)$User['Privilege'],
                 'liked' => $FeedPost['liked'],
                 'ProfilePic' => $PostProfilePic,
-                // 'Self' logic is handled by JS comparing IDs if needed, or we can pass it
                 'Self' => ($FeedPost['UID'] == $UID) ? 1 : 0
             ];
         }
@@ -509,6 +510,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'PID' => $encryptedFeedPostID,
                 'UID' => $encryptedUserID,
                 'name' => $FeedPost['Fname'] . ' ' . $FeedPost['Lname'],
+                'Username' => $FeedPost['Username'],
+                'Date' => $timestamp,
                 'Content' => $FeedPost['Content'],
                 'LikeCounter' => $FeedPost['LikeCounter'],
                 'CommentCounter' => $FeedPost['CommentCounter'],

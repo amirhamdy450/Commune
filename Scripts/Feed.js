@@ -1,5 +1,5 @@
 
-import { Submit, CsrfToken } from "./Forms.js";
+import { Submit, CsrfToken, TimeAgo } from "./Forms.js";
 
 //GLOBALS
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB in bytes
@@ -116,7 +116,13 @@ export function createPostHTML(post) {
         <div class="FeedPostAuthorContainer">
           <a class="FeedPostAuthor" href="index.php?redirected_from=profile&target=profile&uid=${encodeURIComponent(post.UID)}">
             <img src="${post.ProfilePic}" alt="">
-            <p>${post.name}</p>
+            <div class="FeedPostAuthorInfo">
+              <div class="FeedPostNameRow">
+                <p class="FeedPostAuthorName">${post.name}</p>
+                ${post.Date ? `<span class="FeedPostTime">· ${TimeAgo(post.Date)}</span>` : ''}
+              </div>
+              ${post.Username ? `<span class="FeedPostUsername">@${post.Username}</span>` : ''}
+            </div>
           </a>
           
           ${followbtn}
@@ -450,7 +456,9 @@ export function attachPostInteractions(post) {
         }else{
           commentsContainer.insertAdjacentHTML('beforeend', `
                 <div class="NoComments">
-                    <p>No Comments Found !</p>
+                    <img src="Imgs/Icons/comment.svg" alt="">
+                    <h4>No comments yet</h4>
+                    <p>Be the first to share your thoughts.</p>
                 </div>
           `);
         }
@@ -1483,6 +1491,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize existing posts
   const feedPosts = document.getElementsByClassName('FeedPost');
   [...feedPosts].forEach(post => attachPostInteractions(post));
+
+  // Hydrate server-rendered post timestamps
+  const dateMetas = document.querySelectorAll('.FeedPostTime[data-date]');
+  dateMetas.forEach(el => {
+    const ts = parseInt(el.getAttribute('data-date'), 10);
+    el.textContent = TimeAgo(ts);
+  });
 
   // Scroll event for infinite loading
   if( document.body.classList.contains('FetchPostsOnScroll')) {

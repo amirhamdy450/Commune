@@ -11,7 +11,9 @@
 
                 <!-- Show If no comments are found -->
                 <div class="NoComments">
-                    <p>No Comments Found !</p>
+                    <img src="Imgs/Icons/comment.svg" alt="">
+                    <h4>No comments yet</h4>
+                    <p>Be the first to share your thoughts.</p>
                 </div>
             </div>
         </div>

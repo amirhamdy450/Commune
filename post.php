@@ -106,6 +106,7 @@ if($PostID <= 0){ header("Location: 404.php"); exit(); }
                     'UID' => $encryptedUserID,
                     'name' => htmlspecialchars($post['Fname'] . ' ' . $post['Lname']),
                     'Username' => htmlspecialchars($post['Username']),
+                    'Date' => $timestamp,
                     'ProfilePic' => $PostProfilePic,
                     'Content' => htmlspecialchars($post['Content']),
                     'LikeCounter' => $post['LikeCounter'],

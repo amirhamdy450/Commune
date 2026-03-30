@@ -44,9 +44,15 @@
         echo '<div class="FeedPost" PID="' . $encryptedFeedPostID . '" UID="' . $encryptedUserID . '" Self="' . $IsSelfPost . '" Saved="' . $IsSavedPost . '">
                         <div class="FeedPostHeader">
                             <div class="FeedPostAuthorContainer">
-                                <a class="FeedPostAuthor" href="">
+                                <a class="FeedPostAuthor" href="index.php?redirected_from=profile&target=profile&uid=' . urlencode($encryptedUserID) . '">
                                     <img src="' . $PostProfilePic . '" alt="">
-                                    <p>' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
+                                    <div class="FeedPostAuthorInfo">
+                                        <div class="FeedPostNameRow">
+                                            <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
+                                            <span class="FeedPostTime" data-date="' . $timestamp . '"></span>
+                                        </div>
+                                        <span class="FeedPostUsername">@' . htmlspecialchars($FeedPost['Username']) . '</span>
+                                    </div>
                                 </a>
                             </div>
                             

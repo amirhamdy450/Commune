@@ -102,12 +102,19 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                 /*   $decrypted=  openssl_decrypt($encryptedFeedPostID, 'aes-256-cbc', ENCRYPTION_KEY, OPENSSL_RAW_DATA, ENCRYPTION_IV);
                 echo $decrypted; */
 
+                $PostTimestamp = strtotime($FeedPost['Date']);
                 echo '<div class="FeedPost" PID="' . $encryptedFeedPostID . '" UID="' . $encryptedUserID . '" Self="' . $IsSelfPost . '" Saved="' . $IsSavedPost . '">
                     <div class="FeedPostHeader">
                         <div class="FeedPostAuthorContainer">
                             <a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID). '">
-                                <img src="' . $PostProfilePic . '" alt="Profile Picture">                        
-                                 <p>' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
+                                <img src="' . $PostProfilePic . '" alt="Profile Picture">
+                                <div class="FeedPostAuthorInfo">
+                                    <div class="FeedPostNameRow">
+                                        <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
+                                        <span class="FeedPostTime" data-date="' . $PostTimestamp . '"></span>
+                                    </div>
+                                    <span class="FeedPostUsername">@' . htmlspecialchars($FeedPost['Username']) . '</span>
+                                </div>
                             </a>';
 
                             if(!$IsSelfPost){

@@ -61,19 +61,44 @@
 .FeedPostAuthor {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 8px;
     cursor: pointer;
     text-decoration: none;
     color: black;
 }
 
-.FeedPostAuthor:hover {
-    /* background-color: #f7f7f7; */
+.FeedPostAuthorInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.FeedPostAuthorName {
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.3;
+}
+
+.FeedPostNameRow {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.FeedPostTime {
+    font-size: 13px;
+    color: #9aabb8;
+    font-weight: 400;
+}
+
+.FeedPostUsername {
+    font-size: 13px;
+    color: #657786;
+    line-height: 1.2;
+}
+
+.FeedPostAuthor:hover .FeedPostAuthorName {
     text-decoration: underline;
-    font-weight: 700;
-    /* text-decoration-style: inherit; */
-    /* border-radius: 20px; */
 }
 
 
@@ -419,10 +444,33 @@ border-bottom: 1px solid #9e9e9e;
     padding-left: 15px;
 }
 
-.ModalCommentsContainer .NoComments {
-    padding: 20px;
-    color: #5e5e5e;
-    font-size: 18px;
+.NoComments {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 20px;
+    color: #9aabb8;
+}
+
+.NoComments img {
+    width: 48px;
+    height: 48px;
+    opacity: 0.35;
+}
+
+.NoComments h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #536471;
+    margin: 0;
+}
+
+.NoComments p {
+    font-size: 13px;
+    color: #9aabb8;
+    margin: 0;
 }
 
 

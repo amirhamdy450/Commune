@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         commentsHTML += createCommentHTML(c);
                     });
                 } else {
-                    commentsHTML = `<div class="NoComments"><p>No comments yet. Be the first!</p></div>`;
+                    commentsHTML = `<div class="NoComments"><img src="Imgs/Icons/comment.svg" alt=""><h4>No comments yet</h4><p>Be the first to share your thoughts.</p></div>`;
                 }
 
                 // Build the Inline Container

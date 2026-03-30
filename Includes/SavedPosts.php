@@ -66,13 +66,20 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                         $PostProfilePic = 'Imgs/Icons/unknown.png'; // Fallback
                     }
 
+                    $PostTimestamp = strtotime($FeedPost['Date']);
                     // This post-rendering loop is identical to index.php
                     echo '<div class="FeedPost" PID="' . $encryptedFeedPostID . '" UID="' . $encryptedUserID . '" Self="' . $IsSelfPost . '" Saved="' . $IsSavedPost . '">
                         <div class="FeedPostHeader">
                             <div class="FeedPostAuthorContainer">
                                 <a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID). '">
                                     <img src="' . $PostProfilePic . '" alt="Profile Picture">
-                                    <p>' . $FeedPost['Fname'] . ' ' . $FeedPost['Lname'] . '</p>
+                                    <div class="FeedPostAuthorInfo">
+                                        <div class="FeedPostNameRow">
+                                            <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
+                                            <span class="FeedPostTime" data-date="' . $PostTimestamp . '"></span>
+                                        </div>
+                                        <span class="FeedPostUsername">@' . htmlspecialchars($FeedPost['Username']) . '</span>
+                                    </div>
                                 </a>';
 
                                 if(!$IsSelfPost){
