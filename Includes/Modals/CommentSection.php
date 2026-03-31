@@ -20,7 +20,7 @@
 
 
         <form class="CreateModalComment" id="CreateNewComment">
-            <textarea class="CommentInput" placeholder="Add a comment" rows="2"></textarea>
+            <div contenteditable="true" class="CommentInput" placeholder="Add a comment"></div>
             <input type="submit" value="" class="BrandBtn CommentSubmitBtn">
 
         </form>

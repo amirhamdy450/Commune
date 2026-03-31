@@ -80,6 +80,12 @@ async function savePost(post,postID){
 }
 
 
+// Converts @username mentions in plain text to clickable profile links
+function renderMentions(text) {
+  if (!text) return '';
+  return text.replace(/@([\w]+)/g, '<a class="MentionLink" href="index.php?target=profile&username=$1">@$1</a>');
+}
+
 // Creates HTML for a single post
 export function createPostHTML(post) {
   const mediaContent = generateMediaContent(post);
@@ -135,7 +141,7 @@ export function createPostHTML(post) {
 
       </div>
       <div class="FeedPostContent">
-        <p>${post.Content}</p>
+        <p>${renderMentions(post.Content)}</p>
         ${mediaContent}
       </div>
       <div class="FeedPostInteractionCounters">
@@ -212,7 +218,7 @@ export function createCommentHTML(comment,type=1){
            <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg" alt="Options"></div>
           </div>
           <div class="ModalCommentContent">
-            <p>${comment.comment}</p>
+            <p>${renderMentions(comment.comment)}</p>
           </div>
         </div>
 
@@ -250,7 +256,7 @@ export function createCommentHTML(comment,type=1){
   }else if(type ==2){
       let TaggedUser;
       if(comment.TaggedUser){
-        TaggedUser = `<span class="ReplyTag">@${comment.TaggedUser}</span>`;
+        TaggedUser = `<a class="ReplyTag MentionLink" href="index.php?target=profile&username=${encodeURIComponent(comment.TaggedUser)}">@${comment.TaggedUser}</a>`;
       }else{
         TaggedUser = '';
       }
@@ -288,7 +294,7 @@ export function createCommentHTML(comment,type=1){
 
           </div>
           <div class="ModalCommentContent">
-             ${TaggedUser} <p>${comment.Reply}</p>
+             ${TaggedUser} <p>${renderMentions(comment.Reply)}</p>
           </div>
         </div>
 
@@ -604,8 +610,8 @@ if (actionButton) {
 export function attachPlainTextPaste(container) {
   container.addEventListener('paste', (e) => {
     const target = e.target;
-    // Only intercept paste on contenteditable .CommentInput elements
-    if (!target.classList.contains('CommentInput') || target.getAttribute('contenteditable') !== 'true') return;
+    // Only intercept paste on contenteditable elements
+    if (target.getAttribute('contenteditable') !== 'true') return;
 
     e.preventDefault();
 
@@ -635,6 +641,299 @@ export function attachPlainTextPaste(container) {
     target.dispatchEvent(new Event('input', { bubbles: true }));
   });
 }
+
+// ─── MENTION SYSTEM ──────────────────────────────────────────────────────────
+// Attaches @mention dropdown behavior to all contenteditable .CommentInput
+// elements inside the given container. Call once per container on init.
+export function attachMentionDropdown(container) {
+  // Tracks per-input state: the active @ query start offset and the dropdown el
+  let mentionState = null; // { input, atOffset, dropdown }
+  // exposed so callers (e.g. modal close) can force-close the dropdown
+  container._closeMentionDropdown = () => closeDropdown();
+  let mentionDebounce = null;
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+
+  function getTextBeforeCaret(input) {
+    // Returns plain text from start of contenteditable up to caret,
+    // skipping non-editable ReplyTag spans (contenteditable=false)
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return '';
+
+    // Walk only editable text nodes inside the input and concatenate until we hit
+    // the caret's container/offset — this correctly skips non-editable spans
+    const caretRange = sel.getRangeAt(0);
+    const walker = document.createTreeWalker(input, NodeFilter.SHOW_TEXT);
+    let text = '';
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      // Skip text inside non-editable spans
+      if (node.parentElement && node.parentElement.getAttribute('contenteditable') === 'false') continue;
+      if (node === caretRange.endContainer) {
+        text += node.textContent.slice(0, caretRange.endOffset);
+        break;
+      }
+      text += node.textContent;
+    }
+    return text;
+  }
+
+  function closeDropdown() {
+    if (mentionState && mentionState.dropdown) {
+      mentionState.dropdown.remove();
+    }
+    mentionState = null;
+    clearTimeout(mentionDebounce);
+  }
+
+  function insertMentionTag(input, atOffset, user) {
+    // Remove the typed "@query" text from the input, then insert the tag span
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    // Walk text nodes to find and delete from the @ sign up to the caret
+    const range = sel.getRangeAt(0).cloneRange();
+
+    // Find the text node containing the @ and remove from it to caret
+    // We use a TreeWalker to accumulate characters until we reach atOffset
+    const walker = document.createTreeWalker(input, NodeFilter.SHOW_TEXT);
+    let chars = 0;
+    let atNode = null, atNodeOffset = 0;
+
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      // Skip text inside non-editable spans (ReplyTag)
+      if (node.parentElement && node.parentElement.getAttribute('contenteditable') === 'false') continue;
+      if (chars + node.length > atOffset) {
+        atNode = node;
+        atNodeOffset = atOffset - chars;
+        break;
+      }
+      chars += node.length;
+    }
+
+    if (!atNode) return;
+
+    // Delete from @ to caret
+    const deleteRange = document.createRange();
+    deleteRange.setStart(atNode, atNodeOffset);
+    deleteRange.setEnd(range.endContainer, range.endOffset);
+    deleteRange.deleteContents();
+
+    // Build and insert the mention tag span
+    const tag = document.createElement('span');
+    tag.className = 'ReplyTag MentionTag';
+    tag.setAttribute('contenteditable', 'false');
+    tag.setAttribute('mention-uid', user.EncUID);
+    tag.setAttribute('mention-username', user.Username);
+    tag.textContent = '@' + user.Username;
+
+    // Re-get selection after deletion
+    const selAfter = window.getSelection();
+    const rangeAfter = selAfter.getRangeAt(0);
+    rangeAfter.insertNode(tag);
+
+    // Place cursor after the inserted tag
+    rangeAfter.setStartAfter(tag);
+    rangeAfter.setEndAfter(tag);
+
+    // Add a trailing space text node so cursor lands naturally after tag
+    const space = document.createTextNode('\u00A0');
+    rangeAfter.insertNode(space);
+    rangeAfter.setStartAfter(space);
+    rangeAfter.setEndAfter(space);
+
+    selAfter.removeAllRanges();
+    selAfter.addRange(rangeAfter);
+
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    closeDropdown();
+  }
+
+  function renderDropdown(input, users, atOffset) {
+    // Remove any existing dropdown
+    if (mentionState && mentionState.dropdown) mentionState.dropdown.remove();
+
+    if (users.length === 0) { closeDropdown(); return; }
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'MentionDropdown';
+
+    users.forEach(user => {
+      const item = document.createElement('div');
+      item.className = 'MentionItem';
+
+      const followBadge = user.IFollowThem == 1
+        ? '<span class="MentionFollowBadge">Follows you</span>'
+        : '';
+      const blueTick = user.IsBlueTick == 1
+        ? '<span class="BlueTick" title="Verified"></span>'
+        : '';
+
+      item.innerHTML = `
+        <img class="MentionAvatar" src="${user.ProfilePic}" alt="">
+        <div class="MentionUserInfo">
+          <div class="MentionNameRow">
+            <span class="MentionName">${user.Fname} ${user.Lname}</span>
+            ${blueTick}
+            ${followBadge}
+          </div>
+          <span class="MentionUsername">@${user.Username}</span>
+        </div>
+      `;
+
+      // mousedown (not click) so it fires before the input loses focus
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        insertMentionTag(input, atOffset, user);
+      });
+
+      dropdown.appendChild(item);
+    });
+
+    // Position at the caret, not the input element rect
+    const sel = window.getSelection();
+    let caretRect = null;
+    if (sel && sel.rangeCount > 0) {
+      const r = sel.getRangeAt(0).getBoundingClientRect();
+      // getBoundingClientRect on a collapsed range gives a zero-width rect at caret
+      if (r && r.width >= 0 && r.height > 0) caretRect = r;
+    }
+    // Fall back to input element rect if caret rect is unavailable
+    const anchorRect = caretRect || input.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - anchorRect.bottom;
+    const goDown = spaceBelow > 240;
+
+    dropdown.style.width = '272px';
+    dropdown.style.left = Math.min(anchorRect.left, window.innerWidth - 280) + 'px';
+
+    if (goDown) {
+      dropdown.style.top = (anchorRect.bottom + 6) + 'px';
+      dropdown.style.bottom = 'auto';
+    } else {
+      dropdown.style.bottom = (window.innerHeight - anchorRect.top + 6) + 'px';
+      dropdown.style.top = 'auto';
+    }
+
+    document.body.appendChild(dropdown);
+
+    // Update state with the live dropdown reference
+    if (mentionState) mentionState.dropdown = dropdown;
+  }
+
+  async function fetchMentionUsers(query, input, atOffset) {
+    const formData = new FormData();
+    formData.append('ReqType', 5);
+    formData.append('query', query);
+
+    try {
+      const res = await fetch('Origin/Operations/Search.php', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': CsrfToken },
+        body: formData
+      });
+      const data = await res.json();
+      // Only render if mention state is still active for this input
+      if (mentionState && mentionState.input === input) {
+        renderDropdown(input, data.users || [], atOffset);
+      }
+    } catch (e) {
+      // Silently ignore network errors in mention lookup
+    }
+  }
+
+  // ── delegated input listener ──────────────────────────────────────────────
+
+  container.addEventListener('input', (e) => {
+    const input = e.target;
+    if (input.getAttribute('contenteditable') !== 'true') return;
+
+    const textBefore = getTextBeforeCaret(input);
+    // Find last unspaced @ in the text before caret
+    const atMatch = textBefore.match(/@([\w]*)$/);
+
+    if (!atMatch) {
+      // No active @ sequence — close dropdown if open
+      if (mentionState && mentionState.input === input) closeDropdown();
+      return;
+    }
+
+    const query = atMatch[1];                    // text after @
+    const atOffset = textBefore.length - query.length - 1; // char offset of the @
+
+    // Update or initialise mention state
+    if (mentionState && mentionState.input === input) {
+      mentionState.atOffset = atOffset;
+    } else {
+      closeDropdown();
+      mentionState = { input, atOffset, dropdown: null };
+    }
+
+    clearTimeout(mentionDebounce);
+    // Show immediately on bare @ with no query yet; debounce only when filtering by typed chars
+    const delay = query.length === 0 ? 0 : 250;
+    mentionDebounce = setTimeout(() => {
+      fetchMentionUsers(query, input, atOffset);
+    }, delay);
+  });
+
+  // Close dropdown on keydown Escape or arrow navigation
+  container.addEventListener('keydown', (e) => {
+    if (!mentionState) return;
+    if (e.key === 'Escape') { closeDropdown(); return; }
+
+    if (!mentionState.dropdown) return;
+
+    const items = mentionState.dropdown.getElementsByClassName('MentionItem');
+    const focused = mentionState.dropdown.querySelector('.MentionItem.Focused');
+    let idx = -1;
+    if (focused) idx = [...items].indexOf(focused);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (focused) focused.classList.remove('Focused');
+      const next = items[Math.min(idx + 1, items.length - 1)];
+      if (next) next.classList.add('Focused');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (focused) focused.classList.remove('Focused');
+      const prev = items[Math.max(idx - 1, 0)];
+      if (prev) prev.classList.add('Focused');
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      const focusedItem = mentionState.dropdown.querySelector('.MentionItem.Focused');
+      if (focusedItem) {
+        e.preventDefault();
+        focusedItem.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      }
+    }
+  });
+
+  // Close when the input loses focus (with a small delay so mousedown on item fires first)
+  container.addEventListener('focusout', (e) => {
+    if (!mentionState) return;
+    if (e.target.getAttribute('contenteditable') !== 'true') return;
+    setTimeout(() => {
+      // Only close if focus didn't move inside the dropdown
+      if (!mentionState) return;
+      const dd = mentionState.dropdown;
+      if (dd && dd.contains(document.activeElement)) return;
+      closeDropdown();
+    }, 150);
+  });
+}
+
+// Returns an array of encrypted UIDs from all MentionTag spans inside a CommentInput element
+export function collectMentions(inputEl) {
+  const tags = inputEl.getElementsByClassName('MentionTag');
+  const uids = [];
+  const seen = new Set();
+  for (const tag of tags) {
+    const uid = tag.getAttribute('mention-uid');
+    if (uid && !seen.has(uid)) { seen.add(uid); uids.push(uid); }
+  }
+  return uids;
+}
+// ─── END MENTION SYSTEM ───────────────────────────────────────────────────────
 
 function toggleCommentMenu(event, type, id, element, isSelf) {
     event.stopPropagation();
@@ -802,13 +1101,19 @@ export function attachCommentInteractions(specificContainer = null) {
           CreateReply.addEventListener('submit',  (e) => {
             e.preventDefault();
 
-            let Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
+            const CommentInputEl = CreateReply.getElementsByClassName('CommentInput')[0];
+            let Unfiltered = CommentInputEl.innerHTML;
             const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML tags
+
+            // Collect any @mention tags the user inserted via the dropdown
+            const Mentions = collectMentions(CommentInputEl);
 
             const formData = new FormData();
             formData.append('ReqType', 8);
             formData.append('CommentID', CommentID);
             formData.append('Reply', Reply);
+            // Append each mention UID so the backend can fire mention notifications
+            Mentions.forEach(uid => formData.append('Mentions[]', uid));
 
             Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
               if (data.success) {
@@ -966,14 +1271,20 @@ function attachReplyInteractions(reply, parentComment) {
           const CommentID = attrs.getAttribute('cid');
 
           //strip HTML tags from contenteditable, keeping only plain text reply content
-          let Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
+          const CommentInputEl = CreateReply.getElementsByClassName('CommentInput')[0];
+          let Unfiltered = CommentInputEl.innerHTML;
           const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML
+
+          // Collect any @mention tags the user inserted via the dropdown
+          const Mentions = collectMentions(CommentInputEl);
 
           const formData = new FormData();
           formData.append('ReqType', 8);
           formData.append('CommentID', CommentID);
           formData.append('Reply', Reply);
           formData.append('ReplyTo', ReplyUserID);
+          // Append each mention UID so the backend can fire mention notifications
+          Mentions.forEach(uid => formData.append('Mentions[]', uid));
 
           Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
             if (data.success) {
@@ -1036,6 +1347,8 @@ function toggleModal(modal, show) {
   }else{
     modal.classList.add('hidden');
     document.body.classList.remove("ModalOpen");
+    // Close any open mention dropdown that belongs to this modal
+    if (typeof modal._closeMentionDropdown === 'function') modal._closeMentionDropdown();
   }
 
 
@@ -1073,8 +1386,15 @@ async function openEditModal(postID) {
         const data = await Submit("POST", "Origin/Operations/Feed.php", formData);
         
         if (data.success) {
-            // 3. Populate modal with existing data
-            contentTextarea.value = data.Content;
+            // 3. Populate modal with existing data — reconstruct mention chips with encrypted UIDs
+            const mentionMap = data.MentionMap || {};
+            const safeContent = data.Content
+                ? data.Content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : '';
+            contentTextarea.innerHTML = safeContent.replace(/@([\w]+)/g, (_match, username) => {
+                const encUID = mentionMap[username] || '';
+                return `<span class="ReplyTag MentionTag" contenteditable="false" mention-uid="${encUID}" mention-username="${username}">@${username}</span>`;
+            });
 
             if (data.MediaFiles && data.MediaFiles.length > 0) {
                 overviewContainer.classList.remove('hidden');
@@ -1130,8 +1450,12 @@ async function openEditModal(postID) {
 function resetPostModal() {
     const form = document.getElementById('CreatePostForm');
     const modal = document.getElementsByClassName('CPostContainer')[0];
-    
-    form.reset();
+
+    form.reset(); // Resets hidden inputs and file inputs
+    // CPostContent is a contenteditable div — form.reset() doesn't clear it
+    const contentDiv = document.getElementById('CPostContent');
+    if (contentDiv) { contentDiv.innerHTML = ''; contentDiv.classList.remove('has-content'); }
+
     validSelectedFiles = [];
     filesToDelete = [];
     
@@ -1153,12 +1477,22 @@ function resetPostModal() {
 // handle post submit and edit
 async function handlePostSubmit(e) {
     e.preventDefault();
-    
+
     const form = document.getElementById('CreatePostForm');
     const editID = document.getElementById('CPostEditID').value;
     const isEditing = (editID !== '');
-    
-    const formData = new FormData(form); // Automatically grabs content & inputs
+
+    const formData = new FormData(form); // Grabs hidden inputs (PostID, files_to_delete) and file inputs
+
+    // CPostContent is now a contenteditable div so FormData won't capture it automatically —
+    // read its plain text and append manually
+    const contentDiv = document.getElementById('CPostContent');
+    const postContentText = contentDiv.innerText.trim();
+    formData.set('content', postContentText); // 'set' overwrites any stale value from old textarea
+
+    // Collect @mention UIDs inserted via the dropdown
+    const postMentions = collectMentions(contentDiv);
+    postMentions.forEach(uid => formData.append('Mentions[]', uid));
     
     // 1. Configure Request Type
     if (isEditing) {
@@ -1557,21 +1891,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }); */
 
   postForm.addEventListener('submit', handlePostSubmit);
+
+  // Enable @mention dropdown and plain-text paste in the create/edit post modal
+  attachPlainTextPaste(createPostModal);
+  attachMentionDropdown(createPostModal);
   // Comment submission
   const commentForm = document.getElementById('CreateNewComment');
   commentForm.addEventListener('submit', e => {
     e.preventDefault();
-    const commentContent = commentForm.getElementsByClassName('CommentInput')[0].value;
+    const commentInputEl = commentForm.getElementsByClassName('CommentInput')[0];
+    // Strip all HTML tags (including any accidentally pasted markup), keeping plain text only
+    const commentContent = commentInputEl.innerHTML.replace(/<[^>]*>/g, '').trim();
+    if (!commentContent) return;
+
+    // Collect @mention UIDs inserted via the dropdown
+    const Mentions = collectMentions(commentInputEl);
+
     const formData = new FormData();
     formData.append('ReqType', 3);
     formData.append('FeedPostID', currentPostID);
     formData.append('CommentContent', commentContent);
+    Mentions.forEach(uid => formData.append('Mentions[]', uid));
 
     Submit('POST', 'Origin/Operations/Feed.php', formData)
       .then(data => {
         if (data.success) {
-          // Clear input
-          commentForm.getElementsByClassName('CommentInput')[0].value = '';
+          // Clear contenteditable input
+          commentInputEl.innerHTML = '';
+          commentInputEl.classList.remove('has-content');
 
           // Remove empty state if present
           const commentsContainer = document.getElementsByClassName('ModalCommentsContainer')[0];
@@ -1626,6 +1973,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Intercept paste in any contenteditable .CommentInput to strip rich HTML/styles and insert plain text only
   attachPlainTextPaste(CommentSectionModal);
+
+  // Enable @mention dropdown for all reply inputs inside the comment section modal
+  attachMentionDropdown(CommentSectionModal);
 
   CommentSectionModal.addEventListener('input', (event) => {
     const targetElement = event.target;

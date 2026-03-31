@@ -688,15 +688,140 @@ form.CreateModalComment.CreateCommentReply div {
 }
 
 .ReplyTag {
-    background-color: #afc6ff;
-    border: 1px solid #77b3d9;
-    border-radius: 3px;
-    padding: 2px 4px;
+    color: #1877f2;
+    font-weight: 600;
+    background-color: #e8f0fe;
+    border-radius: 4px;
+    padding: 1px 5px;
     margin-right: 2px;
     white-space: nowrap;
-    font-weight: bold;
     user-select: none;
 }
+
+/* ── Mention Links (rendered in post/comment/reply content) ──────────────── */
+
+a.MentionLink,
+a.MentionLink:visited {
+    color: #1877f2;
+    font-weight: 600;
+    text-decoration: none;
+    background-color: #e8f0fe;
+    border-radius: 4px;
+    padding: 1px 5px;
+    transition: background-color 0.15s ease;
+}
+
+a.MentionLink:hover {
+    background-color: #d0e2ff;
+    text-decoration: none;
+}
+
+/* ── Mention Dropdown ─────────────────────────────────────────────────────── */
+
+/* The form wrapping the reply input is the positioning anchor for the dropdown */
+.CreateCommentReply {
+    position: relative;
+}
+
+.MentionDropdown {
+    position: fixed;
+    width: 272px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.09);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.10);
+    z-index: 1000;
+    overflow-y: auto;
+    max-height: 224px; /* fits exactly 4 items before scrolling */
+    padding: 4px 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #d0d7e3 transparent;
+}
+
+.MentionDropdown::-webkit-scrollbar {
+    width: 4px;
+}
+.MentionDropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+.MentionDropdown::-webkit-scrollbar-thumb {
+    background: #d0d7e3;
+    border-radius: 4px;
+}
+
+.MentionItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+    border-radius: 8px;
+}
+
+.MentionItem:hover,
+.MentionItem.Focused {
+    background: #f0f4ff;
+}
+
+.MentionAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3px #e8edf5;
+}
+
+.MentionUserInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+}
+
+.MentionNameRow {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.MentionName {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f1419;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.MentionUsername {
+    font-size: 11px;
+    color: #8899a6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.MentionFollowBadge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    color: var(--accent-color);
+    background: #eef3ff;
+    border: 1px solid #d0e0ff;
+    border-radius: 20px;
+    padding: 1px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+/* ── End Mention Dropdown ─────────────────────────────────────────────────── */
 
 
 

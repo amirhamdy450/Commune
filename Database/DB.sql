@@ -137,7 +137,7 @@ CREATE TABLE `notifications` (
   `id` int NOT NULL,
   `ToUID` int NOT NULL COMMENT 'The user receiving the notification',
   `FromUID` int DEFAULT NULL COMMENT 'The actor. NULL = System Notification',
-  `Type` int NOT NULL COMMENT '1=Like, 2=Comment, 3=Reply, 4=Follow, 10=System, 11=Security',
+  `Type` int NOT NULL COMMENT '1=Like, 2=Comment, 3=Reply, 4=Follow, 7=Mention, 10=System, 11=Security',
   `ReferenceID` int DEFAULT NULL COMMENT 'ID of Post/Comment. NULL for general alerts',
   `MetaInfo` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Custom text or JSON for system messages',
   `IsRead` tinyint(1) NOT NULL DEFAULT '0',

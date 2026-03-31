@@ -270,6 +270,32 @@ if ($ReqType == 4) {
 }
 
 
+// --- REQTYPE 5: Mention Autocomplete (@mention dropdown in comment/reply inputs) ---
+// Returns up to 6 users matching the query, with IFollowThem flag for the follow indicator
+if ($ReqType == 5) {
+    $response = ['users' => []];
+    if (true) { // empty query returns top users ordered by follow status; non-empty filters by name/username
+        $sqlUsers = "SELECT u.id, u.Fname, u.Lname, u.Username, u.ProfilePic, u.IsBlueTick,
+                     CASE WHEN f.id IS NOT NULL THEN 1 ELSE 0 END AS IFollowThem
+                     FROM users u
+                     LEFT JOIN followers f ON f.UserID = u.id AND f.FollowerID = ?
+                     WHERE ((CONCAT(TRIM(u.Fname), ' ', TRIM(u.Lname)) LIKE ?) OR (u.Username LIKE ?)) AND u.id != ?
+                     ORDER BY IFollowThem DESC, u.Username ASC
+                     LIMIT 6";
+        $stmtUsers = $pdo->prepare($sqlUsers);
+        $stmtUsers->execute([$UID, $searchTermLike, $searchTermLike, $UID]);
+        while ($user = $stmtUsers->fetch(PDO::FETCH_ASSOC)) {
+            $now = time();
+            $user['EncUID'] = Encrypt($user['id'], "Positioned", ["Timestamp" => $now]);
+            $user['ProfilePic'] = $user['ProfilePic'] ? 'MediaFolders/profile_pictures/' . htmlspecialchars($user['ProfilePic']) : 'Imgs/Icons/unknown.png';
+            $response['users'][] = $user;
+        }
+    }
+    echo json_encode($response);
+    exit;
+}
+
+
 /* --- HELPER FUNCTIONS --- */
 function FormatPostForClient($post, $UID) {
     global $PATH; 

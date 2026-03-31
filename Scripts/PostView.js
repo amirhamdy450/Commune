@@ -1,5 +1,5 @@
 import { Submit } from "./Forms.js"; 
-import { createPostHTML, createCommentHTML, attachPostInteractions, attachCommentInteractions, attachPlainTextPaste } from "./Feed.js";
+import { createPostHTML, createCommentHTML, attachPostInteractions, attachCommentInteractions, attachPlainTextPaste, attachMentionDropdown } from "./Feed.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const dataDiv = document.getElementById('PageData');
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${commentsHTML}
                         </div>
                         <form class="CreateModalComment" id="CreateNewComment">
-                            <textarea class="CommentInput" placeholder="Write a comment..." rows="1"></textarea>
+                            <div contenteditable="true" class="CommentInput" placeholder="Write a comment..."></div>
                             <input type="submit" value="" class="BrandBtn CommentSubmitBtn">
                         </form>
                     </div>
@@ -81,12 +81,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Intercept paste in reply inputs to strip rich HTML and insert plain text only
                 attachPlainTextPaste(inlineCommentsContainer);
 
+                // Enable @mention dropdown for all reply inputs inside the inline comment section
+                attachMentionDropdown(inlineCommentsContainer);
+
                 // D. Handle New Comment Submission (Inline) — live DOM insert, no reload
                 const form = postElement.querySelector('#CreateNewComment');
+
+                // Toggle has-content so the CSS placeholder shows/hides correctly
+                form.addEventListener('input', (e) => {
+                    const el = e.target;
+                    if (el.getAttribute('contenteditable') !== 'true') return;
+                    if (el.innerHTML.replace(/<[^>]*>/g, '').trim()) {
+                        el.classList.add('has-content');
+                    } else {
+                        el.classList.remove('has-content');
+                    }
+                });
+
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const input = form.querySelector('.CommentInput');
-                    const content = input.value.trim();
+                    // Read from contenteditable div — strip HTML tags to get plain text
+                    const content = input.innerHTML.replace(/<[^>]*>/g, '').trim();
                     if (!content) return;
 
                     const formData = new FormData();
@@ -97,7 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         const res = await Submit('POST', 'Origin/Operations/Feed.php', formData);
                         if (res.success && res.comment) {
-                            input.value = '';
+                            input.innerHTML = '';
+                            input.classList.remove('has-content');
 
                             // Remove empty state if present
                             const commentsContainer = postElement.querySelector('.ModalCommentsContainer');

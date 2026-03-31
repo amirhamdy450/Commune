@@ -93,7 +93,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                         </div>
 
                         <div class="FeedPostContent">
-                            <p>' . $FeedPost['Content'] . '</p>';
+                            <p>' . preg_replace('/@([\w]+)/', '<a class="MentionLink" href="index.php?target=profile&username=$1">@$1</a>', htmlspecialchars($FeedPost['Content'])) . '</p>';
 
                     $MediaFolder = $FeedPost['MediaFolder'];
                     if (is_dir($MediaFolder)) {

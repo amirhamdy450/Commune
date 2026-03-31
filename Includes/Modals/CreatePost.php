@@ -13,7 +13,7 @@
         <input type="hidden" id="CPostFilesToDelete" name="files_to_delete" value="[]">
 
         <div class="PostArea">
-            <textarea id="CPostContent" name="content" rows="6" required="" placeholder="What's on your mind?"></textarea>
+            <div contenteditable="true" id="CPostContent" class="PostContentInput" placeholder="What's on your mind?"></div>
 
 
             <div class="FileUpload">

@@ -742,14 +742,21 @@ body.ModalOpen {
     font-size: 24px;
     padding: 20px;
     max-width: 620px;
-    resize: none;
     border: none;
     border-radius: 15px;
     height: 230px;
+    overflow-y: auto;
+    outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    caret-color: #5a5a5a;
 }
-#CPostContent::placeholder {
+/* Placeholder for contenteditable — mirrors the old textarea ::placeholder */
+#CPostContent:empty::before {
+    content: attr(placeholder);
+    color: #a9a9a9;
     word-spacing: 2px;
-
+    pointer-events: none;
 }
 .PostSubmitBtn {
     width: 100%;

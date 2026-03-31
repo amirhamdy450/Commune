@@ -21,6 +21,7 @@ function getNotifText(type) {
         case 4: return "started following you.";
         case 5: return "liked your comment.";
         case 6: return "liked your reply.";
+        case 7: return "mentioned you.";
         case 11: return "Security Alert.";
         default: return "New interaction.";
     }
@@ -28,8 +29,8 @@ function getNotifText(type) {
 
 // Helper to build Redirect URL
 function getNotifLink(n) {
-    // Post Related (Likes, Comments, Replies)
-    if ([1, 2, 3, 5, 6].includes(n.Type)) {
+    // Post Related (Likes, Comments, Replies, Mentions)
+    if ([1, 2, 3, 5, 6, 7].includes(n.Type)) {
         return `index.php?target=post&pid=${encodeURIComponent(n.RefID)}`;
     }
     // User Related (Follow)

@@ -18,6 +18,15 @@
     $IsSelf=false;
 
 
+    // If reached via ?username=, resolve the username to an encrypted UID first
+    if ($ProfileUserID === null && isset($_GET['username'])) {
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE Username = ? LIMIT 1");
+        $stmt->execute([trim($_GET['username'])]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) { header("Location: 404.php"); exit(); }
+        $ProfileUserID = Encrypt($row['id'], "Positioned", ["Timestamp" => time()]);
+    }
+
     //decrypt the uid
     $ProfileUserID=Decrypt($ProfileUserID,"Positioned");
 /*     print_r($ProfileUserID);

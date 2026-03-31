@@ -20,7 +20,7 @@ echo '
             </div>
             <div class="AboutItem">
                 <span class="AboutLabel">Birthday</span>
-                <span class="AboutValue">' . htmlspecialchars($ProfileUser['BirthDay']) . '</span>
+                <span class="AboutValue">' . htmlspecialchars($ProfileUser['BirthDay'] ?? 'Not specified') . '</span>
             </div>
             <div class="AboutItem">
                 <span class="AboutLabel">Country</span>

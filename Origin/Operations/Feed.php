@@ -267,7 +267,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $mediaFiles = scandir($FolderPath);
             foreach ($mediaFiles as $file) {
                 if ($file !== '.' && $file !== '..') {
-                    $media[] = ['name' => $file, 'path' => $FolderPath . '/' . $file];
+                    $media[] = ['name' => $file, 'path' => $RootMediaFolderPath . '/' . $file];
                 }
             }
         }
@@ -293,13 +293,25 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             'IsBlueTick' => (int)$newPost['IsBlueTick']
         ];
 
+        // Fire mention notifications (Type 7) for each @mentioned user in the post body
+        if (!empty($_POST['Mentions']) && is_array($_POST['Mentions'])) {
+            $seenMentions = [];
+            foreach ($_POST['Mentions'] as $EncMentionUID) {
+                $MentionUID = (int)Decrypt($EncMentionUID, "Positioned");
+                if ($MentionUID <= 0 || $MentionUID === $UID || in_array($MentionUID, $seenMentions)) continue;
+                if (!RowExists('users', 'id', $MentionUID)) continue;
+                $seenMentions[] = $MentionUID;
+                CreateNotification($MentionUID, $UID, 7, $lastInsertId);
+            }
+        }
+
         echo json_encode([
             'success' => true,
             'message' => "Post added successfully",
             'post' => $responsePost
         ]);
         die();
-    
+
 
 
     
@@ -423,7 +435,20 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             // 2. Create Notification (Type 2 = Comment)
             CreateNotification($PostOwnerUID, $UID, 2, $FeedPostID);
 
-            // 3. Return the new comment data for live DOM insertion
+            // 3. Fire mention notifications (Type 7) for each @mentioned user
+            if (!empty($_POST['Mentions']) && is_array($_POST['Mentions'])) {
+                $seen = [];
+                foreach ($_POST['Mentions'] as $EncMentionUID) {
+                    $MentionUID = (int)Decrypt($EncMentionUID, "Positioned");
+                    // Skip invalid IDs, self-mentions, duplicates, and the post owner (already notified)
+                    if ($MentionUID <= 0 || $MentionUID === $UID || in_array($MentionUID, $seen)) continue;
+                    if (!RowExists('users', 'id', $MentionUID)) continue;
+                    $seen[] = $MentionUID;
+                    CreateNotification($MentionUID, $UID, 7, $FeedPostID);
+                }
+            }
+
+            // 4. Return the new comment data for live DOM insertion
             $now = time();
             $sqlNewComment = "SELECT comments.id as CID, comments.*, users.Fname, users.Lname, users.Username, users.ProfilePic, users.IsBlueTick
                               FROM comments INNER JOIN users ON comments.UID = users.id
@@ -798,7 +823,20 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         // Note: We link to the ReferencePostID so the user lands on the correct post.
         CreateNotification($TargetUID, $UID, 3, $ReferencePostID);
 
-        // D. Return new reply data for live DOM insertion
+        // D. Fire mention notifications (Type 7) for each @mentioned user
+        if (!empty($_POST['Mentions']) && is_array($_POST['Mentions'])) {
+            $seenMentions = [];
+            foreach ($_POST['Mentions'] as $EncMentionUID) {
+                $MentionUID = (int)Decrypt($EncMentionUID, "Positioned");
+                // Skip invalid IDs, self-mentions, duplicates, and the reply target (already notified above)
+                if ($MentionUID <= 0 || $MentionUID === $UID || $MentionUID === $TargetUID || in_array($MentionUID, $seenMentions)) continue;
+                if (!RowExists('users', 'id', $MentionUID)) continue;
+                $seenMentions[] = $MentionUID;
+                CreateNotification($MentionUID, $UID, 7, $ReferencePostID);
+            }
+        }
+
+        // E. Return new reply data for live DOM insertion
         // $newRID was captured right after INSERT — CreateNotification's own INSERT would have overwritten lastInsertId()
         $now = time();
         $sqlNewReply = "SELECT CR.id AS CRID, CR.UID, CR.Reply, CR.LikeCounter, CR.Date,
@@ -1101,12 +1139,27 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             }
         }
         
-        // 3. Send data to the client
+        // 3. Resolve @mentions in content to encrypted UIDs for the editor
+        $mentionMap = [];
+        preg_match_all('/@([\w]+)/', $post['Content'], $matches);
+        if (!empty($matches[1])) {
+            $uniqueUsernames = array_unique($matches[1]);
+            $placeholders = implode(',', array_fill(0, count($uniqueUsernames), '?'));
+            $stmtMentions = $pdo->prepare("SELECT id, Username FROM users WHERE Username IN ($placeholders)");
+            $stmtMentions->execute($uniqueUsernames);
+            while ($row = $stmtMentions->fetch(PDO::FETCH_ASSOC)) {
+                $timestamp = time();
+                $mentionMap[$row['Username']] = Encrypt($row['id'], "Positioned", ["Timestamp" => $timestamp]);
+            }
+        }
+
+        // 4. Send data to the client
         echo json_encode([
             'success' => true,
             'Content' => $post['Content'],
             'MediaType' => (int)$post['Type'],
-            'MediaFiles' => $media
+            'MediaFiles' => $media,
+            'MentionMap' => $mentionMap
         ]);
         die();
 
@@ -1289,6 +1342,18 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             'saved'=>(int)$updatedPost['saved'],
             'IsBlueTick' => (int)$updatedPost['IsBlueTick']
         ];
+
+        // Fire mention notifications (Type 7) for each @mentioned user in the edited post body
+        if (!empty($_POST['Mentions']) && is_array($_POST['Mentions'])) {
+            $seenMentions = [];
+            foreach ($_POST['Mentions'] as $EncMentionUID) {
+                $MentionUID = (int)Decrypt($EncMentionUID, "Positioned");
+                if ($MentionUID <= 0 || $MentionUID === $UID || in_array($MentionUID, $seenMentions)) continue;
+                if (!RowExists('users', 'id', $MentionUID)) continue;
+                $seenMentions[] = $MentionUID;
+                CreateNotification($MentionUID, $UID, 7, $FeedPostID);
+            }
+        }
 
         echo json_encode([
             'success' => true,

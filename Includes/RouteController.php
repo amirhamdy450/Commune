@@ -85,7 +85,13 @@ if(isset($_GET['target'])){
             $ProfileUserID = $_GET['uid'];
             include 'VProfile.php';
             die();
-        
+
+        }else if (isset($_GET['username'])) {
+            // VProfile.php will resolve the username after its own includes are loaded
+            $ProfileUserID = null;
+            include 'VProfile.php';
+            die();
+
         }else{
             header("Location: 404.php");
             exit();
