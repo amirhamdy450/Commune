@@ -17,10 +17,17 @@ function setTokenCookie($token,$token2) {
 
 }
 
+function NormalizeIP($ip) {
+    // Map IPv6 loopback and IPv4-mapped IPv6 to plain IPv4
+    if ($ip === '::1') return '127.0.0.1';
+    if (strpos($ip, '::ffff:') === 0) return substr($ip, 7);
+    return $ip;
+}
+
 function InsertTokens($token, $token2, $UID) {
     global $pdo;
 
-    $IP = $_SERVER['REMOTE_ADDR'];
+    $IP = NormalizeIP($_SERVER['REMOTE_ADDR']);
     $UserAgent = $_SERVER['HTTP_USER_AGENT'];
     $Now=strtotime("now");  
     try{

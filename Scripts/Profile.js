@@ -375,7 +375,12 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
     const targetUIDInput = document.getElementById('UserProfileID');
 
     if (profilePostsContainer && profileLoader && targetUIDInput) {
-        
+
+        // If no posts were server-rendered, mark as done immediately — don't try to fetch
+        if (profilePostsContainer.getElementsByClassName('FeedPost').length === 0) {
+            noMoreProfilePosts = true;
+        }
+
         const checkAndLoadPosts = () => {
             if (profilePostsContainer.classList.contains('hidden')) return;
             if (isFetchingProfilePosts || noMoreProfilePosts) return;

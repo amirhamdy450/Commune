@@ -1,5 +1,5 @@
 import { Submit } from "./Forms.js"; 
-import { createPostHTML, createCommentHTML, attachPostInteractions, attachCommentInteractions } from "./Feed.js";
+import { createPostHTML, createCommentHTML, attachPostInteractions, attachCommentInteractions, attachPlainTextPaste } from "./Feed.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const dataDiv = document.getElementById('PageData');
@@ -78,7 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const inlineCommentsContainer = postElement.querySelector('.PostCommentsInline');
                 attachCommentInteractions(inlineCommentsContainer);
 
-                // D. Handle New Comment Submission (Inline)
+                // Intercept paste in reply inputs to strip rich HTML and insert plain text only
+                attachPlainTextPaste(inlineCommentsContainer);
+
+                // D. Handle New Comment Submission (Inline) — live DOM insert, no reload
                 const form = postElement.querySelector('#CreateNewComment');
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -93,8 +96,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     try {
                         const res = await Submit('POST', 'Origin/Operations/Feed.php', formData);
-                        if (res.success) {
-                            window.location.reload(); // Simple reload to show new comment state
+                        if (res.success && res.comment) {
+                            input.value = '';
+
+                            // Remove empty state if present
+                            const commentsContainer = postElement.querySelector('.ModalCommentsContainer');
+                            const noComments = commentsContainer.querySelector('.NoComments');
+                            if (noComments) noComments.remove();
+
+                            // Live-insert the new comment at the top
+                            commentsContainer.insertAdjacentHTML('afterbegin', createCommentHTML(res.comment));
+
+                            // Attach interactions to the newly inserted comment
+                            attachCommentInteractions(inlineCommentsContainer);
+                        } else if (res.success) {
+                            // Fallback: fetch failed but comment was saved — reload as last resort
+                            window.location.reload();
                         }
                     } catch (err) {
                         console.error(err);

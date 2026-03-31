@@ -15,9 +15,9 @@ function ShowConfirmModal(Options){
     ConfirmBtn.innerHTML = Options.ConfirmText;
   }
 
-  ConfirmBtn.addEventListener('click', HandleModalConfirm);
+  ConfirmBtn.addEventListener('click', HandleModalConfirm, { once: true });
 
-  cancelBtnAlt.addEventListener('click', CancelConfirmModal);
+  cancelBtnAlt.addEventListener('click', CancelConfirmModal, { once: true });
 
 
 

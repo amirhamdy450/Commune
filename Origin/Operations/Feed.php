@@ -405,8 +405,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         if ($stmt->execute([$CommentContent,$FeedPostID, $UID])) { //execute the query and if successful we will do another query inside the posts table
 
-            //increment the likes count  in the posts table
+            // Capture lastInsertId immediately after INSERT, before any other queries reset it
+            $newCID = $pdo->lastInsertId();
 
+            //increment the comment count in the posts table
             $sql = 'UPDATE posts SET CommentCounter=CommentCounter+1 WHERE id=?';
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$FeedPostID]);
@@ -421,10 +423,36 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             // 2. Create Notification (Type 2 = Comment)
             CreateNotification($PostOwnerUID, $UID, 2, $FeedPostID);
 
+            // 3. Return the new comment data for live DOM insertion
+            $now = time();
+            $sqlNewComment = "SELECT comments.id as CID, comments.*, users.Fname, users.Lname, users.Username, users.ProfilePic, users.IsBlueTick
+                              FROM comments INNER JOIN users ON comments.UID = users.id
+                              WHERE comments.id = ?";
+            $stmtNew = $pdo->prepare($sqlNewComment);
+            $stmtNew->execute([$newCID]);
+            $newComment = $stmtNew->fetch(PDO::FETCH_ASSOC);
+
+            // Guard: if fetch failed (e.g. race condition), return success without comment data
+            if (!$newComment) {
+                echo json_encode(['success' => true, 'message' => "Comment added successfully"]);
+                die();
+            }
+
+            $newComment['CID'] = Encrypt($newCID, "Positioned", ["Timestamp" => $now]);
+            $newComment['UID'] = Encrypt($UID, "Positioned", ["Timestamp" => $now]);
+            $newComment['ProfilePic'] = (!empty($newComment['ProfilePic']))
+                ? 'MediaFolders/profile_pictures/' . htmlspecialchars($newComment['ProfilePic'])
+                : 'Imgs/Icons/unknown.png';
+            $newComment['IsSelf'] = true;
+            $newComment['liked'] = false;
+            $newComment['LikeCounter'] = 0;
+            $newComment['ReplyCounter'] = 0;
+            $newComment['Date'] = $now;
+
             echo json_encode([
                 'success' => true,
-                'message' => "Comment added successfully"
-
+                'message' => "Comment added successfully",
+                'comment' => $newComment
             ]);
 
 
@@ -452,11 +480,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 
 
-        $sql='SELECT comments.id as CID,comments.*,users.* ,
+        $sql='SELECT comments.id as CID,comments.*,users.Fname,users.Lname,users.Username,users.ProfilePic,users.IsBlueTick,
             CASE WHEN CL.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
-            FROM comments 
-            INNER JOIN users ON comments.UID=users.id 
-            LEFT JOIN comments_likes CL ON comments.id=CL.CommentID AND CL.UID=?       
+            FROM comments
+            INNER JOIN users ON comments.UID=users.id
+            LEFT JOIN comments_likes CL ON comments.id=CL.CommentID AND CL.UID=?
             WHERE comments.PostID=? ';
 
         $stmt = $pdo->prepare($sql);
@@ -468,6 +496,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             foreach($Comments as &$Comment){
                 //convert Date to a Unix timestamp
                 $timestamp = strtotime($Comment['Date']);
+                $Comment['Date'] = $timestamp;
 
                 $Comment['CID'] = Encrypt($Comment['CID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
 
@@ -734,8 +763,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'success' => false,
                 'message' => "Error inserting reply",
             ]);
+            die();
         }
 
+        // Capture lastInsertId immediately after the reply INSERT, before any other queries reset it
+        $newRID = $pdo->lastInsertId();
 
         //Increment the reply counter in comments table
         $sql="UPDATE comments SET ReplyCounter=ReplyCounter+1 WHERE id=?";
@@ -745,6 +777,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'success' => false,
                 'message' => "Error incrementing reply counter",
             ]);
+            die();
         }
 
 
@@ -752,7 +785,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $stmtDetails = $pdo->prepare("SELECT UID, PostID FROM comments WHERE id = ?");
         $stmtDetails->execute([$CommentID]);
         $CommentDetails = $stmtDetails->fetch(PDO::FETCH_ASSOC);
-        
+
         $CommentOwnerUID = $CommentDetails['UID'];
         $ReferencePostID = $CommentDetails['PostID'];
 
@@ -765,10 +798,39 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         // Note: We link to the ReferencePostID so the user lands on the correct post.
         CreateNotification($TargetUID, $UID, 3, $ReferencePostID);
 
+        // D. Return new reply data for live DOM insertion
+        // $newRID was captured right after INSERT — CreateNotification's own INSERT would have overwritten lastInsertId()
+        $now = time();
+        $sqlNewReply = "SELECT CR.id AS CRID, CR.UID, CR.Reply, CR.LikeCounter, CR.Date,
+                        CONCAT(U.Fname,' ',U.Lname) AS Sender,
+                        U.Username AS SenderUsername, U.ProfilePic AS SenderProfilePic, U.IsBlueTick,
+                        Tagged.Username AS TaggedUser
+                        FROM comments_replies CR
+                        INNER JOIN users U ON CR.UID = U.id
+                        LEFT JOIN users Tagged ON CR.Tagged = Tagged.id
+                        WHERE CR.id = ?";
+        $stmtNewReply = $pdo->prepare($sqlNewReply);
+        $stmtNewReply->execute([$newRID]);
+        $newReply = $stmtNewReply->fetch(PDO::FETCH_ASSOC);
+
+        if (!$newReply) {
+            echo json_encode(['success' => true, 'message' => "Reply inserted"]);
+            die();
+        }
+
+        $newReply['CRID'] = Encrypt($newRID, "Positioned", ["Timestamp" => $now]);
+        $newReply['UID'] = Encrypt($UID, "Positioned", ["Timestamp" => $now]);
+        $newReply['SenderProfilePic'] = (!empty($newReply['SenderProfilePic']))
+            ? 'MediaFolders/profile_pictures/' . htmlspecialchars($newReply['SenderProfilePic'])
+            : 'Imgs/Icons/unknown.png';
+        $newReply['IsSelf'] = true;
+        $newReply['liked'] = false;
+        $newReply['Date'] = $now;
 
         echo json_encode([
             'success' => true,
             'message' => "Reply inserted",
+            'reply' => $newReply,
         ]);
 
 
@@ -867,8 +929,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
 
         //get al replies to that comment
-        $sql="SELECT CR.id AS CRID, CR.UID,CR.Reply,CR.LikeCounter, CR.Date,CONCAT(Sender.Fname,' ',Sender.Lname)  AS Sender,
-        Sender.Username AS SenderUsername, Sender.ProfilePic AS SenderProfilePic, Tagged.Username AS TaggedUser ,
+        $sql="SELECT CR.id AS CRID, CR.UID,CR.Reply,CR.LikeCounter, CR.Date,CONCAT(Sender.Fname,' ',Sender.Lname) AS Sender,
+        Sender.Username AS SenderUsername, Sender.ProfilePic AS SenderProfilePic, Sender.IsBlueTick,
+        Tagged.Username AS TaggedUser,
         CASE WHEN CRL.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
         FROM comments_replies CR
         INNER JOIN users Sender ON CR.UID=Sender.id
@@ -885,6 +948,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         foreach($Replies as &$Reply){
             //convert Date to a Unix timestamp
             $timestamp = strtotime($Reply['Date']);
+            $Reply['Date'] = $timestamp;
 
             $Reply['CRID'] = Encrypt($Reply['CRID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
 

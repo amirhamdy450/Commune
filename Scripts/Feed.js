@@ -180,8 +180,12 @@ export function createCommentHTML(comment,type=1){
   const isSelf = comment.IsSelf ? '1' : '0';
   
 
+  const blueTick = comment.IsBlueTick ? '<span class="BlueTick" title="Verified"></span>' : '';
+  const timeAgo = comment.Date ? TimeAgo(comment.Date) : '';
+  const profileUrl = `index.php?target=profile&uid=${encodeURIComponent(comment.UID)}`;
+
   if(type==1){
-    return `             
+    return `
       <div class="CommentContainer">
 
         <div class="CI_2">
@@ -194,10 +198,17 @@ export function createCommentHTML(comment,type=1){
 
         <div class="ModalComment" Self="${isSelf}">
           <div class="ModalCommentHeader">
-            <div class="ModalCommentAuthor">
+            <a class="ModalCommentAuthor" href="${profileUrl}">
               <img src="${comment.ProfilePic}" alt="">
-              <p>${comment.name}</p>
-            </div>
+              <div class="ModalCommentAuthorInfo">
+                <div class="ModalCommentNameRow">
+                  <span class="ModalCommentName">${comment.name}</span>
+                  ${blueTick}
+                  ${timeAgo ? `<span class="ModalCommentTime">· ${timeAgo}</span>` : ''}
+                </div>
+                <span class="ModalCommentUsername">@${comment.Username}</span>
+              </div>
+            </a>
            <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg" alt="Options"></div>
           </div>
           <div class="ModalCommentContent">
@@ -245,7 +256,11 @@ export function createCommentHTML(comment,type=1){
       }
 
 
-        return `             
+        const replyBlueTick = comment.IsBlueTick ? '<span class="BlueTick" title="Verified"></span>' : '';
+        const replyTimeAgo = comment.Date ? TimeAgo(comment.Date) : '';
+        const replyProfileUrl = `index.php?target=profile&uid=${encodeURIComponent(comment.UID)}`;
+
+        return `
       <div class="CommentContainer Reply">
 
         <div class="CI_2">
@@ -258,10 +273,17 @@ export function createCommentHTML(comment,type=1){
 
         <div class="ModalComment" Self="${isSelf}">
           <div class="ModalCommentHeader">
-            <div class="ModalCommentAuthor">
+            <a class="ModalCommentAuthor" href="${replyProfileUrl}">
               <img src="${comment.SenderProfilePic}" alt="">
-              <p>${comment.Sender}</p>
-            </div>
+              <div class="ModalCommentAuthorInfo">
+                <div class="ModalCommentNameRow">
+                  <span class="ModalCommentName">${comment.Sender}</span>
+                  ${replyBlueTick}
+                  ${replyTimeAgo ? `<span class="ModalCommentTime">· ${replyTimeAgo}</span>` : ''}
+                </div>
+                ${comment.SenderUsername ? `<span class="ModalCommentUsername">@${comment.SenderUsername}</span>` : ''}
+              </div>
+            </a>
            <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg" alt="Options"></div>
 
           </div>
@@ -443,8 +465,6 @@ export function attachPostInteractions(post) {
         commentsContainer.innerHTML = '';
 
         if(data && data.length !== 0) {
-         // const commentsContainer = document.getElementsByClassName('ModalCommentsContainer')[0];
-         // commentsContainer.innerHTML = '';
           data.forEach(comment => {
 
             commentsContainer.insertAdjacentHTML('beforeend', createCommentHTML(comment));
@@ -578,6 +598,44 @@ if (actionButton) {
 }
 
 
+// Attaches a delegated paste listener to a container so that any contenteditable .CommentInput
+// inside it receives plain text only — preventing browsers from pasting rich HTML with inline
+// styles, background colors, font changes, or scroll containers from external sources.
+export function attachPlainTextPaste(container) {
+  container.addEventListener('paste', (e) => {
+    const target = e.target;
+    // Only intercept paste on contenteditable .CommentInput elements
+    if (!target.classList.contains('CommentInput') || target.getAttribute('contenteditable') !== 'true') return;
+
+    e.preventDefault();
+
+    // Extract plain text from clipboard
+    const plainText = e.clipboardData ? e.clipboardData.getData('text/plain') : '';
+    if (!plainText) return;
+
+    // Insert at cursor position using Selection API, which correctly handles
+    // cursor placement even when a non-editable ReplyTag span is present
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    // Delete any currently selected text first
+    range.deleteContents();
+
+    const textNode = document.createTextNode(plainText);
+    range.insertNode(textNode);
+
+    // Move cursor to end of inserted text
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // Trigger input event so the placeholder/has-content logic still runs
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
+
 function toggleCommentMenu(event, type, id, element, isSelf) {
     event.stopPropagation();
     
@@ -675,6 +733,10 @@ export function attachCommentInteractions(specificContainer = null) {
       return;
     }
 
+    // Skip if interactions already attached — prevents duplicate listeners when re-calling after live insert
+    if(comment.dataset.bound === '1') return;
+    comment.dataset.bound = '1';
+
     const likeButton = comment.getElementsByClassName('FeedPostLike')[0];
     const commentButton = comment.getElementsByClassName('FeedPostComment')[0];
     const ViewRepliesButton = comment.getElementsByClassName('ViewRepliesBtn')[0];
@@ -724,46 +786,56 @@ export function attachCommentInteractions(specificContainer = null) {
       //check if the reply form is already created
       let CreateReply= comment.getElementsByClassName('CreateCommentReply')[0];
       if(!CreateReply){
-          comment.insertAdjacentHTML('beforeend', ` 
+          comment.insertAdjacentHTML('beforeend', `
             <form class="CreateModalComment CreateCommentReply" >
                   <div contenteditable="true" class="CommentInput" placeholder="Reply to comment" rows="1"></div>
                   <input type="submit" value="" class="BrandBtn CommentSubmitBtn">
 
             </form>
-            
+
           `);
 
         //reselect CreateCommentReply for the newly created form
           CreateReply= comment.getElementsByClassName('CreateCommentReply')[0];
-          
 
+          // Attach submit listener ONLY when the form is first created to prevent stacking listeners on repeat clicks
+          CreateReply.addEventListener('submit',  (e) => {
+            e.preventDefault();
+
+            let Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
+            const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML tags
+
+            const formData = new FormData();
+            formData.append('ReqType', 8);
+            formData.append('CommentID', CommentID);
+            formData.append('Reply', Reply);
+
+            Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
+              if (data.success) {
+                CreateReply.remove();
+                // Live-insert the new reply into the RepliesContainer without reload
+                let RepliesContainer = comment.getElementsByClassName('RepliesContainer')[0];
+                RepliesContainer.classList.remove('hidden');
+                if (data.reply) {
+                  const replyHTML = createCommentHTML(data.reply, 2);
+                  RepliesContainer.insertAdjacentHTML('beforeend', replyHTML);
+                  const newReply = RepliesContainer.getElementsByClassName('CommentContainer')[RepliesContainer.getElementsByClassName('CommentContainer').length - 1];
+                  attachReplyInteractions(newReply, comment);
+                }
+                // Update "X Replies" button counter
+                if (ViewRepliesButton) {
+                  const currentCount = parseInt(ViewRepliesButton.textContent) || 0;
+                  ViewRepliesButton.textContent = (currentCount + 1) + ' Replies';
+                }
+                showInfoBox('Reply posted!', 1);
+              } else {
+                showInfoBox(data.message || 'Failed to post reply.', 2);
+              }
+            });
+
+            //createReply(comment,);
+          });
       }
-
-
-      CreateReply.addEventListener('submit',  (e) => {
-        e.preventDefault();
-        
-
-        let Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
-        const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML.trim();
-
-        const formData = new FormData();
-        formData.append('ReqType', 8);
-        formData.append('CommentID', CommentID);
-        formData.append('Reply', Reply);
-
-        Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
-          if (data.success) {
-            CreateReply.remove();
-            showInfoBox('Reply posted!', 1);
-          } else {
-            showInfoBox(data.message || 'Failed to post reply.', 2);
-          }
-        });
-
-        //createReply(comment,);
-      })
-
 
     });
 
@@ -774,6 +846,9 @@ export function attachCommentInteractions(specificContainer = null) {
             let RepliesContainer = comment.getElementsByClassName('RepliesContainer')[0];
             RepliesContainer.classList.remove('hidden');
 
+            // If replies already loaded, just toggle visibility — don't re-fetch
+            if (RepliesContainer.dataset.loaded === '1') return;
+
         const formData = new FormData();
         formData.append('ReqType', 10);
         formData.append('CommentID', CommentID);
@@ -783,6 +858,9 @@ export function attachCommentInteractions(specificContainer = null) {
           .then(data => {
             let RepliesContainer = comment.getElementsByClassName('RepliesContainer')[0];
             RepliesContainer.classList.remove('hidden');
+
+            // Mark as loaded so re-clicking the button doesn't re-fetch
+            RepliesContainer.dataset.loaded = '1';
 
             data.forEach(reply => {
               RepliesContainer.insertAdjacentHTML('beforeend', createCommentHTML(reply,2));
@@ -802,6 +880,10 @@ export function attachCommentInteractions(specificContainer = null) {
 }
 
 function attachReplyInteractions(reply, parentComment) {
+    // Skip if interactions already attached — prevents duplicate listeners on re-attach
+    if (reply.dataset.bound === '1') return;
+    reply.dataset.bound = '1';
+
     const likeButton = reply.getElementsByClassName("FeedPostLike")[0];
     const commentButton = reply.getElementsByClassName("FeedPostComment")[0];
 
@@ -859,8 +941,8 @@ function attachReplyInteractions(reply, parentComment) {
       
       if (!CreateReply) {
         parentComment.insertAdjacentHTML("beforeend",
-        ` 
-        <form class="CreateModalComment CreateCommentReply" ">
+        `
+        <form class="CreateModalComment CreateCommentReply">
               <div contenteditable="true" class="CommentInput" rows="1">
               <span class="ReplyTag" contenteditable="false" replyto="${ReplyUserID}">@${ReplyTo}</span>
 
@@ -868,15 +950,60 @@ function attachReplyInteractions(reply, parentComment) {
               <input type="submit" value="" class="BrandBtn CommentSubmitBtn">
 
         </form>
-    
+
         `
         );
 
         //reselect CreateCommentReply for the newly created form
         CreateReply = parentComment.getElementsByClassName("CreateCommentReply")[0];
 
+        // Attach submit listener ONLY when the form is first created to prevent stacking listeners on repeat reply clicks
+        CreateReply.addEventListener('submit', (e) => {
+          e.preventDefault();
+
+          let meta = parentComment.getElementsByClassName('meta')[0];
+          let attrs = meta.getElementsByClassName('CMDI073')[0]; //for encryption
+          const CommentID = attrs.getAttribute('cid');
+
+          //strip HTML tags from contenteditable, keeping only plain text reply content
+          let Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
+          const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML
+
+          const formData = new FormData();
+          formData.append('ReqType', 8);
+          formData.append('CommentID', CommentID);
+          formData.append('Reply', Reply);
+          formData.append('ReplyTo', ReplyUserID);
+
+          Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
+            if (data.success) {
+              CreateReply.remove();
+              // Live-insert the new reply into the RepliesContainer without reload
+              let RepliesContainer = parentComment.getElementsByClassName('RepliesContainer')[0];
+              RepliesContainer.classList.remove('hidden');
+              if (data.reply) {
+                const replyHTML = createCommentHTML(data.reply, 2);
+                RepliesContainer.insertAdjacentHTML('beforeend', replyHTML);
+                const newReply = RepliesContainer.getElementsByClassName('CommentContainer')[RepliesContainer.getElementsByClassName('CommentContainer').length - 1];
+                attachReplyInteractions(newReply, parentComment);
+              }
+              // Update "X Replies" button counter on the parent comment
+              const parentViewRepliesBtn = parentComment.getElementsByClassName('ViewRepliesBtn')[0];
+              if (parentViewRepliesBtn) {
+                const currentCount = parseInt(parentViewRepliesBtn.textContent) || 0;
+                parentViewRepliesBtn.textContent = (currentCount + 1) + ' Replies';
+              }
+              showInfoBox('Reply posted!', 1);
+            } else {
+              showInfoBox(data.message || 'Failed to post reply.', 2);
+            }
+          });
+
+          //createReply(comment,);
+        });
+
       }else{
-        //just append the tag to the existing reply form
+        //just append the tag to the existing reply form (form already exists, just update the @mention tag)
         let CommentInput = CreateReply.getElementsByClassName("CommentInput")[0];
 
         //reset placeholder in CommentInput
@@ -886,7 +1013,7 @@ function attachReplyInteractions(reply, parentComment) {
         //check if a tag already exists
         let ReplyTag = CommentInput.getElementsByClassName("ReplyTag")[0];
         if(ReplyTag){
-          //reset
+          //reset existing tag to the new reply target
           ReplyTag.innerHTML = "@" + ReplyTo;
           ReplyTag.setAttribute("replyto", ReplyUserID);
         }else{
@@ -894,39 +1021,6 @@ function attachReplyInteractions(reply, parentComment) {
          CommentInput.insertAdjacentHTML("beforeend", `<span class="ReplyTag" contenteditable="false" replyto="${ReplyUserID}">@${ReplyTo}</span>`)
         }
       }
-
-
-      CreateReply.addEventListener('submit',  (e) => {
-        e.preventDefault();
-        
-        let meta = parentComment.getElementsByClassName('meta')[0];
-        let attrs = meta.getElementsByClassName('CMDI073')[0]; //for encryption
-        const CommentID = attrs.getAttribute('cid');
-
-
-        //comment
-        let Unfiltered=CreateReply.getElementsByClassName('CommentInput')[0].innerHTML;
-
-        const Reply = Unfiltered.replace(/<[^>]+contenteditable="false"[^>]*>.*?<\/[^>]+>/gi, '').replace(/<[^>]*>/g, '').trim(); // strip any other HTML.trim();
-        
-
-        const formData = new FormData();
-        formData.append('ReqType', 8);
-        formData.append('CommentID', CommentID);
-        formData.append('Reply', Reply);
-        formData.append('ReplyTo', ReplyUserID);
-
-        Submit('POST', 'Origin/Operations/Feed.php', formData).then(data => {
-          if (data.success) {
-            CreateReply.remove();
-            showInfoBox('Reply posted!', 1);
-          } else {
-            showInfoBox(data.message || 'Failed to post reply.', 2);
-          }
-        });
-
-        //createReply(comment,);
-      })
 
     });
 }
@@ -1473,18 +1567,37 @@ document.addEventListener('DOMContentLoaded', () => {
     formData.append('FeedPostID', currentPostID);
     formData.append('CommentContent', commentContent);
 
-    fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
-      .then(response => response.json())
+    Submit('POST', 'Origin/Operations/Feed.php', formData)
       .then(data => {
         if (data.success) {
+          // Clear input
           commentForm.getElementsByClassName('CommentInput')[0].value = '';
+
+          // Remove empty state if present
+          const commentsContainer = document.getElementsByClassName('ModalCommentsContainer')[0];
+          const noComments = commentsContainer.getElementsByClassName('NoComments')[0];
+          if (noComments) noComments.remove();
+
+          // Insert the new comment live at the top
+          const newCommentHTML = createCommentHTML(data.comment);
+          commentsContainer.insertAdjacentHTML('afterbegin', newCommentHTML);
+
+          // Attach interactions to the newly inserted comment
+          const newCommentEl = commentsContainer.getElementsByClassName('CommentContainer')[0];
+          attachCommentInteractions(newCommentEl.closest('.CommentSection') || document.getElementsByClassName('CommentSection')[0]);
+
+          // Update comment counter on the post
+          const activePosts = document.querySelectorAll(`.FeedPost[PID="${currentPostID}"]`);
+          activePosts.forEach(post => {
+            const counter = post.getElementsByClassName('CommentCounter')[0];
+            if (counter) counter.textContent = parseInt(counter.textContent) + 1;
+          });
+
           showInfoBox('Comment posted!', 1);
-          setTimeout(() => window.location.reload(), 800);
         } else {
           showInfoBox(data.message || 'Failed to post comment.', 2);
         }
-      })
-      .catch(() => showInfoBox('An unexpected error occurred.', 2));
+      });
   });
 
 
@@ -1510,6 +1623,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let CommentSectionModal= document.getElementsByClassName('CommentSection')[0];
 
+
+  // Intercept paste in any contenteditable .CommentInput to strip rich HTML/styles and insert plain text only
+  attachPlainTextPaste(CommentSectionModal);
 
   CommentSectionModal.addEventListener('input', (event) => {
     const targetElement = event.target;

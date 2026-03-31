@@ -25,6 +25,14 @@
     
     $FeedPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    if (empty($FeedPosts)) {
+        echo '<div class="ProfileEmptyState">
+            <img src="Imgs/Icons/no-posts.svg" alt="">
+            <h3>No posts yet</h3>
+            <p>When posts are shared, they\'ll appear here.</p>
+        </div>';
+    }
+
     foreach ($FeedPosts as $FeedPost) {
 
         $timestamp = strtotime($FeedPost['Date']);

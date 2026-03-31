@@ -566,13 +566,41 @@ border-bottom: 1px solid #9e9e9e;
 }
 
 
-.ModalCommentAuthor{
-        display: flex;
+.ModalCommentAuthor {
+    display: flex;
     gap: 8px;
     align-items: center;
-    font-weight: 600;
-    font-size: 16px;
+    text-decoration: none;
+    color: inherit;
+}
 
+.ModalCommentAuthorInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.ModalCommentNameRow {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ModalCommentName {
+    font-weight: 600;
+    font-size: 14px;
+    color: #0f1419;
+}
+
+.ModalCommentTime {
+    font-size: 12px;
+    color: #9aabb8;
+    font-weight: 400;
+}
+
+.ModalCommentUsername {
+    font-size: 12px;
+    color: #657786;
 }
 
 .ModalCommentHeader img {

@@ -51,11 +51,11 @@ if($PostID <= 0){ header("Location: 404.php"); exit(); }
         
         if ($post) {
             // 2. Fetch Comments
-            $sqlComments = 'SELECT comments.id as CID, comments.*, users.Fname, users.Lname, users.Username, users.ProfilePic,
+            $sqlComments = 'SELECT comments.id as CID, comments.*, users.Fname, users.Lname, users.Username, users.ProfilePic, users.IsBlueTick,
                             CASE WHEN CL.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
-                            FROM comments 
-                            INNER JOIN users ON comments.UID=users.id 
-                            LEFT JOIN comments_likes CL ON comments.id=CL.CommentID AND CL.UID=?       
+                            FROM comments
+                            INNER JOIN users ON comments.UID=users.id
+                            LEFT JOIN comments_likes CL ON comments.id=CL.CommentID AND CL.UID=?
                             WHERE comments.PostID=? ORDER BY comments.Date DESC';
             
             $stmtComm = $pdo->prepare($sqlComments);
@@ -70,6 +70,7 @@ if($PostID <= 0){ header("Location: 404.php"); exit(); }
                 // *** FIX END ***
 
                 $cTimestamp = strtotime($c['Date']);
+                $c['Date'] = $cTimestamp;
                 $c['CID'] = Encrypt($c['id'], "Positioned", ["Timestamp"=>$cTimestamp]);
                 $c['UID'] = Encrypt($c['UID'], "Positioned", ["Timestamp"=>$cTimestamp]); // Encrypt AFTER check
                 

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Back card (shadow layer) -->
+  <rect x="46" y="54" width="110" height="96" rx="12" fill="#dce5f0" opacity="0.55"/>
+  <!-- Front card -->
+  <rect x="40" y="46" width="110" height="96" rx="12" fill="#ffffff" stroke="#d8e3ef" stroke-width="1.8"/>
+
+  <!-- Avatar circle placeholder -->
+  <circle cx="64" cy="70" r="12" fill="#e8eef6"/>
+  <!-- Thin person silhouette hint -->
+  <circle cx="64" cy="66" r="4" fill="#c8d6e8"/>
+  <path d="M56 79 Q64 73 72 79" stroke="#c8d6e8" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+  <!-- Name bar -->
+  <rect x="82" y="63" width="42" height="6" rx="3" fill="#e4ecf5"/>
+  <!-- Username bar -->
+  <rect x="82" y="74" width="28" height="5" rx="2.5" fill="#edf3f9"/>
+
+  <!-- Content lines -->
+  <rect x="52" y="94" width="76" height="6" rx="3" fill="#edf3f9"/>
+  <rect x="52" y="105" width="62" height="6" rx="3" fill="#edf3f9"/>
+  <rect x="52" y="116" width="46" height="6" rx="3" fill="#f4f7fb"/>
+
+  <!-- Bottom divider -->
+  <line x1="40" y1="130" x2="150" y2="130" stroke="#e8eef6" stroke-width="1.4"/>
+
+  <!-- Reaction row dots -->
+  <rect x="52" y="136" width="22" height="5" rx="2.5" fill="#e4ecf5"/>
+  <rect x="84" y="136" width="22" height="5" rx="2.5" fill="#e4ecf5"/>
+  <rect x="116" y="136" width="22" height="5" rx="2.5" fill="#e4ecf5"/>
+
+  <!-- Pencil badge (top-right of card) -->
+  <circle cx="145" cy="52" r="18" fill="#2c79e8" opacity="0.1"/>
+  <circle cx="145" cy="52" r="13" fill="#2c79e8" opacity="0.15"/>
+  <!-- Pencil shape -->
+  <g transform="translate(145,52) rotate(-40)">
+    <rect x="-3" y="-8" width="6" height="13" rx="1.5" fill="#2c79e8"/>
+    <polygon points="0,7 -3,5 3,5" fill="#2c79e8" opacity="0.7"/>
+    <rect x="-3" y="-10" width="6" height="3" rx="1" fill="#5b9df5"/>
+  </g>
+</svg>

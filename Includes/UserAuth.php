@@ -23,7 +23,7 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
     $Token1 = $_COOKIE['user_token'];
     $Token2 = $_COOKIE['user_token2'];
 
-    $IP = $_SERVER['REMOTE_ADDR'];
+    $IP = NormalizeIP($_SERVER['REMOTE_ADDR']);
     $UserAgent = $_SERVER['HTTP_USER_AGENT'];
 
     // Validate tokens, IP, and user agent

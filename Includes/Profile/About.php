@@ -12,12 +12,22 @@ $Country = $stmt->fetch(PDO::FETCH_ASSOC);
 
 echo '
     <div class="AboutSection">
-        <h2>About '. $ProfileUser['Fname'] . ' ' . $ProfileUser['Lname'] . '</h2>
-        <p><strong>Gender:</strong> '.$Gender.'</p>
-        <p><strong>Birthday:</strong> '.$ProfileUser['BirthDay'].'</p>
-        <p><strong>Country:</strong> '.htmlspecialchars($Country['name'] ?? 'Not specified').'</p>
+        <h2>About ' . htmlspecialchars($ProfileUser['Fname'] . ' ' . $ProfileUser['Lname']) . '</h2>
+        <div class="AboutGrid">
+            <div class="AboutItem">
+                <span class="AboutLabel">Gender</span>
+                <span class="AboutValue">' . $Gender . '</span>
+            </div>
+            <div class="AboutItem">
+                <span class="AboutLabel">Birthday</span>
+                <span class="AboutValue">' . htmlspecialchars($ProfileUser['BirthDay']) . '</span>
+            </div>
+            <div class="AboutItem">
+                <span class="AboutLabel">Country</span>
+                <span class="AboutValue">' . htmlspecialchars($Country['name'] ?? 'Not specified') . '</span>
+            </div>
+        </div>
     </div>
-
 ';
 
 

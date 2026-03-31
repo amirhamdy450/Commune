@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Back person -->
+  <circle cx="118" cy="72" r="22" fill="#e4ecf5"/>
+  <circle cx="118" cy="64" r="10" fill="#c8d8eb"/>
+  <path d="M96 95 Q118 82 140 95" stroke="#c8d8eb" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <!-- Front person -->
+  <circle cx="82" cy="78" r="26" fill="#fff" stroke="#d8e3ef" stroke-width="1.5"/>
+  <circle cx="82" cy="69" r="12" fill="#dae6f3"/>
+  <path d="M56 103 Q82 88 108 103" stroke="#dae6f3" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- Plus badge -->
+  <circle cx="148" cy="148" r="22" fill="#2c79e8" opacity="0.12"/>
+  <circle cx="148" cy="148" r="15" fill="#2c79e8" opacity="0.18"/>
+  <line x1="148" y1="140" x2="148" y2="156" stroke="#2c79e8" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="140" y1="148" x2="156" y2="148" stroke="#2c79e8" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

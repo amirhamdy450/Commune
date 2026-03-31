@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Person silhouette -->
+  <circle cx="100" cy="74" r="28" fill="#e4ecf5"/>
+  <circle cx="100" cy="64" r="13" fill="#c8d8eb"/>
+  <path d="M70 102 Q100 86 130 102" stroke="#c8d8eb" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- Arrow pointing outward (following = going toward someone) -->
+  <circle cx="148" cy="52" r="20" fill="#2c79e8" opacity="0.1"/>
+  <circle cx="148" cy="52" r="14" fill="#2c79e8" opacity="0.16"/>
+  <polyline points="141,52 148,45 155,52" stroke="#2c79e8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <line x1="148" y1="45" x2="148" y2="59" stroke="#2c79e8" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Sparkle dots -->
+  <circle cx="56" cy="145" r="3.5" fill="#2c79e8" opacity="0.15"/>
+  <circle cx="68" cy="158" r="2" fill="#2c79e8" opacity="0.12"/>
+  <circle cx="145" cy="140" r="2.5" fill="#2c79e8" opacity="0.12"/>
+</svg>
