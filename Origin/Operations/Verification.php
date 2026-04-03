@@ -79,9 +79,9 @@ if ($ReqType === 2) {
 }
 
 // [ReqType 3] ADMIN: AUTO-ACCEPT — approves a request by request ID
-// Protected: requires Privilege >= 1 (admin)
+// Protected: requires Privilege >= PRIV_ADMIN (5)
 if ($ReqType === 3) {
-    if ((int)$User['Privilege'] < 1) {
+    if ((int)$User['Privilege'] < PRIV_ADMIN) {
         echo json_encode(['success' => false, 'message' => 'Unauthorized.']);
         die();
     }
@@ -122,7 +122,7 @@ if ($ReqType === 3) {
 
 // [ReqType 4] ADMIN: REJECT a request
 if ($ReqType === 4) {
-    if ((int)$User['Privilege'] < 1) {
+    if ((int)$User['Privilege'] < PRIV_ADMIN) {
         echo json_encode(['success' => false, 'message' => 'Unauthorized.']);
         die();
     }

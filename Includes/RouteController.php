@@ -103,6 +103,11 @@ if(isset($_GET['target'])){
         die();
     }
 
+    if($target == "admin"){
+        include $PATH.'Admin.php';
+        die();
+    }
+
     if($target == "get-verified"){
         include $PATH.'Includes/Access/GetVerified.php';
         die();

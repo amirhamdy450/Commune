@@ -335,48 +335,94 @@ body{
 
 
 .TabContent.About {
-    max-width: 650px;
-    font-size: 18px;
-    /* font-weight: 400; */
-    border: 2px solid #cdcdcd;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    align-items: stretch;
 }
 
 .AboutSection {
     background: #ffffff;
-    border-radius: 14px;
-    padding: 30px 36px;
+    border-radius: 16px;
+    padding: 28px 32px;
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 24px;
 }
 
-.AboutSection h2 {
-    font-size: 18px;
+.AboutHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.AboutHeaderIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #e8f0fe;
+    border-radius: 10px;
+    color: #1877f2;
+    flex-shrink: 0;
+}
+
+.AboutHeader h2 {
+    font-size: 17px;
     font-weight: 700;
     color: #0f1419;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #eff3f4;
+    margin: 0;
 }
 
 .AboutGrid {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
 }
 
 .AboutItem {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f7f9fc;
+    transition: background 0.15s ease;
+}
+
+.AboutItem:hover {
+    background: #eef1f8;
+}
+
+.AboutIconWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #ffffff;
+    border-radius: 10px;
+    color: #1877f2;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.AboutItemText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .AboutLabel {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
-    color: #657786;
+    color: #8a9ab0;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    min-width: 90px;
+    letter-spacing: 0.6px;
 }
 
 .AboutValue {
@@ -385,14 +431,60 @@ body{
     font-weight: 500;
 }
 
+.TabContent.Bio {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    align-items: stretch;
+}
+
 .BioSection {
     background: #ffffff;
-    border-radius: 14px;
-    padding: 30px 36px;
-    font-size: 16px;
-    font-weight: 400;
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
+
+.BioHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f2f5;
+    margin-bottom: 20px;
+}
+
+.BioHeaderIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #e8f0fe;
+    border-radius: 10px;
+    color: #1877f2;
+    flex-shrink: 0;
+}
+
+.BioHeader h2 {
+    font-size: 17px;
+    font-weight: 700;
     color: #0f1419;
-    line-height: 1.7;
+    margin: 0;
+}
+
+.BioText {
+    font-size: 15px;
+    font-weight: 400;
+    color: #3a3a3a;
+    line-height: 1.8;
+    background: #f7f9fc;
+    border-radius: 12px;
+    padding: 16px 18px;
 }
 
 .UserCard {
@@ -621,6 +713,7 @@ body{
     background-color: rgba(255, 255, 255, 0.9);
     color: #333;
     font-weight: 600;
+    padding: 10px 20px;
 }
 .ImagePreviewOverlay .BrandBtn:hover {
     background-color: #fff;

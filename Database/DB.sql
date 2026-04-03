@@ -273,7 +273,29 @@ CREATE TABLE `users` (
   `Following` int NOT NULL DEFAULT '0',
   `Privilege` int NOT NULL DEFAULT '0',
   `IsVerified` tinyint NOT NULL DEFAULT '0',
-  `IsBlueTick` tinyint NOT NULL DEFAULT '0'
+  `IsBlueTick` tinyint NOT NULL DEFAULT '0',
+  `IsBanned` tinyint NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Table structure for table `user_bans`
+-- Type: 0=Warning, 1=Temporary Ban, 2=Permanent Ban
+--
+
+CREATE TABLE `user_bans` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `UID` int NOT NULL,
+  `Type` tinyint NOT NULL DEFAULT '1' COMMENT '0=Warning, 1=TempBan, 2=PermanentBan',
+  `Reason` varchar(500) COLLATE utf8mb4_general_ci NOT NULL,
+  `IssuedBy` int NOT NULL,
+  `StartDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `EndDate` datetime DEFAULT NULL COMMENT 'NULL = permanent, only applies to TempBan',
+  `IsActive` tinyint NOT NULL DEFAULT '1',
+  `RefPosts` json DEFAULT NULL COMMENT 'Array of post IDs referenced in this action',
+  `RefComments` json DEFAULT NULL COMMENT 'Array of comment IDs referenced in this action',
+  PRIMARY KEY (`id`),
+  KEY `UID` (`UID`),
+  KEY `IsActive` (`IsActive`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -47,7 +47,7 @@
                         <a href="index.php?redirect=self" class="DropdownItem">Profile</a>
                         <a href="index.php?target=settings" class="DropdownItem">Settings</a>
                         <a href="index.php?redirect=saved" class="DropdownItem">Saved Posts</a>
-                        <a href="index.php?redirect=logout" class="DropdownItem">Logout</a>
+<a href="index.php?redirect=logout" class="DropdownItem">Logout</a>
                     </div>
                 </div>
 
