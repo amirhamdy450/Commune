@@ -11,6 +11,21 @@
 
         <input type="hidden" id="CPostEditID" name="PostID" value="">
         <input type="hidden" id="CPostFilesToDelete" name="files_to_delete" value="[]">
+        <input type="hidden" id="CPostAsPageID" name="PostAsPageID" value="">
+
+        <div class="PostAsRow">
+            <div class="PostAsSelector" id="PostAsSelector">
+                <img id="PostAsAvatar" src="<?php echo isset($PostProfilePic) ? $PostProfilePic : 'Imgs/Icons/unknown.png'; ?>" alt="" class="PostAsImg">
+                <span id="PostAsLabel">Posting as myself</span>
+                <span class="PostAsArrow"></span>
+            </div>
+            <div class="PostAsDropdown hidden" id="PostAsDropdown">
+                <div class="PostAsOption PostAsOptionSelf Active" data-pageid="" data-label="Posting as myself">
+                    <img src="<?php echo isset($PostProfilePic) ? $PostProfilePic : 'Imgs/Icons/unknown.png'; ?>" class="PostAsImg" alt="">
+                    <span>Myself</span>
+                </div>
+            </div>
+        </div>
 
         <div class="PostArea">
             <div contenteditable="true" id="CPostContent" class="PostContentInput" placeholder="What's on your mind?"></div>

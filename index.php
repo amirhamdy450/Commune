@@ -28,6 +28,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
     <meta name="csrf-token" content="<?php echo $CsrfToken; ?>">
     <link rel="stylesheet" href="Styles/Global.css">
     <link rel="stylesheet" href="Styles/Feed.css">
+    <link rel="stylesheet" href="Styles/PageProfile.css">
     <link rel="stylesheet" href="Styles/PostView.css">
     <title>Community</title>
 
@@ -49,21 +50,26 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
         <div class="FeedContainer">
             <?php
 
-            $sql = "SELECT 
+            $sql = "SELECT
                 posts.id AS PID,
-                posts.*, 
+                posts.*,
                 users.*,
                 CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
                 CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
-                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved
-                FROM posts 
+                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved,
+                pg.Name AS PageName,
+                pg.Handle AS PageHandle,
+                pg.Logo AS PageLogo,
+                pg.IsVerified AS PageIsVerified
+                FROM posts
                 INNER JOIN users ON posts.UID = users.id
+                LEFT JOIN pages pg ON posts.OrgID = pg.id
                 LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
                 LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
                 LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
                 LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
                 WHERE posts.Status = 1 AND b.id IS NULL
-                ORDER BY posts.Date DESC 
+                ORDER BY posts.Date DESC
                 LIMIT 5";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$UID, $UID, $UID, $UID]);
@@ -103,28 +109,48 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                 echo $decrypted; */
 
                 $PostTimestamp = strtotime($FeedPost['Date']);
-                echo '<div class="FeedPost" PID="' . $encryptedFeedPostID . '" UID="' . $encryptedUserID . '" Self="' . $IsSelfPost . '" Saved="' . $IsSavedPost . '">
+                echo '<div class="FeedPost' . ($FeedPost['PageName'] ? ' PageFeedPost' : '') . '" PID="' . $encryptedFeedPostID . '" UID="' . $encryptedUserID . '" Self="' . $IsSelfPost . '" Saved="' . $IsSavedPost . '">
                     <div class="FeedPostHeader">
-                        <div class="FeedPostAuthorContainer">
-                            <a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID). '">
-                                <img src="' . $PostProfilePic . '" alt="Profile Picture">
-                                <div class="FeedPostAuthorInfo">
-                                    <div class="FeedPostNameRow">
-                                        <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
-                                        ' . ($FeedPost['IsBlueTick'] ? '<span class="BlueTick" title="Verified"></span>' : '') . '
-                                        <span class="FeedPostTime" data-date="' . $PostTimestamp . '"></span>
-                                    </div>
-                                    <span class="FeedPostUsername">@' . htmlspecialchars($FeedPost['Username']) . '</span>
-                                </div>
-                            </a>';
+                        <div class="FeedPostAuthorContainer">';
 
-                            if(!$IsSelfPost){
-                                echo '<button class="BrandBtn FollowBtn ' . ($FeedPost['following'] ? 'Followed' : '') . '" uid="' . $encryptedUserID . '"> ' . ($FeedPost['following'] ? 'Following' : 'Follow') . '</button>';
+                            if ($FeedPost['PageName']) {
+                                $PageLogoSrc = $FeedPost['PageLogo'] ? 'MediaFolders/page_logos/' . htmlspecialchars($FeedPost['PageLogo']) : null;
+                                echo '<a class="FeedPageBadge" href="index.php?target=page&handle=' . urlencode($FeedPost['PageHandle']) . '">';
+                                if ($PageLogoSrc) {
+                                    echo '<img class="FeedPageLogo" src="' . $PageLogoSrc . '" alt="">';
+                                } else {
+                                    echo '<div class="FeedPageLogoPlaceholder">' . mb_strtoupper(mb_substr($FeedPost['PageName'], 0, 1)) . '</div>';
+                                }
+                                echo '<div class="FeedPostAuthorInfo">
+                                        <div class="FeedPostNameRow">
+                                            <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['PageName']) . '</p>
+                                            ' . ($FeedPost['PageIsVerified'] ? '<span class="BlueTick" title="Verified"></span>' : '') . '
+                                            <span class="PageTypeBadge">Page</span>
+                                            <span class="FeedPostTime" data-date="' . $PostTimestamp . '"></span>
+                                        </div>
+                                        <span class="FeedPostUsername">@' . htmlspecialchars($FeedPost['PageHandle']) . '</span>
+                                    </div>
+                                </a>';
+                            } else {
+                                echo '<a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID) . '">
+                                    <img src="' . $PostProfilePic . '" alt="Profile Picture">
+                                    <div class="FeedPostAuthorInfo">
+                                        <div class="FeedPostNameRow">
+                                            <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>
+                                            ' . ($FeedPost['IsBlueTick'] ? '<span class="BlueTick" title="Verified"></span>' : '') . '
+                                            <span class="FeedPostTime" data-date="' . $PostTimestamp . '"></span>
+                                        </div>
+                                        <span class="FeedPostUsername">@' . htmlspecialchars($FeedPost['Username']) . '</span>
+                                    </div>
+                                </a>';
+                                if (!$IsSelfPost) {
+                                    echo '<button class="BrandBtn FollowBtn ' . ($FeedPost['following'] ? 'Followed' : '') . '" uid="' . $encryptedUserID . '"> ' . ($FeedPost['following'] ? 'Following' : 'Follow') . '</button>';
+                                }
                             }
                     echo '</div>
 
                         <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg"></div>
-                        
+
                     </div>
 
                     <div class="FeedPostContent">
@@ -132,25 +158,17 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
                 $MediaFolder = $FeedPost['MediaFolder'];
                 if (is_dir($MediaFolder)) {
-                    $Media = scandir($MediaFolder); //scan the entire folder
-                    $MediaType = (int)$FeedPost['Type'];  //scan the type
+                    $Media = scandir($MediaFolder);
+                    $MediaType = (int)$FeedPost['Type'];
                     if ($MediaType === 2) {
                         foreach ($Media as $image) {
-                            if (in_array(strtolower($image), ['.', '..'])) { //this to ignore dots that are treated as files in scandir , (.) represents current directory and (..) represents parent directory
-
-                                continue;  //skip this iteration
-                            }
-
-
+                            if (in_array(strtolower($image), ['.', '..'])) continue;
                             $ImagePath = $MediaFolder . '/' . $image;
                             echo '<img src="' . $ImagePath . '" alt="">';
                         }
                     } else if ($MediaType === 3) {
                         foreach ($Media as $document) {
-                            if (in_array(strtolower($document), ['.', '..'])) { //this to ignore dots that are treated as files in scandir , (.) represents current directory and (..) represents parent directory
-
-                                continue;  //skip this iteration
-                            }
+                            if (in_array(strtolower($document), ['.', '..'])) continue;
                             $DocumentPath = $MediaFolder . '/' . $document;
                             echo '<a class="FeedPostLink" href="' . APP_URL . '/' . $DocumentPath . '">
                             <div class="UploadedFile">
@@ -162,16 +180,9 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                     }
                 }
 
+                $LikeIcon = $FeedPost['liked'] ? 'Imgs/Icons/liked.svg' : 'Imgs/Icons/like.svg';
 
-                if ($FeedPost['liked']) {
-
-                    $LikeIcon = 'Imgs/Icons/liked.svg';
-                } else {
-
-                    $LikeIcon = 'Imgs/Icons/like.svg';
-                }
-
-                echo ' </div>
+echo ' </div>
                     <div class="FeedPostInteractionCounters">
                         <p><span class="PostLikesCNT">' . $FeedPost['LikeCounter'] . '</span>  likes</p>
 
@@ -222,12 +233,14 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
     <?php include 'Includes/Modals/CreatePost.php'; ?>
     <?php include 'Includes/Modals/CommentSection.php'; ?>
     <?php include 'Includes/Modals/Confirmation.php'; ?>
+    <?php include 'Includes/Modals/CreateOrg.php'; ?>
 
 
 
 
     <script src="Scripts/modal.js"></script>
     <script type="module" src="Scripts/Feed.js"></script>
+    <script type="module" src="Scripts/Org.js"></script>
 </body>
 
 </html>

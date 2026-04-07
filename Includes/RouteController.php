@@ -108,6 +108,17 @@ if(isset($_GET['target'])){
         die();
     }
 
+    if($target == "page"){
+        if (isset($_GET['handle'])) {
+            $PageHandle = $_GET['handle'];
+            include $PATH.'PageProfile.php';
+            die();
+        } else {
+            header("Location: index.php");
+            exit();
+        }
+    }
+
     if($target == "get-verified"){
         include $PATH.'Includes/Access/GetVerified.php';
         die();

@@ -116,23 +116,39 @@ export function createPostHTML(post) {
 
 
   /* const UrlSafeUID */
+  const authorHeader = post.PageName
+    ? `<a class="FeedPageBadge" href="index.php?target=page&handle=${encodeURIComponent(post.PageHandle)}">
+        ${post.PageLogo
+          ? `<img class="FeedPageLogo" src="${post.PageLogo}" alt="">`
+          : `<div class="FeedPageLogoPlaceholder">${post.PageName.charAt(0).toUpperCase()}</div>`}
+        <div class="FeedPostAuthorInfo">
+          <div class="FeedPostNameRow">
+            <p class="FeedPostAuthorName">${post.PageName}</p>
+            ${post.PageIsVerified ? '<span class="BlueTick" title="Verified"></span>' : ''}
+            <span class="PageTypeBadge">Page</span>
+            ${post.Date ? `<span class="FeedPostTime" data-date="${post.Date}"></span>` : ''}
+          </div>
+          <span class="FeedPostUsername">@${post.PageHandle}</span>
+        </div>
+      </a>`
+    : `<a class="FeedPostAuthor" href="index.php?redirected_from=profile&target=profile&uid=${encodeURIComponent(post.UID)}">
+        <img src="${post.ProfilePic}" alt="">
+        <div class="FeedPostAuthorInfo">
+          <div class="FeedPostNameRow">
+            <p class="FeedPostAuthorName">${post.name}</p>
+            ${post.IsBlueTick ? '<span class="BlueTick" title="Verified"></span>' : ''}
+            ${post.Date ? `<span class="FeedPostTime">· ${TimeAgo(post.Date)}</span>` : ''}
+          </div>
+          ${post.Username ? `<span class="FeedPostUsername">@${post.Username}</span>` : ''}
+        </div>
+      </a>
+      ${followbtn}`;
+
   return `
-    <div class="FeedPost" PID="${post.PID}" UID="${post.UID}"  Self="${post.Self}"> 
+    <div class="FeedPost${post.PageName ? ' PageFeedPost' : ''}" PID="${post.PID}" UID="${post.UID}"  Self="${post.Self}">
       <div class="FeedPostHeader">
         <div class="FeedPostAuthorContainer">
-          <a class="FeedPostAuthor" href="index.php?redirected_from=profile&target=profile&uid=${encodeURIComponent(post.UID)}">
-            <img src="${post.ProfilePic}" alt="">
-            <div class="FeedPostAuthorInfo">
-              <div class="FeedPostNameRow">
-                <p class="FeedPostAuthorName">${post.name}</p>
-                ${post.IsBlueTick ? '<span class="BlueTick" title="Verified"></span>' : ''}
-                ${post.Date ? `<span class="FeedPostTime">· ${TimeAgo(post.Date)}</span>` : ''}
-              </div>
-              ${post.Username ? `<span class="FeedPostUsername">@${post.Username}</span>` : ''}
-            </div>
-          </a>
-          
-          ${followbtn}
+          ${authorHeader}
         </div>
         <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg"></div>
     
@@ -1464,7 +1480,15 @@ function resetPostModal() {
     form.querySelector('.PostSubmitBtn').value = 'Post';
     document.getElementById('CPostEditID').value = '';
     document.getElementById('CPostFilesToDelete').value = '[]';
-    
+
+    // Reset PostAs switcher to self
+    const postAsPageID = document.getElementById('CPostAsPageID');
+    if (postAsPageID) postAsPageID.value = '';
+    const postAsDropdown = document.getElementById('PostAsDropdown');
+    if (postAsDropdown) postAsDropdown.classList.add('hidden');
+    const selfOption = document.querySelector('.PostAsOptionSelf');
+    if (selfOption && window.SelectPostAsOption) window.SelectPostAsOption(selfOption);
+
     // Clear File Previews
     modal.querySelector('.UploadedFiles').innerHTML = '';
     modal.querySelector('.UploadOverview').classList.add('hidden');
@@ -1500,6 +1524,10 @@ async function handlePostSubmit(e) {
         // 'PostID' and 'files_to_delete' are already in formData via HTML inputs
     } else {
         formData.append('ReqType', 1);
+        const postAsPageID = document.getElementById('CPostAsPageID');
+        if (postAsPageID && postAsPageID.value) {
+            formData.set('PostAsPageID', postAsPageID.value);
+        }
     }
 
     // 2. Append New Files (from global array)

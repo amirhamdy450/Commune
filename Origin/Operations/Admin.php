@@ -12,7 +12,7 @@ require $PATH . 'vendor/phpmailer/phpmailer/src/Exception.php';
 require $PATH . 'vendor/phpmailer/phpmailer/src/PHPMailer.php';
 require $PATH . 'vendor/phpmailer/phpmailer/src/SMTP.php';
 
-function SendSanctionEmail(string $ToEmail, string $ToName, int $Type, string $Reason, ?string $EndDate, ?string $RefPostsJson = null, ?string $RefCommentsJson = null): void {
+function SendSanctionEmail(string $ToEmail, string $ToName, int $Type, string $Reason, ?string $EndDate, ?string $RefPostsJson = null, ?string $RefCommentsJson = null, ?\PDO $pdo = null): void {
     $TypeLabel = match($Type) {
         0 => 'Account Warning',
         2 => 'Permanent Ban',
@@ -323,7 +323,8 @@ if ($ReqType === 3) {
                 $Reason,
                 $EndDateVal,
                 $RefPostsJson,
-                $RefCommentsJson
+                $RefCommentsJson,
+                $pdo
             );
         }
 
@@ -332,12 +333,26 @@ if ($ReqType === 3) {
         if ($AlsoDelete === 1) {
             if ($RefPostsJson) {
                 foreach (json_decode($RefPostsJson, true) as $PID) {
-                    $pdo->prepare("DELETE FROM posts WHERE id = ? AND UID = ?")->execute([(int)$PID, $TargetUID]);
+                    $PID = (int)$PID;
+                    // Delete dependents before the post
+                    $CommentStmt = $pdo->prepare("SELECT id FROM comments WHERE PostID = ?");
+                    $CommentStmt->execute([$PID]);
+                    $CommentIDs = $CommentStmt->fetchAll(PDO::FETCH_COLUMN);
+                    foreach ($CommentIDs as $CID) {
+                        $pdo->prepare("DELETE FROM comments_replies WHERE CommentID = ?")->execute([(int)$CID]);
+                        $pdo->prepare("DELETE FROM comments_likes WHERE CommentID = ?")->execute([(int)$CID]);
+                    }
+                    $pdo->prepare("DELETE FROM comments WHERE PostID = ?")->execute([$PID]);
+                    $pdo->prepare("DELETE FROM likes WHERE PostID = ?")->execute([$PID]);
+                    $pdo->prepare("DELETE FROM posts WHERE id = ? AND UID = ?")->execute([$PID, $TargetUID]);
                 }
             }
             if ($RefCommentsJson) {
                 foreach (json_decode($RefCommentsJson, true) as $CID) {
-                    $pdo->prepare("DELETE FROM comments WHERE id = ? AND UID = ?")->execute([(int)$CID, $TargetUID]);
+                    $CID = (int)$CID;
+                    $pdo->prepare("DELETE FROM comments_replies WHERE CommentID = ?")->execute([$CID]);
+                    $pdo->prepare("DELETE FROM comments_likes WHERE CommentID = ?")->execute([$CID]);
+                    $pdo->prepare("DELETE FROM comments WHERE id = ? AND UID = ?")->execute([$CID, $TargetUID]);
                 }
             }
         }

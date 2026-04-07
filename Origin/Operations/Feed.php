@@ -235,9 +235,21 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $type=1;
         }
     
-        $data=[$PostContent,$type,$RootMediaFolderPath,date("Y-m-d H:i:s"),1,$UID];
-        //print_r($data);
-                $sql = "INSERT INTO posts (Content,Type, Mediafolder, Date,Status,UID)  VALUES (?,?,?,?,?,?)";
+        // Validate optional PostAsPageID (posting as a page)
+        $OrgID = null;
+        if (!empty($_POST['PostAsPageID'])) {
+            $PostAsPageID = (int)Decrypt($_POST['PostAsPageID'], "Positioned");
+            if ($PostAsPageID > 0) {
+                $MemberCheck = $pdo->prepare("SELECT Role FROM page_members WHERE PageID = ? AND UID = ?");
+                $MemberCheck->execute([$PostAsPageID, $UID]);
+                if ($MemberCheck->fetchColumn() !== false) {
+                    $OrgID = $PostAsPageID;
+                }
+            }
+        }
+
+        $data=[$PostContent,$type,$RootMediaFolderPath,date("Y-m-d H:i:s"),1,$UID,$OrgID];
+        $sql = "INSERT INTO posts (Content,Type, Mediafolder, Date,Status,UID,OrgID)  VALUES (?,?,?,?,?,?,?)";
         $stmt = $pdo->prepare($sql);
         if(!$stmt->execute($data)){
             echo json_encode([
@@ -250,9 +262,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $lastInsertId = $pdo->lastInsertId();
 
         // Fetch the new post
-        $sql = 'SELECT posts.id AS PID, posts.*, users.*, FALSE AS liked
+        $sql = 'SELECT posts.id AS PID, posts.*, users.*, FALSE AS liked,
+                pg.Name AS PageName, pg.Handle AS PageHandle, pg.Logo AS PageLogo, pg.IsVerified AS PageIsVerified
                 FROM posts
                 INNER JOIN users ON posts.UID = users.id
+                LEFT JOIN pages pg ON posts.OrgID = pg.id
                 WHERE posts.id = ?';
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$lastInsertId]);
@@ -289,8 +303,14 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             'MediaType' => (int)$newPost['Type'],
             'CurrentUserPrivilege' => (int)$User['Privilege'],
             'liked' => false,
+            'Self' => 1,
+            'UID' => Encrypt($newPost['UID'], "Positioned", ["Timestamp" => $timestamp]),
             'ProfilePic' => $PostProfilePic,
-            'IsBlueTick' => (int)$newPost['IsBlueTick']
+            'IsBlueTick' => (int)$newPost['IsBlueTick'],
+            'PageName' => $newPost['PageName'] ?? null,
+            'PageHandle' => $newPost['PageHandle'] ?? null,
+            'PageLogo' => $newPost['PageLogo'] ? 'MediaFolders/page_logos/' . $newPost['PageLogo'] : null,
+            'PageIsVerified' => (int)($newPost['PageIsVerified'] ?? 0)
         ];
 
         // Fire mention notifications (Type 7) for each @mentioned user in the post body
@@ -556,21 +576,26 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
 
 
-        $sql = "SELECT 
+        $sql = "SELECT
                 posts.id AS PID,
-                posts.*, 
+                posts.*,
                 users.*,
                 CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
                 CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
-                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved
-                FROM posts 
+                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved,
+                pg.Name AS PageName,
+                pg.Handle AS PageHandle,
+                pg.Logo AS PageLogo,
+                pg.IsVerified AS PageIsVerified
+                FROM posts
                 INNER JOIN users ON posts.UID = users.id
+                LEFT JOIN pages pg ON posts.OrgID = pg.id
                 LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
                 LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
                 LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
                 LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
                 WHERE posts.id < ? AND posts.Status = 1 AND b.id IS NULL
-                ORDER BY posts.Date DESC 
+                ORDER BY posts.Date DESC
                 LIMIT 5";
         $stmt = $pdo->prepare($sql);
         
@@ -636,7 +661,11 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'Self' => (int)($FeedPost['UID'] == $UID), //identify if the post belongs to the user
                 'saved'=>(int)$FeedPost['saved'],
                 'ProfilePic' => $PostProfilePic,
-                'IsBlueTick' => (int)$FeedPost['IsBlueTick']
+                'IsBlueTick' => (int)$FeedPost['IsBlueTick'],
+                'PageName' => $FeedPost['PageName'] ?? null,
+                'PageHandle' => $FeedPost['PageHandle'] ?? null,
+                'PageLogo' => $FeedPost['PageLogo'] ? 'MediaFolders/page_logos/' . $FeedPost['PageLogo'] : null,
+                'PageIsVerified' => (int)($FeedPost['PageIsVerified'] ?? 0)
             ];
 
 

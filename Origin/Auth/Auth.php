@@ -238,7 +238,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
 
         //check if email exists
-        $stmt = $pdo->prepare("SELECT id, Password, IsVerified FROM users WHERE Email = ?");
+        $stmt = $pdo->prepare("SELECT id, Password, IsVerified, IsBanned FROM users WHERE Email = ?");
         $stmt->execute([$Email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -249,6 +249,34 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'message' => '<p><b>Email does not exist : </b> This email is not registered with us.</p>'
             ]);
             die();
+        }
+
+        // Block banned accounts
+        if ((int)$user['IsBanned'] === 1) {
+            $BanStmt = $pdo->prepare("SELECT Type, Reason, EndDate FROM user_bans WHERE UID = ? AND IsActive = 1 ORDER BY id DESC LIMIT 1");
+            $BanStmt->execute([$user['id']]);
+            $Ban = $BanStmt->fetch(PDO::FETCH_ASSOC);
+
+            // Auto-lift expired temporary ban
+            if ($Ban && (int)$Ban['Type'] === 1 && $Ban['EndDate'] !== null && strtotime($Ban['EndDate']) < time()) {
+                $pdo->prepare("UPDATE user_bans SET IsActive = 0 WHERE UID = ? AND IsActive = 1")->execute([$user['id']]);
+                $pdo->prepare("UPDATE users SET IsBanned = 0 WHERE id = ?")->execute([$user['id']]);
+                $Ban = null;
+            }
+
+            if ($Ban) {
+                $TypeLabel = match((int)$Ban['Type']) {
+                    0 => 'warned',
+                    2 => 'permanently banned',
+                    default => 'temporarily suspended',
+                };
+                echo json_encode([
+                    'status' => false,
+                    'code' => 55,
+                    'message' => '<p><b>Account suspended:</b> Your account has been ' . $TypeLabel . '. Please contact support if you believe this is a mistake.</p>'
+                ]);
+                die();
+            }
         }
 
         // Block unverified accounts

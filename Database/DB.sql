@@ -205,7 +205,8 @@ CREATE TABLE `posts` (
   `CommentCounter` int NOT NULL DEFAULT '0',
   `Date` datetime NOT NULL,
   `Status` int NOT NULL,
-  `UID` int NOT NULL
+  `UID` int NOT NULL,
+  `OrgID` int DEFAULT NULL COMMENT 'NULL = personal post, set = posted as/by a page'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -276,6 +277,66 @@ CREATE TABLE `users` (
   `IsBlueTick` tinyint NOT NULL DEFAULT '0',
   `IsBanned` tinyint NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Table structure for table `pages`
+-- Represents any page entity: business, brand, fan page, local shop, community, etc.
+--
+
+CREATE TABLE `pages` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `OwnerUID` int NOT NULL COMMENT 'User who created and owns the page',
+  `Name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `Handle` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Unique @handle e.g. acme',
+  `Bio` text COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `Category` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Business, Brand, Community, Local Business, etc.',
+  `Website` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `Logo` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `CoverPhoto` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `IsVerified` tinyint NOT NULL DEFAULT '0',
+  `Followers` int NOT NULL DEFAULT '0',
+  `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_handle` (`Handle`),
+  KEY `idx_page_owner` (`OwnerUID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `page_members`
+--
+
+CREATE TABLE `page_members` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `PageID` int NOT NULL,
+  `UID` int NOT NULL,
+  `Role` enum('owner','admin','editor','analyst') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'editor',
+  `JoinedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_page_member` (`PageID`,`UID`),
+  KEY `idx_pagemem_page` (`PageID`),
+  KEY `idx_pagemem_user` (`UID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `page_followers`
+--
+
+CREATE TABLE `page_followers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `PageID` int NOT NULL,
+  `UID` int NOT NULL,
+  `FollowedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_page_follow` (`PageID`,`UID`),
+  KEY `idx_pagefol_page` (`PageID`),
+  KEY `idx_pagefol_user` (`UID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `user_bans`
@@ -386,7 +447,8 @@ ALTER TABLE `password_reset_tokens`
 --
 ALTER TABLE `posts`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `commune_posts_UID` (`UID`);
+  ADD KEY `commune_posts_UID` (`UID`),
+  ADD KEY `idx_posts_org` (`OrgID`);
 ALTER TABLE `posts` ADD FULLTEXT KEY `ft_content` (`Content`);
 
 --

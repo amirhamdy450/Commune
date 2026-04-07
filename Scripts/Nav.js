@@ -44,9 +44,47 @@ document.addEventListener('DOMContentLoaded', () => {
 	const NavMenuDropBtn = document.getElementById('NavMenuDropBtn');		
 	const NavMenuDrop = document.getElementById('NavMenuDrop');
 	
+    let MyPagesLoaded = false;
+    const NavMyPagesList = document.getElementById('NavMyPagesList');
+
 	NavMenuDropBtn.addEventListener("click", () => {
 		NavMenuDrop.classList.toggle("hidden");
+        if (!NavMenuDrop.classList.contains('hidden') && !MyPagesLoaded && NavMyPagesList) {
+            LoadMyPages();
+        }
 	});
+
+    function LoadMyPages() {
+        MyPagesLoaded = true;
+        const Fd = new FormData();
+        Fd.append('ReqType', 3);
+        fetch('Origin/Operations/Org.php', { method: 'POST', headers: { 'X-CSRF-Token': NavCsrfToken }, body: Fd })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || data.pages.length === 0) {
+                    NavMyPagesList.innerHTML = '<div class="NavPagesEmpty">No pages yet</div>';
+                    return;
+                }
+                NavMyPagesList.innerHTML = data.pages.map(p => {
+                    const Logo = p.Logo
+                        ? `<img src="${p.Logo}" class="NavPageLogo" alt="">`
+                        : `<div class="NavPageLogoPlaceholder">${p.Name.charAt(0).toUpperCase()}</div>`;
+                    return `<a class="DropdownItem NavPageItem" href="index.php?target=page&handle=${encodeURIComponent(p.Handle)}">
+                        ${Logo}
+                        <span>${htmlspecialchars(p.Name)}</span>
+                    </a>`;
+                }).join('');
+            })
+            .catch(() => { NavMyPagesList.innerHTML = ''; });
+    }
+
+    const NavCreatePageBtn = document.getElementById('NavCreatePageBtn');
+    if (NavCreatePageBtn) {
+        NavCreatePageBtn.addEventListener('click', () => {
+            NavMenuDrop.classList.add('hidden');
+            if (typeof OpenCreatePageModal === 'function') OpenCreatePageModal();
+        });
+    }
     
     // --- ADD ALL THE CODE BELOW ---
 
