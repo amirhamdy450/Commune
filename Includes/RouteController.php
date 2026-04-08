@@ -120,6 +120,7 @@ if(isset($_GET['target'])){
     }
 
     if($target == "get-verified"){
+        if (isset($_GET['page'])) $VerifPageHandle = $_GET['page'];
         include $PATH.'Includes/Access/GetVerified.php';
         die();
     }

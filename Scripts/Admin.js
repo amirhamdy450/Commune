@@ -126,23 +126,36 @@ async function LoadVerification() {
         return;
     }
 
-    list.innerHTML = data.requests.map(r => `
+    list.innerHTML = data.requests.map(r => {
+        const isPage = !!r.PageID;
+        const avatar = isPage
+            ? (r.PageLogo
+                ? `<img class="VerifAvatar" src="${r.PageLogo}" alt="">`
+                : `<div class="VerifAvatar VerifAvatarPlaceholder">${r.PageName.charAt(0).toUpperCase()}</div>`)
+            : `<img class="VerifAvatar" src="${r.ProfilePic}" alt="">`;
+        const nameRow = isPage
+            ? `<span class="VerifName">${r.PageName}</span>
+               <span class="VerifUsername">@${r.PageHandle}</span>
+               <span class="VerifTypePill Page">Page</span>
+               <span class="VerifTime">${TimeAgoShort(r.SubmittedAt)}</span>
+               <span class="VerifSubName">Requested by ${r.Name}</span>`
+            : `<span class="VerifName">${r.Name}</span>
+               <span class="VerifUsername">@${r.Username}</span>
+               <span class="VerifTypePill User">User</span>
+               <span class="VerifTime">${TimeAgoShort(r.SubmittedAt)}</span>`;
+        return `
         <div class="VerifCard" id="VerifCard-${r.id}">
-            <img class="VerifAvatar" src="${r.ProfilePic}" alt="">
+            ${avatar}
             <div class="VerifInfo">
-                <div class="VerifNameRow">
-                    <span class="VerifName">${r.Name}</span>
-                    <span class="VerifUsername">@${r.Username}</span>
-                    <span class="VerifTime">${TimeAgoShort(r.SubmittedAt)}</span>
-                </div>
+                <div class="VerifNameRow">${nameRow}</div>
                 <p class="VerifReason">${r.Reason}</p>
             </div>
             <div class="VerifActions">
                 <button class="AdminBtn Success" onclick="ApproveVerif(${r.id})">Approve</button>
                 <button class="AdminBtn Danger"  onclick="RejectVerif(${r.id})">Reject</button>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 window.ApproveVerif = async function(id) {

@@ -273,3 +273,23 @@
     font-size: 14px;
     font-weight: 600;
 }
+@media (max-width: 750px) {
+    .SettingsContainer {
+        margin: 70px 10px 80px;
+        flex-direction: column;
+        border-radius: 12px;
+    }
+    .SettingsSidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #eff3f4;
+        padding: 12px 0;
+    }
+    .SettingsNavItem {
+        font-size: 14px;
+        padding: 11px 16px;
+    }
+    .SettingsContent {
+        padding: 16px;
+    }
+}

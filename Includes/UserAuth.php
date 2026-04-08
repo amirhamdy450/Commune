@@ -52,8 +52,8 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
             $deleteStmt->execute([$EntryID]);
 
             // Reset cookies
-            setcookie("user_token", "", time() - 3600, "/", "localhost", false, true); // Expire the cookie
-            setcookie("user_token2", "", time() - 3600, "/", "localhost", false, true); // Expire the cookie
+            setcookie("user_token", "", time() - 3600, "/", "", false, true); // Expire the cookie
+            setcookie("user_token2", "", time() - 3600, "/", "", false, true);
 
             // Redirect to the login page
             include "Includes/Access/Login.php";
@@ -115,8 +115,8 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
 
             if ($ActiveBan) {
                 session_destroy();
-                setcookie("user_token", "", time() - 3600, "/", "localhost", false, true);
-                setcookie("user_token2", "", time() - 3600, "/", "localhost", false, true);
+                setcookie("user_token", "", time() - 3600, "/", "", false, true);
+                setcookie("user_token2", "", time() - 3600, "/", "", false, true);
 
                 $BanType   = (int)$ActiveBan['Type'];
                 $BanReason = htmlspecialchars($ActiveBan['Reason']);

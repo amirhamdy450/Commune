@@ -12,9 +12,8 @@ function generateToken() {
 
 function setTokenCookie($token,$token2) {
     $expiry =time() + (86400 * 30); // 30 days
-    setcookie("user_token", $token, $expiry, "/", "localhost", false, true); // Secure and HttpOnly
-    setcookie("user_token2", $token2, $expiry, "/", "localhost", false, true); // Secure and HttpOnly
-
+    setcookie("user_token",  $token,  $expiry, "/", "", false, true);
+    setcookie("user_token2", $token2, $expiry, "/", "", false, true);
 }
 
 function NormalizeIP($ip) {

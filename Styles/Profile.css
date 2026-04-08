@@ -133,8 +133,12 @@ body{
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 70px;
+}
+
+/* Hidden on desktop, shown on mobile via media query */
+.ProfileInfo.MobileName {
+    display: none;
 }
 .ProfileInfo {
     text-align: left;
@@ -808,3 +812,133 @@ body{
 
 
 
+
+@media (max-width: 750px) {
+    .ProfileContainer {
+        padding-top: 60px;
+        padding-bottom: 70px;
+    }
+
+    /* Cover: shorter on mobile */
+    .CoverPhotoContainer {
+        height: 180px;
+    }
+
+    /* Profile bottom header: single column */
+    .ProfileBottomHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0 16px 18px;
+        gap: 0;
+    }
+
+    /* Row 1: avatar (left) + action buttons (right) — name NOT here */
+    .Initial {
+        flex-direction: row;
+        align-items: flex-end;
+        width: 100%;
+        justify-content: space-between;
+        gap: 0;
+        margin-bottom: 12px;
+    }
+
+    /* Hide the name inside .Initial on mobile — shown below instead */
+    .Initial .ProfileInfo {
+        display: none;
+    }
+
+    .ProfilePictureContainer {
+        width: 86px;
+        height: 86px;
+        margin-top: -43px;
+        margin-right: 0;
+        border-width: 3px;
+        flex-shrink: 0;
+    }
+
+    /* Full-width name block below the avatar row — mobile only */
+    .ProfileInfoStats {
+        flex-direction: column;
+        gap: 0;
+        align-items: flex-start;
+        width: 100%;
+        margin-bottom: 14px;
+    }
+
+    /* Show a mobile-only name element — we inject it via CSS on the stats container */
+    .ProfileInfo.MobileName {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-bottom: 10px;
+    }
+
+    .ProfileInfo.MobileName .UserName {
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .ProfileInfo.MobileName .UserUsername {
+        font-size: 14px;
+        color: #657786;
+    }
+
+    .ProfileStats {
+        gap: 20px;
+    }
+
+    .Stat .StatNumber { font-size: 15px; }
+    .Stat .StatTitle  { font-size: 12px; }
+
+    .ProfileActions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .EditProfileBtn,
+    .ProfileHeader .FollowBtn.BrandBtn,
+    .ProfileHeader .BrandBtn.Followed {
+        flex: 1;
+        min-width: 0;
+        text-align: center;
+        padding: 9px 14px;
+        font-size: 14px;
+    }
+
+    /* Tabs: scrollable row, no wrapping */
+    .TabsNav {
+        padding: 10px 12px;
+        gap: 6px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .TabsNav::-webkit-scrollbar { display: none; }
+
+    .NavItem {
+        font-size: 14px;
+        padding: 7px 14px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Content area */
+    .ProfileContent {
+        margin-top: 10px;
+        gap: 14px;
+    }
+
+    .TabContent {
+        padding: 18px 14px;
+        border-radius: 12px;
+    }
+
+    .AboutSection,
+    .BioSection {
+        padding: 18px 16px;
+        border-radius: 12px;
+    }
+}

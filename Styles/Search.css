@@ -172,3 +172,8 @@
     border-top: 1px solid #f0f2f5;
     margin-top: 20px;
 }
+@media (max-width: 750px) {
+    .SearchContainer {
+        padding-bottom: 70px;
+    }
+}

@@ -116,6 +116,8 @@ export function createPostHTML(post) {
 
 
   /* const UrlSafeUID */
+  const PageIconSVG = `<svg class="FeedPageIcon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Page"><path d="M3 2v12M3 2h8.5l-2 3.5 2 3.5H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
   const authorHeader = post.PageName
     ? `<a class="FeedPageBadge" href="index.php?target=page&handle=${encodeURIComponent(post.PageHandle)}">
         ${post.PageLogo
@@ -125,7 +127,7 @@ export function createPostHTML(post) {
           <div class="FeedPostNameRow">
             <p class="FeedPostAuthorName">${post.PageName}</p>
             ${post.PageIsVerified ? '<span class="BlueTick" title="Verified"></span>' : ''}
-            <span class="PageTypeBadge">Page</span>
+            ${PageIconSVG}
             ${post.Date ? `<span class="FeedPostTime" data-date="${post.Date}"></span>` : ''}
           </div>
           <span class="FeedPostUsername">@${post.PageHandle}</span>
@@ -1845,12 +1847,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Create post button
-  const CreatePostBtn = document.getElementsByClassName('CreatePostBtn')[0];
+  // Create post button (wire all instances — desktop navbar + mobile tab bar)
   const createPostModal = document.getElementsByClassName('CPostContainer')[0];
-  CreatePostBtn.addEventListener('click', () => {
-      resetPostModal();
-      toggleModal(createPostModal, true)
+  [...document.getElementsByClassName('CreatePostBtn')].forEach(Btn => {
+      Btn.addEventListener('click', () => {
+          resetPostModal();
+          toggleModal(createPostModal, true);
+      });
   });
 
   // File upload handlers

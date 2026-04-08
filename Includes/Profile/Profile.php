@@ -125,6 +125,16 @@
                 </div>
 
                 <div class="ProfileInfoStats">
+                    <!-- Name duplicated here, hidden on desktop, shown on mobile -->
+                    <div class="ProfileInfo MobileName">
+                        <p class="UserName">
+                            <?php echo htmlspecialchars($User['Fname'].' '.$User['Lname']); ?>
+                            <?php if (!empty($User['IsBlueTick'])): ?>
+                                <span class="BlueTick Large" title="Verified"></span>
+                            <?php endif; ?>
+                        </p>
+                        <p class="UserUsername">@<?php echo htmlspecialchars($User['Username']); ?></p>
+                    </div>
 
                     <div class="ProfileStats">
                         <div class="Stat">

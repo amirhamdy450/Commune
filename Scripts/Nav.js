@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Debounce: Wait 300ms after user stops typing
             searchDebounceTimer = setTimeout(() => {
-                fetchSearchResults(query);
+                fetchSearchResults(query, suggestionsBox);
             }, 300);
         });
 
@@ -120,8 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show suggestions when focusing the input (if it has text)
         searchInput.addEventListener('focus', () => {
              if (searchInput.value.trim().length >= 2) {
-                fetchSearchResults(searchInput.value.trim());
+                fetchSearchResults(searchInput.value.trim(), suggestionsBox);
              }
+        });
+
+        // Navigate on Enter
+        searchInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const Q = searchInput.value.trim();
+                if (Q.length >= 2) window.location.href = 'index.php?target=search&query=' + encodeURIComponent(Q);
+            }
         });
     }
 
@@ -129,36 +137,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- 2. NOTIFICATION SYSTEM ---
-    const notifBtn = document.getElementById('NotifBtn');
-    const notifDrop = document.getElementById('NotifDrop');
-    const notifBadge = document.getElementById('NotifBadge');
-    const notifList = document.getElementById('NotifList');
-    const notifLoader = notifDrop ? notifDrop.querySelector('.NotifLoader') : null;
+    const notifBtn       = document.getElementById('NotifBtn');
+    const notifDrop      = document.getElementById('NotifDrop');
+    const notifBadge     = document.getElementById('NotifBadge');
+    const MobileNotifBadgeEl = document.getElementById('MobileNotifBadge');
+    const notifList      = document.getElementById('NotifList');
+    const notifLoader    = notifDrop ? notifDrop.querySelector('.NotifLoader') : null;
 
-    if (notifBtn && notifDrop) {
-        
-        // A. Fetch Count on Load
+    function OpenNotifDrop() {
+        notifDrop.classList.toggle('hidden');
+        document.getElementById('NavMenuDrop')?.classList.add('hidden');
+        if (!notifDrop.classList.contains('hidden')) {
+            if (notifBadge) notifBadge.classList.add('hidden');
+            if (MobileNotifBadgeEl) MobileNotifBadgeEl.classList.add('hidden');
+            fetchNotifications();
+        }
+    }
+
+    if (notifDrop) {
         fetchUnreadCount();
 
-        // B. Handle Click
-        notifBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notifDrop.classList.toggle('hidden');
-            document.getElementById('NavMenuDrop')?.classList.add('hidden'); // Close Profile menu
+        if (notifBtn) {
+            notifBtn.addEventListener('click', (e) => { e.stopPropagation(); OpenNotifDrop(); });
+        }
 
-            if (!notifDrop.classList.contains('hidden')) {
-                // Opened: Mark read and Fetch items
-                notifBadge.classList.add('hidden'); // Clear badge immediately
-                fetchNotifications();
-            }
-        });
-
-        // C. Close on Click Outside
         document.addEventListener('click', (e) => {
-            if (!notifBtn.contains(e.target) && !notifDrop.contains(e.target)) {
+            const MobileNotifBtn = document.getElementById('MobileNotifBtn');
+            const clickedInsideDrop = notifDrop.contains(e.target);
+            const clickedNotifBtn   = notifBtn?.contains(e.target);
+            const clickedMobileBtn  = MobileNotifBtn?.contains(e.target);
+            if (!clickedInsideDrop && !clickedNotifBtn && !clickedMobileBtn) {
                 notifDrop.classList.add('hidden');
             }
-            if (NavMenuDrop && !NavMenuDropBtn.contains(e.target)) {
+            if (NavMenuDrop && !NavMenuDropBtn.contains(e.target) && !NavMenuDrop.contains(e.target)) {
                 NavMenuDrop.classList.add('hidden');
             }
         });
@@ -167,18 +178,124 @@ document.addEventListener('DOMContentLoaded', () => {
     function fetchUnreadCount() {
         const formData = new FormData();
         formData.append('ReqType', 6);
-        
+
         fetch('Origin/Operations/User.php', { method: 'POST', headers: { 'X-CSRF-Token': NavCsrfToken }, body: formData })
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.count > 0) {
-                    notifBadge.textContent = data.count > 99 ? '99+' : data.count;
-                    notifBadge.classList.remove('hidden');
+                    const Label = data.count > 99 ? '99+' : data.count;
+                    if (notifBadge) { notifBadge.textContent = Label; notifBadge.classList.remove('hidden'); }
+                    if (MobileNotifBadgeEl) MobileNotifBadgeEl.classList.remove('hidden');
                 } else {
-                    notifBadge.classList.add('hidden');
+                    if (notifBadge) notifBadge.classList.add('hidden');
+                    if (MobileNotifBadgeEl) MobileNotifBadgeEl.classList.add('hidden');
                 }
             })
             .catch(err => console.error("Notif count error", err));
+    }
+
+    // ── Mobile search overlay ─────────────────────────────────────────────
+    const MobileSearchBtn     = document.getElementById('MobileSearchBtn');
+    const MobileSearchOverlay = document.getElementById('MobileSearchOverlay');
+    const MobileSearchBack    = document.getElementById('MobileSearchBack');
+    const MobileSearchInput   = document.getElementById('MobileNavSearchInput');
+    const MobileSearchSuggs   = document.getElementById('MobileSearchSuggestions');
+
+    if (MobileSearchBtn && MobileSearchOverlay) {
+        MobileSearchBtn.addEventListener('click', () => {
+            MobileSearchOverlay.classList.remove('hidden');
+            setTimeout(() => MobileSearchInput && MobileSearchInput.focus(), 80);
+        });
+        MobileSearchBack.addEventListener('click', () => {
+            MobileSearchOverlay.classList.add('hidden');
+            if (MobileSearchInput) MobileSearchInput.value = '';
+            if (MobileSearchSuggs) MobileSearchSuggs.classList.add('hidden');
+        });
+    }
+
+    if (MobileSearchInput && MobileSearchSuggs) {
+        let MobileDebounce = null;
+        MobileSearchInput.addEventListener('input', () => {
+            clearTimeout(MobileDebounce);
+            const Q = MobileSearchInput.value.trim();
+            if (Q.length < 2) { MobileSearchSuggs.classList.add('hidden'); return; }
+            MobileDebounce = setTimeout(() => fetchSearchResults(Q, MobileSearchSuggs), 300);
+        });
+        MobileSearchInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const Q = MobileSearchInput.value.trim();
+                if (Q.length >= 2) window.location.href = 'index.php?target=search&query=' + encodeURIComponent(Q);
+            }
+        });
+    }
+
+    // ── Mobile notif button ───────────────────────────────────────────────
+    const MobileNotifBtn = document.getElementById('MobileNotifBtn');
+    if (MobileNotifBtn && notifDrop) {
+        MobileNotifBtn.addEventListener('click', (e) => { e.stopPropagation(); OpenNotifDrop(); });
+    }
+
+    // Notification close button (mobile full-screen)
+    const NotifCloseBtn = document.getElementById('NotifCloseBtn');
+    if (NotifCloseBtn && notifDrop) {
+        NotifCloseBtn.addEventListener('click', () => notifDrop.classList.add('hidden'));
+    }
+
+    // ── Mobile menu drawer ────────────────────────────────────────────────
+    const MobileMenuDrawer   = document.getElementById('MobileMenuDrawer');
+    const MobileMenuBackdrop = document.getElementById('MobileMenuBackdrop');
+    const MobileMyPagesList  = document.getElementById('MobileMyPagesList');
+    let MobileMenuPagesLoaded = false;
+
+    function OpenMobileMenu() {
+        if (!MobileMenuDrawer) return;
+        MobileMenuDrawer.classList.remove('hidden');
+        if (!MobileMenuPagesLoaded) LoadMobilePages();
+    }
+    function CloseMobileMenu() {
+        if (!MobileMenuDrawer) return;
+        MobileMenuDrawer.classList.add('hidden');
+    }
+
+    function LoadMobilePages() {
+        MobileMenuPagesLoaded = true;
+        const Fd = new FormData();
+        Fd.append('ReqType', 3);
+        fetch('Origin/Operations/Org.php', { method: 'POST', headers: { 'X-CSRF-Token': NavCsrfToken }, body: Fd })
+            .then(r => r.json())
+            .then(data => {
+                if (!MobileMyPagesList) return;
+                if (!data.success || data.pages.length === 0) {
+                    MobileMyPagesList.innerHTML = '<div style="padding:6px 20px;font-size:13px;color:#b0b8c4;">No pages yet</div>';
+                    return;
+                }
+                MobileMyPagesList.innerHTML = data.pages.map(p => {
+                    const Logo = p.Logo
+                        ? `<img src="${p.Logo}" class="MobileMenuPageLogo" alt="">`
+                        : `<div class="MobileMenuPageLogoPlaceholder">${p.Name.charAt(0).toUpperCase()}</div>`;
+                    return `<a class="MobileMenuPageItem" href="index.php?target=page&handle=${encodeURIComponent(p.Handle)}">${Logo}<span>${htmlspecialchars(p.Name)}</span></a>`;
+                }).join('');
+            })
+            .catch(() => {});
+    }
+
+    if (MobileMenuBackdrop) MobileMenuBackdrop.addEventListener('click', CloseMobileMenu);
+
+    const MobileCreatePageBtn = document.getElementById('MobileCreatePageBtn');
+    if (MobileCreatePageBtn) {
+        MobileCreatePageBtn.addEventListener('click', () => {
+            CloseMobileMenu();
+            if (typeof OpenCreatePageModal === 'function') OpenCreatePageModal();
+        });
+    }
+
+    // The profile avatar tab on mobile opens the menu drawer instead of navigating
+    const MobileProfileTab = document.querySelector('.MobileTab .MobileTabAvatar')?.closest('.MobileTab');
+    if (MobileProfileTab && MobileMenuDrawer) {
+        MobileProfileTab.addEventListener('click', e => {
+            e.preventDefault();
+            OpenMobileMenu();
+        });
     }
 
     function fetchNotifications() {
@@ -219,8 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-async function fetchSearchResults(query) {
-    const suggestionsBox = document.getElementById('SearchSuggestions');
+async function fetchSearchResults(query, suggestionsBox) {
+    if (!suggestionsBox) return;
     const formData = new FormData();
     formData.append('query', query);
 	formData.append('ReqType', 1); // This is correct

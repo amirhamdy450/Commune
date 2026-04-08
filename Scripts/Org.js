@@ -126,6 +126,11 @@ const PostAsAvatar   = document.getElementById('PostAsAvatar');
 
 let PostAsPagesLoaded = false;
 
+// On mobile, move PostAsDropdown to body to escape overflow:auto clipping (iOS WebKit bug)
+if (PostAsDropdown && window.innerWidth <= 750) {
+    document.body.appendChild(PostAsDropdown);
+}
+
 if (PostAsSelector) {
     PostAsSelector.addEventListener('click', async () => {
         const IsOpen = !PostAsDropdown.classList.contains('hidden');
@@ -146,6 +151,16 @@ if (PostAsSelector) {
                 });
             }
             PostAsPagesLoaded = true;
+        }
+
+        // Position fixed below the selector (works after body move on mobile)
+        const Rect = PostAsSelector.getBoundingClientRect();
+        if (window.innerWidth <= 750) {
+            PostAsDropdown.style.top  = (Rect.bottom + 6) + 'px';
+            PostAsDropdown.style.left = '16px';
+            PostAsDropdown.style.right = '16px';
+        } else {
+            PostAsDropdown.style.top = PostAsDropdown.style.left = PostAsDropdown.style.right = '';
         }
 
         PostAsDropdown.classList.remove('hidden');

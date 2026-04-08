@@ -241,8 +241,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->commit();
             
             // Log out
-            setcookie("user_token", "", time() - 3600, "/", "localhost", false, true);
-            setcookie("user_token2", "", time() - 3600, "/", "localhost", false, true);
+            setcookie("user_token",  "", time() - 3600, "/", "", false, true);
+            setcookie("user_token2", "", time() - 3600, "/", "", false, true);
             
             echo json_encode(['success' => true]);
 

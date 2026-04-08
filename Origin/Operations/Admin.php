@@ -185,11 +185,14 @@ function SendContentRemovedEmail(string $ToEmail, string $ToName, string $Conten
 // ── [1] Fetch pending verification requests ───────────────────────────────
 if ($ReqType === 1) {
     $stmt = $pdo->query("
-        SELECT vr.id, vr.UID, vr.Reason, vr.SubmittedAt,
+        SELECT vr.id, vr.UID, vr.PageID, vr.Reason, vr.SubmittedAt,
                CONCAT(u.Fname,' ',u.Lname) AS Name,
-               u.Username, u.ProfilePic, u.IsBlueTick
+               u.Username, u.ProfilePic, u.IsBlueTick,
+               p.Name AS PageName, p.Handle AS PageHandle,
+               p.Logo AS PageLogo, p.IsVerified AS PageIsVerified
         FROM verification_requests vr
         INNER JOIN users u ON vr.UID = u.id
+        LEFT JOIN pages p ON vr.PageID = p.id
         WHERE vr.Status = 0
         ORDER BY vr.SubmittedAt ASC
     ");
@@ -198,6 +201,9 @@ if ($ReqType === 1) {
         $r['ProfilePic'] = $r['ProfilePic']
             ? 'MediaFolders/profile_pictures/' . $r['ProfilePic']
             : 'Imgs/Icons/unknown.png';
+        $r['PageLogo'] = $r['PageLogo']
+            ? 'MediaFolders/page_logos/' . $r['PageLogo']
+            : null;
         $ts = strtotime($r['SubmittedAt']);
         $r['EncUID'] = Encrypt($r['UID'], "Positioned", ["Timestamp" => $ts]);
     }

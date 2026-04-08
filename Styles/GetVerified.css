@@ -262,3 +262,13 @@
     color: #c0392b;
     padding: 10px 14px;
 }
+
+@media (max-width: 750px) {
+    .VerifiedPageContainer {
+        padding: 70px 12px 80px;
+    }
+    .VerifiedPageCard {
+        padding: 28px 20px;
+        gap: 20px;
+    }
+}

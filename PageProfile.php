@@ -113,12 +113,9 @@ $EncPageID = Encrypt($PageID, "Positioned", ["Timestamp" => time()]);
                             <?php if ($Page['IsVerified']): ?>
                                 <span class="BlueTick Large" title="Verified Page"></span>
                             <?php endif; ?>
-                            <span class="PageTypeBadge">Page</span>
                         </p>
                         <p class="UserUsername">@<?php echo htmlspecialchars($Page['Handle']); ?></p>
-                        <?php if ($Page['Category']): ?>
-                            <p class="PageCategory"><?php echo htmlspecialchars($Page['Category']); ?></p>
-                        <?php endif; ?>
+                        <p class="PageCategory"><?php echo $Page['Category'] ? htmlspecialchars($Page['Category']) : 'Page'; ?></p>
                     </div>
                 </div>
 
@@ -135,10 +132,13 @@ $EncPageID = Encrypt($PageID, "Positioned", ["Timestamp" => time()]);
                     </div>
 
                     <div class="ProfileActions">
-                        <?php if ($IsOwner): ?>
-                            <button class="BrandBtn PageManageBtn" onclick="window.location.href='index.php?target=page-dashboard&handle=<?php echo htmlspecialchars($Handle); ?>'">
+                        <?php if ($IsOwner || $IsMember): ?>
+                            <button class="BrandBtn PageManageBtn" id="PageManageBtn">
                                 Manage Page
                             </button>
+                            <?php if (!$Page['IsVerified']): ?>
+                                <a class="BrandBtn Dark" href="index.php?target=get-verified&page=<?php echo urlencode($Handle); ?>">Get Verified</a>
+                            <?php endif; ?>
                         <?php elseif ($IsFollowing): ?>
                             <button class="BrandBtn PageFollowBtn Followed" data-pageid="<?php echo $EncPageID; ?>">Following</button>
                         <?php else: ?>
@@ -253,6 +253,7 @@ $EncPageID = Encrypt($PageID, "Positioned", ["Timestamp" => time()]);
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
+                <div class="FeedLoader hidden"><div class="Loader"></div></div>
             </div>
 
             <!-- About tab -->
@@ -299,7 +300,16 @@ $EncPageID = Encrypt($PageID, "Positioned", ["Timestamp" => time()]);
     <?php include 'Includes/Modals/CommentSection.php'; ?>
     <?php include 'Includes/Modals/Confirmation.php'; ?>
     <?php include 'Includes/Modals/CreateOrg.php'; ?>
+    <?php if ($IsOwner || $IsMember): include 'Includes/Modals/EditPage.php'; endif; ?>
 
+    <script>
+        window.PageContext = {
+            PageID: '<?php echo $EncPageID; ?>',
+            Handle: '<?php echo htmlspecialchars($Handle); ?>',
+            IsOwner: <?php echo $IsOwner ? 'true' : 'false'; ?>,
+            IsMember: <?php echo $IsMember ? 'true' : 'false'; ?>
+        };
+    </script>
     <script src="Scripts/modal.js"></script>
     <script type="module" src="Scripts/Feed.js"></script>
     <script type="module" src="Scripts/PageProfile.js"></script>

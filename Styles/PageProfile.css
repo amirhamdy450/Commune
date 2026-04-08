@@ -23,20 +23,15 @@
     letter-spacing: -1px;
 }
 
-/* ── Page type badge ─────────────────────────────────────────────────────── */
-.PageTypeBadge {
-    display: inline-flex;
-    align-items: center;
-    background: #e8f0fe;
-    color: #2c79e8;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 9px;
-    border-radius: 20px;
-    letter-spacing: 0.3px;
+/* ── Feed page icon ──────────────────────────────────────────────────────── */
+.FeedPageIcon {
+    width: 13px;
+    height: 13px;
+    color: #9ca3af;
+    flex-shrink: 0;
     vertical-align: middle;
-    margin-left: 6px;
-    text-transform: uppercase;
+    position: relative;
+    top: -1px;
 }
 
 /* ── Category label under handle ────────────────────────────────────────── */
@@ -109,10 +104,17 @@
 }
 
 /* ── About tab ───────────────────────────────────────────────────────────── */
+#PageAboutTab,
+#PageTeamTab {
+    align-items: stretch;
+    padding: 20px 0;
+    background: transparent;
+}
+
 .PageAboutCard {
     background: #fff;
     border-radius: 14px;
-    padding: 24px;
+    padding: 8px 28px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.06);
     display: flex;
     flex-direction: column;
@@ -120,14 +122,26 @@
 }
 
 .PageAboutSection {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    align-items: baseline;
+    gap: 4px 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.PageAboutSection:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.PageAboutSection:first-child {
+    padding-top: 0;
 }
 
 .PageAboutLabel {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 600;
     color: #9ca3af;
     text-transform: uppercase;
     letter-spacing: 0.6px;
@@ -135,8 +149,9 @@
 
 .PageAboutText {
     font-size: 14px;
-    color: #374151;
+    color: #111827;
     line-height: 1.6;
+    margin: 0;
 }
 
 .PageAboutLink {
@@ -188,6 +203,201 @@
     flex-shrink: 0;
 }
 
+/* ── Edit Page modal ─────────────────────────────────────────────────────── */
+.EditPageModal {
+    align-items: center;
+    padding: 20px;
+}
+
+.EditPageCard {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.13);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.EditPageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.EditPageTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.EditPageClose {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #f3f4f6;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.EditPageClose::before,
+.EditPageClose::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 2px;
+    background: #6b7280;
+    border-radius: 1px;
+}
+
+.EditPageClose::before { transform: translate(-50%, -50%) rotate(45deg); }
+.EditPageClose::after  { transform: translate(-50%, -50%) rotate(-45deg); }
+
+.EditPageBody {
+    padding: 20px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.EditPageCoverWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.EditPageCoverPreview {
+    width: 100%;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c79e8 100%);
+}
+
+.EditPageCoverPreview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.EditPageLogoWrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.EditPageLogoPreview {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #2c79e8, #1e3a5f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.EditPageLogoPreview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.EditPageLogoPreview .PageLogoPlaceholder {
+    font-size: 26px;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+}
+
+.EditPageMediaBtn {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c79e8;
+    cursor: pointer;
+    padding: 6px 14px;
+    border: 1px solid #2c79e8;
+    border-radius: 20px;
+    transition: background 0.15s;
+}
+
+.EditPageMediaBtn:hover {
+    background: #eff6ff;
+}
+
+.EditPageFieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.EditPageLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.EditPageInput {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #111827;
+    outline: none;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.EditPageInput:focus {
+    border-color: #2c79e8;
+}
+
+.EditPageSelect {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #111827;
+    outline: none;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.EditPageTextarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #111827;
+    outline: none;
+    resize: vertical;
+    min-height: 90px;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.EditPageTextarea:focus {
+    border-color: #2c79e8;
+}
+
 /* ── Empty feed ──────────────────────────────────────────────────────────── */
 .EmptyFeed {
     display: flex;
@@ -199,4 +409,11 @@
     border-radius: 14px;
     color: #9ca3af;
     font-size: 15px;
+}
+
+@media (max-width: 750px) {
+    .ProfileContainer {
+        padding-top: 60px;
+        padding-bottom: 70px;
+    }
 }

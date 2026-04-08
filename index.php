@@ -74,6 +74,12 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$UID, $UID, $UID, $UID]);
             $FeedPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Set logged-in user's profile pic once — used by CreatePost modal
+            $PostProfilePic = (isset($User['ProfilePic']) && !empty($User['ProfilePic']))
+                ? 'MediaFolders/profile_pictures/' . htmlspecialchars($User['ProfilePic'])
+                : 'Imgs/Icons/unknown.png';
+
             foreach ($FeedPosts as $FeedPost) {
 
                 //$FeedPostID = 'D' . $FeedPost['Date'] . 'I' . $FeedPost['PID'];  // D is  for Date, I is for ID
@@ -99,9 +105,9 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                 $encryptedUserID=Encrypt($FeedPost['UID'],"Positioned",$params);
 
                 if (isset($FeedPost['ProfilePic']) && !empty($FeedPost['ProfilePic'])) {
-                    $PostProfilePic = 'MediaFolders/profile_pictures/' . htmlspecialchars($FeedPost['ProfilePic']);
+                    $FeedPostProfilePic = 'MediaFolders/profile_pictures/' . htmlspecialchars($FeedPost['ProfilePic']);
                 } else {
-                    $PostProfilePic = 'Imgs/Icons/unknown.png'; // Fallback
+                    $FeedPostProfilePic = 'Imgs/Icons/unknown.png';
                 }
                 // --- END N
 
@@ -125,7 +131,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                                         <div class="FeedPostNameRow">
                                             <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['PageName']) . '</p>
                                             ' . ($FeedPost['PageIsVerified'] ? '<span class="BlueTick" title="Verified"></span>' : '') . '
-                                            <span class="PageTypeBadge">Page</span>
+                                            <svg class="FeedPageIcon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Page"><path d="M3 2v12M3 2h8.5l-2 3.5 2 3.5H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                             <span class="FeedPostTime" data-date="' . $PostTimestamp . '"></span>
                                         </div>
                                         <span class="FeedPostUsername">@' . htmlspecialchars($FeedPost['PageHandle']) . '</span>
@@ -133,7 +139,7 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                                 </a>';
                             } else {
                                 echo '<a class="FeedPostAuthor" href="index.php?target=profile&uid=' . urlencode($encryptedUserID) . '">
-                                    <img src="' . $PostProfilePic . '" alt="Profile Picture">
+                                    <img src="' . $FeedPostProfilePic . '" alt="Profile Picture">
                                     <div class="FeedPostAuthorInfo">
                                         <div class="FeedPostNameRow">
                                             <p class="FeedPostAuthorName">' . htmlspecialchars($FeedPost['Fname'] . ' ' . $FeedPost['Lname']) . '</p>

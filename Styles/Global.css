@@ -86,13 +86,21 @@ h1,h2,h3,h4,h5,h6,p{
 
 .BrandBtn.Round {
     border-radius: 500px;
-    padding: 10px 15px;
-    background-color: rgb(235 235 235);
+    padding: 8px 12px;
+    background-color: #f0f1f3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.BrandBtn.Round:hover {
+    background-color: #e4e6ea;
 }
 
-.BrandBtn.Round img{
-    width: 22px;
-    height: 22px;
+.BrandBtn.Round img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 
@@ -190,46 +198,60 @@ body.ModalOpen {
 .NavBar {
     width: 100%;
     display: flex;
-    height: 70px;
+    height: 60px;
     justify-content: space-between;
     align-items: center;
     position: fixed;
-    background: #26373f;
-    padding: 15px;
+    background: #fff;
+    padding: 0 20px;
     top: 0;
     left: 0;
     z-index: 999;
+    border-bottom: 1px solid #ececec;
+    gap: 16px;
 }
 
 .NavBar .Logo {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     cursor: pointer;
-    font-size: 18px;
-    letter-spacing: 2px;
-    color: white;
-    text-decoration: auto;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #1a1a1a;
+    text-decoration: none;
+    flex-shrink: 0;
 }
 
-.NavBar .Logo img{
-    width: 30px;
-    height: 30px;
+.NavBar .Logo img {
+    width: 28px;
+    height: 28px;
 }
 
 .NavBar .WideSearch {
-    width: 60%;
+    flex: 1;
+    max-width: 440px;
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
 .NavBar .WideSearch input {
-    /* padding: 6px 23px; */
     width: 100%;
-    max-width: 500px;
-    padding: 8px 12px;
-    border: 1px solid #acacac;
-    border-radius: 20px;
+    padding: 8px 16px 8px 38px;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 22px;
+    font-size: 13.5px;
+    background: #f6f7f8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 12px center;
+    color: #222;
+    transition: border-color 0.15s, background 0.15s;
+    outline: none;
+}
+
+.NavBar .WideSearch input:focus {
+    border-color: var(--accent-color);
+    background-color: #fff;
 }
 
 /* Make the search bar container relative */
@@ -313,16 +335,16 @@ body.ModalOpen {
 
 
 .CreatePostBtn {
-    padding: 10px 20px;
+    padding: 8px 18px;
     border-radius: 20px;
     font-weight: 600;
-    font-size: 16px;
-    letter-spacing: 1px;
-    text-wrap: nowrap;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
 .CreatePostBtn:hover {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
 
@@ -365,10 +387,10 @@ body.ModalOpen {
 
 /* 4. The Dropdown Panel */
 .DropdownMenu.Notifications {
-    position: absolute;
-    top: 60px;
-    right: -90px; /* Center alignment */
-    width: 360px; /* Wider for better readability */
+    position: fixed;
+    top: 66px;
+    right: 120px;
+    width: 360px;
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.15);
@@ -379,6 +401,19 @@ body.ModalOpen {
     overflow: hidden;
     transform-origin: top right;
     animation: menuScale 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@media (max-width: 750px) {
+    .DropdownMenu.Notifications {
+        top: auto;
+        bottom: 62px;
+        left: 8px;
+        right: 8px;
+        width: auto;
+        border-radius: 16px;
+        transform-origin: bottom center;
+        max-height: 70vh;
+    }
 }
 
 @keyframes menuScale {
@@ -393,6 +428,11 @@ body.ModalOpen {
     font-size: 18px;
     border-bottom: 1px solid #f0f2f5;
     background-color: #fff;
+    display: flex;
+    align-items: center;
+}
+.NotifCloseBtn {
+    display: none;
 }
 
 /* Scrollable List Area */
@@ -524,7 +564,8 @@ body.ModalOpen {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 #NavMenuDropBtn {
@@ -872,31 +913,84 @@ body.ModalOpen {
 
 #NavMenuDrop {
     position: absolute;
-    top: 55px;
-    right: -8px;
+    top: 52px;
+    right: 0;
     background-color: #ffffff;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    width: 230px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.07);
     z-index: 10;
-    border-radius: 10px;
-    padding: 8px 0;
+    border-radius: 14px;
+    padding: 6px 0;
     overflow: hidden;
-    width: 100%;
-    /* backdrop-filter: blur(30px); */
-    /* width: 100%; */
+    border: 1px solid #f0f0f0;
+}
+
+.NavDropHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px 10px;
+}
+
+.NavDropAvatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #f0f0f0;
+}
+
+.NavDropInfo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.NavDropName {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.NavDropHandle {
+    font-size: 12px;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .DropdownItem {
     font-weight: 500;
     color: #333;
-    padding: 12px 16px;
+    padding: 8px 14px;
     text-decoration: none;
-    display: block;
-    font-size: 16px;
-    /* background: #ebebeb; */
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13.5px;
+    border-radius: 0;
+    transition: background 0.12s;
+}
+.DropdownItem svg {
+    flex-shrink: 0;
+    color: #6b7280;
 }
 .DropdownItem:hover {
-    background-color: #f1f1f1;
+    background-color: #f6f6f6;
+}
+.DropdownItem.Logout {
+    color: #e53935;
+}
+.DropdownItem.Logout svg {
+    color: #e53935;
+}
+.DropdownItem.Logout:hover {
+    background-color: #fff5f5;
 }
 
 .AdminDropdownItem {
@@ -922,25 +1016,26 @@ body.ModalOpen {
     color: var(--accent-color);
     font-weight: 600;
     cursor: pointer;
+    font-size: 13px;
 }
 
 .DropdownItemPage:hover {
-    background-color: #e8f0fe;
+    background-color: #eef4ff;
 }
 
 .DropdownSectionLabel {
     font-size: 10px;
     font-weight: 700;
-    color: #9ca3af;
+    color: #b0b8c4;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    padding: 8px 16px 4px;
+    letter-spacing: 0.7px;
+    padding: 6px 14px 3px;
 }
 
 .NavPagesEmpty {
     font-size: 12px;
-    color: #9ca3af;
-    padding: 4px 16px 8px;
+    color: #b0b8c4;
+    padding: 3px 14px 6px;
 }
 
 .NavPageItem {
@@ -950,17 +1045,17 @@ body.ModalOpen {
 }
 
 .NavPageLogo {
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
     object-fit: cover;
     flex-shrink: 0;
 }
 
 .NavPageLogoPlaceholder {
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
     background: linear-gradient(135deg, #2c79e8, #1e3a5f);
     display: flex;
     align-items: center;
@@ -1325,11 +1420,22 @@ body.ModalOpen {
     .LeftSidebar, .RightSidebar {
         display: none;
     }
-    
+
+    .NavBar .WideSearch,
+    .NavBar .ActionBar .CreatePostBtn,
+    .NavBar .ActionBar #NotifContainer {
+        display: none;
+    }
+
+    .NavBar .ActionBar {
+        display: none;
+    }
+
     .FlexContainer {
         justify-content: center;
         gap: 0;
-        padding-top: 80px;
+        padding-top: 70px;
+        padding-bottom: 70px;
     }
 
     .FeedContainer {
@@ -1337,10 +1443,160 @@ body.ModalOpen {
         max-width: 500px;
         padding: 0 10px;
     }
-    
-    /* Ensure posts don't overflow */
+
     .FeedPost {
         min-width: 100%;
+    }
+}
+
+/* ── Mobile Bottom Tab Bar ───────────────────────────────────────────────── */
+.MobileTabBar {
+    display: none;
+}
+
+@media (max-width: 750px) {
+    .MobileTabBar {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 58px;
+        background: #fff;
+        border-top: 1px solid #ececec;
+        z-index: 998;
+        align-items: center;
+        justify-content: space-around;
+        padding: 0 4px;
+    }
+
+    .MobileTab {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #6b7280;
+        text-decoration: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.15s;
+    }
+
+    .MobileTab.Active,
+    .MobileTab:active {
+        color: var(--accent-color);
+    }
+
+    .MobileTabCreate {
+        color: #fff;
+        background: var(--accent-color);
+        border-radius: 14px;
+        width: 44px;
+        flex: none;
+        height: 44px;
+        margin: 0 6px;
+    }
+
+    .MobileTabCreate:hover {
+        background: var(--accent-color-hover);
+    }
+
+    .MobileTabAvatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e5e7eb;
+        transition: border-color 0.15s;
+    }
+
+    .MobileTabAvatar.ActiveAvatar {
+        border-color: var(--accent-color);
+    }
+
+    .MobileTab.Active svg {
+        stroke: var(--accent-color);
+    }
+
+    .MobileNotifBadge {
+        position: absolute;
+        top: 10px;
+        right: calc(50% - 18px);
+        width: 8px;
+        height: 8px;
+        background: #e41e3f;
+        border-radius: 50%;
+        border: 2px solid #fff;
+    }
+}
+
+/* ── Mobile Search Overlay ───────────────────────────────────────────────── */
+.MobileSearchOverlay {
+    display: none;
+}
+
+@media (max-width: 750px) {
+    .MobileSearchOverlay {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        z-index: 1100;
+        flex-direction: column;
+    }
+
+    .MobileSearchOverlay.hidden {
+        display: none;
+    }
+
+    .MobileSearchBar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #ececec;
+        position: relative;
+    }
+
+    .MobileSearchBack {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #374151;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .MobileSearchBar input {
+        flex: 1;
+        padding: 9px 14px;
+        border: 1.5px solid #e8e8e8;
+        border-radius: 22px;
+        font-size: 14px;
+        background: #f6f7f8;
+        outline: none;
+        color: #222;
+    }
+
+    .MobileSearchBar input:focus {
+        border-color: var(--accent-color);
+        background: #fff;
+    }
+
+    .MobileSearchBar .SearchSuggestions {
+        position: absolute;
+        top: 100%;
+        left: 14px;
+        right: 14px;
+        width: auto;
     }
 }
 
@@ -1467,4 +1723,234 @@ body.ModalOpen {
 .BlueTick.Large {
     width: 24px;
     height: 24px;
+}
+/* ── Mobile Modal Overrides (Create Post + Notifications) ───────────────── */
+@media (max-width: 750px) {
+
+    /* Create Post modal: slide up from bottom */
+    .CPostContainer.Modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .CPost {
+        max-width: 100%;
+        width: 100%;
+        border-radius: 22px 22px 0 0;
+        padding: 18px 16px;
+        max-height: 92vh;
+        overflow-y: auto;
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+    }
+
+    .CPost h1 {
+        font-size: 18px;
+    }
+
+    .PostSubmitBtn {
+        max-width: 100%;
+        padding: 14px;
+    }
+
+    /* Generic modals (edit profile, confirm, etc.) */
+    .Modal:not(.CPostContainer):not(.CommentSection) {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .ModalContent {
+        max-width: 100%;
+        width: 100%;
+        border-radius: 22px 22px 0 0;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+    }
+
+    /* Keep confirm dialogs centered */
+    .Modal.Confirm {
+        align-items: center;
+        padding: 16px;
+    }
+    .Modal.Confirm .ModalContent {
+        border-radius: 16px;
+        max-width: 340px;
+    }
+
+    /* Notifications: full screen on mobile */
+    .DropdownMenu.Notifications {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: 0;
+        border: none;
+        max-height: 100%;
+        animation: sheetUp 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    @keyframes sheetUp {
+        from { transform: translateY(6%); opacity: 0.6; }
+        to   { transform: translateY(0);  opacity: 1; }
+    }
+
+    /* PostAs dropdown: use fixed so it escapes the scrollable modal */
+    .PostAsDropdown {
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        min-width: 0;
+        z-index: 2000;
+    }
+
+    /* Mobile menu drawer */
+    .MobileMenuDrawer {
+        display: flex;
+    }
+}
+
+/* ── Mobile Menu Drawer ──────────────────────────────────────────────────── */
+.MobileMenuDrawer {
+    display: none;
+}
+
+@media (max-width: 750px) {
+    .MobileMenuDrawer {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+    }
+    .MobileMenuDrawer.hidden {
+        display: none;
+    }
+    .MobileMenuBackdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.35);
+    }
+    .MobileMenuSheet {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-radius: 22px 22px 0 0;
+        padding: 8px 0 env(safe-area-inset-bottom, 16px);
+        max-height: 88vh;
+        overflow-y: auto;
+        animation: sheetUp 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .MobileMenuHeader {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px 14px;
+    }
+    .MobileMenuAvatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #f0f0f0;
+        flex-shrink: 0;
+    }
+    .MobileMenuInfo {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+    .MobileMenuName {
+        font-size: 15px;
+        font-weight: 700;
+        color: #111;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .MobileMenuHandle {
+        font-size: 13px;
+        color: #9ca3af;
+    }
+    .MobileMenuDivider {
+        height: 1px;
+        background: #f0f0f0;
+        margin: 4px 0;
+    }
+    .MobileMenuLabel {
+        font-size: 10px;
+        font-weight: 700;
+        color: #b0b8c4;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        padding: 6px 20px 3px;
+    }
+    .MobileMenuItem {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 20px;
+        font-size: 15px;
+        font-weight: 500;
+        color: #222;
+        text-decoration: none;
+        background: none;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        transition: background 0.12s;
+    }
+    .MobileMenuItem svg { color: #6b7280; flex-shrink: 0; }
+    .MobileMenuItem:hover { background: #f6f6f6; }
+    .MobileMenuPageCreate { color: var(--accent-color); }
+    .MobileMenuPageCreate svg { color: var(--accent-color); }
+    .MobileMenuLogout { color: #e53935; }
+    .MobileMenuLogout svg { color: #e53935; }
+    .MobileMenuPageItem {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        text-decoration: none;
+        transition: background 0.12s;
+    }
+    .MobileMenuPageItem:hover { background: #f6f6f6; }
+    .MobileMenuPageLogo {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .MobileMenuPageLogoPlaceholder {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #2c79e8, #1e3a5f);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 800;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    /* Notification close button */
+    .NotifCloseBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #6b7280;
+        padding: 4px;
+        border-radius: 50%;
+        margin-left: auto;
+    }
+    .NotifCloseBtn:hover { background: #f0f0f0; }
 }
