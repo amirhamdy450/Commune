@@ -4,32 +4,37 @@
     max-width: 900px;
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Reduced gap */
-    min-height: 600px; /* Prevents layout jump, but doesn't force empty space */
+    gap: 15px;
+    min-height: 600px;
 }
 
 .SearchHeader {
     background-color: #fff;
-    border-radius: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
     overflow: hidden;
-    margin-bottom: 10px; /* Tighten up header margin */
+    margin-bottom: 16px;
 }
 
-/* 2. 'All' Tab Styles */
+/* 'All' Tab Styles */
 .SearchSectionPreview {
+    width: 100%;
     background: #fff;
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    border-radius: 16px;
+    padding: 0;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    overflow: hidden;
 }
 
 .PreviewTitle {
-    font-size: 19px;
+    font-size: 15px;
     font-weight: 700;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+    padding: 16px 20px 14px;
     border-bottom: 1px solid #f0f2f5;
 }
 
@@ -37,18 +42,18 @@
     display: block;
     width: 100%;
     text-align: center;
-    padding: 12px;
-    margin-top: 15px;
+    padding: 13px;
     background-color: #f7f9fa;
     color: var(--accent-color);
+    font-size: 13.5px;
     font-weight: 600;
-    border-radius: 8px;
+    border-top: 1px solid #f0f2f5;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.15s;
 }
 
 .ViewAllBtn:hover {
-    background-color: #eef1f5;
+    background-color: #eff6ff;
 }
 
 .SearchPageTitle {
@@ -63,11 +68,11 @@
     color: var(--accent-color);
 }
 
-/* Reuse Global Tab Styles but adjust specific spacing */
+/* Tab Nav */
 .TabsNav.SearchNav {
-    border-top: none; /* Remove top border inherited from profile */
+    border-top: none;
     padding: 10px 20px;
-    justify-content: flex-start; /* Align left */
+    justify-content: flex-start;
 }
 
 .TabsNav.SearchNav .NavItem {
@@ -82,11 +87,11 @@
 }
 
 .TabContent {
-    background-color: transparent; /* Search results sit on grey background */
+    background-color: transparent;
     box-shadow: none;
     padding: 0;
     margin: 0;
-    display: none; /* Default hidden */
+    display: none;
     flex-direction: column;
     gap: 15px;
 }
@@ -95,20 +100,116 @@
     display: flex;
 }
 
-/* User Cards Grid */
-.SearchUsersContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+/* FeedContainer inside search — override fixed width */
+.SearchContent .FeedContainer {
+    width: 100%;
+    max-width: 100%;
+    flex-shrink: 1;
 }
 
-.SearchUsersContainer .UserCard {
+/* FeedPost cards inside search — keep max-width and center */
+.SearchContent .FeedPost {
+    align-self: center;
+    width: 100%;
+}
+
+/* Padding around posts inside the All tab preview */
+#AllPostsList {
+    padding: 12px 20px;
+}
+
+/* Padding around posts in the Posts tab */
+#SearchPostsList {
+    padding: 12px 0;
+}
+
+/* User Cards */
+.SearchUsersContainer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
     background: #fff;
-    border-radius: 15px;
-    padding: 20px;
-    border: none;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-    max-width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+.SearchSectionPreview .SearchUsersContainer {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.SearchUserCard {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.12s;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.SearchUserCard:last-child {
+    border-bottom: none;
+}
+
+.SearchUserCard:hover {
+    background: #f9fafb;
+}
+
+.SearchUserAvatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #e5e7eb;
+}
+
+.SearchUserInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.SearchUserNameRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.SearchUserName {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+}
+
+.SearchUserHandle {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.SearchUserBio {
+    font-size: 12.5px;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 360px;
+}
+
+.SearchMutualBadge {
+    font-size: 11px;
+    font-weight: 600;
+    color: #2c79e8;
+    background: #eff6ff;
+    border-radius: 20px;
+    padding: 2px 8px;
+    white-space: nowrap;
 }
 
 /* Post List */
@@ -130,7 +231,6 @@
     font-style: italic;
     width: 100%;
 }
-
 
 .SearchEmptyState {
     display: flex;
@@ -172,6 +272,7 @@
     border-top: 1px solid #f0f2f5;
     margin-top: 20px;
 }
+
 @media (max-width: 750px) {
     .SearchContainer {
         padding-bottom: 70px;

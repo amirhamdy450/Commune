@@ -100,9 +100,69 @@ display: none;
     background: transparent;
     font-size: 15px;
 }
+/* Restricted Post View */
+.PostRestricted {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.08);
+    border: 1px solid #e1e8ed;
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.PostRestrictedIcon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #f0f4ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.PostRestrictedIcon svg {
+    width: 32px;
+    height: 32px;
+    stroke: var(--accent-color);
+}
+
+.PostRestrictedTitle {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 12px;
+}
+
+.PostRestrictedMsg {
+    font-size: 14.5px;
+    color: #6b7280;
+    line-height: 1.6;
+    max-width: 320px;
+    margin-bottom: 28px;
+}
+
+.PostRestrictedBtn {
+    padding: 10px 28px;
+    font-size: 14px;
+    text-decoration: none;
+    border-radius: 25px;
+}
+
 @media (max-width: 750px) {
     .PostView .FlexContainer {
         padding-top: 70px;
         padding-bottom: 70px;
+    }
+
+    .PostRestricted {
+        padding: 40px 24px;
     }
 }

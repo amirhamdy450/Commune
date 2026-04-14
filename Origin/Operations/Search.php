@@ -24,7 +24,7 @@ foreach($words as $word) {
 }
 $searchTermFTS = trim($searchTermFTS);
 
-$limit = 1; 
+$limit = 5;
 $fetchLimit = $limit + 1; // Always fetch one extra to check for "Next Page"
 
 if (!isset($_POST['ReqType'])) {
@@ -157,12 +157,14 @@ if ($ReqType == 2) {
     }
 
     // 2. Fetch Users
-    $sqlUsers = "SELECT id, Fname, Lname, Username, ProfilePic 
-                 FROM users 
-                 WHERE ((CONCAT(TRIM(Fname), ' ', TRIM(Lname)) LIKE ?) OR (Username LIKE ?)) AND id != ?
+    $sqlUsers = "SELECT u.id, u.Fname, u.Lname, u.Username, u.ProfilePic, u.Bio, u.IsBlueTick,
+                 CASE WHEN f.FollowerID IS NOT NULL THEN 1 ELSE 0 END AS mutual_follow
+                 FROM users u
+                 LEFT JOIN followers f ON f.UserID = ? AND f.FollowerID = u.id
+                 WHERE ((CONCAT(TRIM(u.Fname), ' ', TRIM(u.Lname)) LIKE ?) OR (u.Fname LIKE ?) OR (u.Lname LIKE ?) OR (u.Username LIKE ?)) AND u.id != ?
                  LIMIT 6";
     $stmtUsers = $pdo->prepare($sqlUsers);
-    $stmtUsers->execute([$searchTermLike, $searchTermLike, $UID]);
+    $stmtUsers->execute([$UID, $searchTermLike, $searchTermLike, $searchTermLike, $searchTermLike, $UID]);
     
     $users = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
     $response['hasMoreUsers'] = count($users) > 5;
@@ -246,15 +248,20 @@ if ($ReqType == 3) {
 if ($ReqType == 4) {
     $offset = isset($_POST['offset']) ? (int)$_POST['offset'] : 0;
 
-    $sqlUsers = "SELECT id, Fname, Lname, Username, ProfilePic 
-                 FROM users 
-                 WHERE ((CONCAT(TRIM(Fname), ' ', TRIM(Lname)) LIKE ?) OR (Username LIKE ?)) AND id != ?
+    $sqlUsers = "SELECT u.id, u.Fname, u.Lname, u.Username, u.ProfilePic, u.Bio, u.IsBlueTick,
+                 CASE WHEN f.FollowerID IS NOT NULL THEN 1 ELSE 0 END AS mutual_follow
+                 FROM users u
+                 LEFT JOIN followers f ON f.UserID = ? AND f.FollowerID = u.id
+                 WHERE ((CONCAT(TRIM(u.Fname), ' ', TRIM(u.Lname)) LIKE ?) OR (u.Fname LIKE ?) OR (u.Lname LIKE ?) OR (u.Username LIKE ?)) AND u.id != ?
                  LIMIT 6 OFFSET ?";
     $stmtUsers = $pdo->prepare($sqlUsers);
-    $stmtUsers->bindValue(1, $searchTermLike);
+    $stmtUsers->bindValue(1, $UID, PDO::PARAM_INT);
     $stmtUsers->bindValue(2, $searchTermLike);
-    $stmtUsers->bindValue(3, $UID, PDO::PARAM_INT);
-    $stmtUsers->bindValue(4, $offset, PDO::PARAM_INT);
+    $stmtUsers->bindValue(3, $searchTermLike);
+    $stmtUsers->bindValue(4, $searchTermLike);
+    $stmtUsers->bindValue(5, $searchTermLike);
+    $stmtUsers->bindValue(6, $UID, PDO::PARAM_INT);
+    $stmtUsers->bindValue(7, $offset, PDO::PARAM_INT);
     $stmtUsers->execute();
     
     $users = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
@@ -339,12 +346,15 @@ function FormatPostForClient($post, $UID) {
 function FormatUserForClient($user) {
     $params = ["Timestamp" => time()];
     $user['uid_encrypted'] = urlencode(Encrypt($user['id'], "Positioned", $params));
-    $user['ProfilePic'] = (isset($user['ProfilePic']) && !empty($user['ProfilePic'])) 
-        ? 'MediaFolders/profile_pictures/' . $user['ProfilePic'] 
+    $user['ProfilePic'] = (isset($user['ProfilePic']) && !empty($user['ProfilePic']))
+        ? 'MediaFolders/profile_pictures/' . $user['ProfilePic']
         : 'Imgs/Icons/unknown.png';
-    $user['Fname'] = htmlspecialchars($user['Fname']);
-    $user['Lname'] = htmlspecialchars($user['Lname']);
+    $user['Fname']    = htmlspecialchars($user['Fname']);
+    $user['Lname']    = htmlspecialchars($user['Lname']);
     $user['Username'] = htmlspecialchars($user['Username']);
+    $user['Bio']      = isset($user['Bio']) ? htmlspecialchars(mb_strimwidth($user['Bio'], 0, 80, '…')) : '';
+    $user['IsBlueTick']    = (int)($user['IsBlueTick'] ?? 0);
+    $user['mutual_follow'] = (int)($user['mutual_follow'] ?? 0);
     return $user;
 }
 ?>

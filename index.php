@@ -67,12 +67,21 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                 LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
                 LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
                 LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
+                LEFT JOIN followers f2 ON f2.UserID = ? AND f2.FollowerID = users.id
                 LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
                 WHERE posts.Status = 1 AND b.id IS NULL
+                AND (
+                    posts.UID = ?
+                    OR posts.OrgID IS NOT NULL
+                    OR posts.Visibility = 0
+                    OR (posts.Visibility = 1 AND f.UserID IS NOT NULL)
+                    OR (posts.Visibility = 2 AND f2.UserID IS NOT NULL)
+                    OR (posts.Visibility = 3 AND f.UserID IS NOT NULL AND f2.UserID IS NOT NULL)
+                )
                 ORDER BY posts.Date DESC
                 LIMIT 5";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$UID, $UID, $UID, $UID]);
+            $stmt->execute([$UID, $UID, $UID, $UID, $UID, $UID]);
             $FeedPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Set logged-in user's profile pic once — used by CreatePost modal

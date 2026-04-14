@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('ReqType', 1);
         formData.append('reason', reasonTextarea.value.trim());
         formData.append('fee_confirmed', feeCheckbox.checked ? 1 : 0);
+        const pageIDInput = form.querySelector('input[name="PageID"]');
+        if (pageIDInput) formData.append('PageID', pageIDInput.value);
 
         const res = await Submit('POST', 'Origin/Operations/Verification.php', formData);
 

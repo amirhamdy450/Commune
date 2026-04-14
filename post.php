@@ -31,25 +31,47 @@ if($PostID <= 0){ header("Location: 404.php"); exit(); }
     </div>
 
     <?php
-        // 1. Fetch Post
+        // 1. Fetch Post with visibility check
         $sql = "SELECT posts.id AS PID, posts.*, users.Fname, users.Lname, users.Username, users.ProfilePic, users.IsBlueTick,
                 CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
                 CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
+                CASE WHEN f2.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS they_follow_me,
                 CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved
-                FROM posts 
+                FROM posts
                 INNER JOIN users ON posts.UID = users.id
                 LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
                 LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
+                LEFT JOIN followers f2 ON f2.UserID = ? AND f2.FollowerID = users.id
                 LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
                 WHERE posts.id = ? AND posts.Status = 1 LIMIT 1";
-        
+
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$UID, $UID, $UID, $PostID]);
+        $stmt->execute([$UID, $UID, $UID, $UID, $PostID]);
         $post = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $jsonPayload = "";
-        
+        $restricted = false;
+
         if ($post) {
+            // Visibility check
+            $vis = (int)($post['Visibility'] ?? 0);
+            $isOwner = ($post['UID'] == $UID);
+            $iFollowThem = (bool)$post['following'];
+            $theyFollowMe = (bool)$post['they_follow_me'];
+            $isPage = !empty($post['OrgID']);
+
+            $canView = $isOwner || $isPage || $vis === 0
+                || ($vis === 1 && $iFollowThem)
+                || ($vis === 2 && $theyFollowMe)
+                || ($vis === 3 && $iFollowThem && $theyFollowMe);
+
+            if (!$canView) {
+                $restricted = true;
+                $jsonPayload = "";
+            }
+        }
+
+        if ($post && !$restricted) {
             // 2. Fetch Comments
             $sqlComments = 'SELECT comments.id as CID, comments.*, users.Fname, users.Lname, users.Username, users.ProfilePic, users.IsBlueTick,
                             CASE WHEN CL.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
@@ -127,7 +149,7 @@ if($PostID <= 0){ header("Location: 404.php"); exit(); }
         }
     ?>
 
-    <div id="PageData" data-payload="<?php echo $jsonPayload; ?>" class="hidden"></div>
+    <div id="PageData" data-payload="<?php echo $jsonPayload; ?>" data-restricted="<?php echo $restricted ? '1' : '0'; ?>" class="hidden"></div>
 
     <?php include 'Includes/Modals/CreatePost.php'; ?>
     <?php include 'Includes/Modals/CommentSection.php'; ?>

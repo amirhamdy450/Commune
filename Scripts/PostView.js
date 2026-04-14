@@ -6,8 +6,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('SinglePostContainer');
 
     if (dataDiv && container) {
+        const isRestricted = dataDiv.getAttribute('data-restricted') === '1';
+
+        if (isRestricted) {
+            container.innerHTML = `
+                <div class="PostRestricted">
+                    <div class="PostRestrictedIcon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <h2 class="PostRestrictedTitle">This post is private</h2>
+                    <p class="PostRestrictedMsg">The author has limited who can see this post. You don't have permission to view it.</p>
+                    <a href="index.php" class="BrandBtn PostRestrictedBtn">Back to Feed</a>
+                </div>`;
+            return;
+        }
+
         const rawData = dataDiv.getAttribute('data-payload');
-        
+
         if (rawData) {
             try {
                 const pageData = JSON.parse(rawData);

@@ -133,20 +133,41 @@ $EncPageID = Encrypt($PageID, "Positioned", ["Timestamp" => time()]);
 
                     <div class="ProfileActions">
                         <?php if ($IsOwner || $IsMember): ?>
-                            <button class="BrandBtn PageManageBtn" id="PageManageBtn">
-                                Manage Page
-                            </button>
-                            <?php if (!$Page['IsVerified']): ?>
-                                <a class="BrandBtn Dark" href="index.php?target=get-verified&page=<?php echo urlencode($Handle); ?>">Get Verified</a>
-                            <?php endif; ?>
+                            <div class="PageOwnerActions">
+                                <button class="BrandBtn PageManageBtn" id="PageManageBtn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                    Manage Page
+                                </button>
+                                <?php if (!$Page['IsVerified'] || $Page['Website']): ?>
+                                <button class="PageOwnerMoreBtn" id="PageOwnerMoreBtn" title="More options">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                                </button>
+                                <div class="PageOwnerMenu" id="PageOwnerMenu">
+                                    <?php if (!$Page['IsVerified']): ?>
+                                    <a class="PageOwnerMenuItem" href="index.php?target=get-verified&page=<?php echo urlencode($Handle); ?>">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                        Get Verified
+                                    </a>
+                                    <?php endif; ?>
+                                    <?php if ($Page['Website']): ?>
+                                    <a class="PageOwnerMenuItem" href="<?php echo htmlspecialchars($Page['Website']); ?>" target="_blank" rel="noopener noreferrer">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
+                                        Website
+                                    </a>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endif; ?>
+                            </div>
                         <?php elseif ($IsFollowing): ?>
                             <button class="BrandBtn PageFollowBtn Followed" data-pageid="<?php echo $EncPageID; ?>">Following</button>
+                            <?php if ($Page['Website']): ?>
+                                <a class="BrandBtn Dark PageWebsiteBtn" href="<?php echo htmlspecialchars($Page['Website']); ?>" target="_blank" rel="noopener noreferrer">Website</a>
+                            <?php endif; ?>
                         <?php else: ?>
                             <button class="BrandBtn PageFollowBtn" data-pageid="<?php echo $EncPageID; ?>">Follow</button>
-                        <?php endif; ?>
-
-                        <?php if ($Page['Website']): ?>
-                            <a class="BrandBtn Dark PageWebsiteBtn" href="<?php echo htmlspecialchars($Page['Website']); ?>" target="_blank" rel="noopener noreferrer">Website</a>
+                            <?php if ($Page['Website']): ?>
+                                <a class="BrandBtn Dark PageWebsiteBtn" href="<?php echo htmlspecialchars($Page['Website']); ?>" target="_blank" rel="noopener noreferrer">Website</a>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>

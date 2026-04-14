@@ -248,8 +248,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             }
         }
 
-        $data=[$PostContent,$type,$RootMediaFolderPath,date("Y-m-d H:i:s"),1,$UID,$OrgID];
-        $sql = "INSERT INTO posts (Content,Type, Mediafolder, Date,Status,UID,OrgID)  VALUES (?,?,?,?,?,?,?)";
+        $Visibility = (int)($_POST['Visibility'] ?? 0);
+        if (!in_array($Visibility, [0, 1, 2, 3, 4])) $Visibility = 0;
+        // Pages always post as everyone (visibility irrelevant for page posts)
+        if ($OrgID !== null) $Visibility = 0;
+
+        $data=[$PostContent,$type,$RootMediaFolderPath,date("Y-m-d H:i:s"),1,$UID,$OrgID,$Visibility];
+        $sql = "INSERT INTO posts (Content,Type, Mediafolder, Date,Status,UID,OrgID,Visibility)  VALUES (?,?,?,?,?,?,?,?)";
         $stmt = $pdo->prepare($sql);
         if(!$stmt->execute($data)){
             echo json_encode([
@@ -310,7 +315,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             'PageName' => $newPost['PageName'] ?? null,
             'PageHandle' => $newPost['PageHandle'] ?? null,
             'PageLogo' => $newPost['PageLogo'] ? 'MediaFolders/page_logos/' . $newPost['PageLogo'] : null,
-            'PageIsVerified' => (int)($newPost['PageIsVerified'] ?? 0)
+            'PageIsVerified' => (int)($newPost['PageIsVerified'] ?? 0),
+            'Visibility' => (int)($newPost['Visibility'] ?? 0)
         ];
 
         // Fire mention notifications (Type 7) for each @mentioned user in the post body
@@ -593,13 +599,22 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
                 LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
                 LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
+                LEFT JOIN followers f2 ON f2.UserID = ? AND f2.FollowerID = users.id
                 LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
                 WHERE posts.id < ? AND posts.Status = 1 AND b.id IS NULL
+                AND (
+                    posts.UID = ?
+                    OR posts.OrgID IS NOT NULL
+                    OR posts.Visibility = 0
+                    OR (posts.Visibility = 1 AND f.UserID IS NOT NULL)
+                    OR (posts.Visibility = 2 AND f2.UserID IS NOT NULL)
+                    OR (posts.Visibility = 3 AND f.UserID IS NOT NULL AND f2.UserID IS NOT NULL)
+                )
                 ORDER BY posts.Date DESC
                 LIMIT 5";
         $stmt = $pdo->prepare($sql);
-        
-        if($stmt->execute([$UID,$UID, $UID , $UID,$FeedPostID])){
+
+        if($stmt->execute([$UID, $UID, $UID, $UID, $UID, $FeedPostID, $UID])){
 
         $NewPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -665,7 +680,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'PageName' => $FeedPost['PageName'] ?? null,
                 'PageHandle' => $FeedPost['PageHandle'] ?? null,
                 'PageLogo' => $FeedPost['PageLogo'] ? 'MediaFolders/page_logos/' . $FeedPost['PageLogo'] : null,
-                'PageIsVerified' => (int)($FeedPost['PageIsVerified'] ?? 0)
+                'PageIsVerified' => (int)($FeedPost['PageIsVerified'] ?? 0),
+                'Visibility' => (int)($FeedPost['Visibility'] ?? 0)
             ];
 
 
@@ -1140,7 +1156,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $FeedPostID = (int)Decrypt($EncFeedPostAtr, "Positioned");
 
         // 1. Verify Ownership
-        $sql = "SELECT Content, Type, MediaFolder FROM posts WHERE id = ? AND UID = ?";
+        $sql = "SELECT Content, Type, MediaFolder, Visibility FROM posts WHERE id = ? AND UID = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$FeedPostID, $UID]);
         $post = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -1188,7 +1204,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             'Content' => $post['Content'],
             'MediaType' => (int)$post['Type'],
             'MediaFiles' => $media,
-            'MentionMap' => $mentionMap
+            'MentionMap' => $mentionMap,
+            'Visibility' => (int)($post['Visibility'] ?? 0)
         ]);
         die();
 

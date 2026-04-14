@@ -327,19 +327,29 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $LastPostID = (int)Decrypt($LastPostEncID, "Positioned");
 
         // Fetch 5 posts OLDER than the last one, strictly for this TargetUID
-        $sql = "SELECT 
+        $IsSelf = ($UID === $TargetUID);
+        $sql = "SELECT
                 posts.id AS PID, posts.*, users.*,
                 CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked
-                FROM posts 
+                FROM posts
                 INNER JOIN users ON posts.UID = users.id
                 LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
+                LEFT JOIN followers f  ON f.UserID  = ? AND f.FollowerID  = ?
+                LEFT JOIN followers f2 ON f2.UserID = ? AND f2.FollowerID = users.id
                 WHERE posts.Status = 1 AND posts.UID = ? AND posts.id < ?
-                ORDER BY posts.Date DESC 
+                AND (
+                    ? = posts.UID
+                    OR posts.Visibility = 0
+                    OR (posts.Visibility = 1 AND f.UserID IS NOT NULL)
+                    OR (posts.Visibility = 2 AND f2.UserID IS NOT NULL)
+                    OR (posts.Visibility = 3 AND f.UserID IS NOT NULL AND f2.UserID IS NOT NULL)
+                )
+                ORDER BY posts.Date DESC
                 LIMIT 5";
-        
+
         $stmt = $pdo->prepare($sql);
-        // Params: [LoggedInUser (for like status), TargetProfileUser, LastPostID]
-        $stmt->execute([$UID, $TargetUID, $LastPostID]);
+        // Params: likes-uid, f.UserID=TargetUID, f.FollowerID=UID, f2.UserID=UID, f2.FollowerID=target, TargetUID, LastPostID, UID(self check)
+        $stmt->execute([$UID, $TargetUID, $UID, $UID, $TargetUID, $LastPostID, $UID]);
         $NewPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response = [];

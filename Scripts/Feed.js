@@ -18,7 +18,17 @@ if (urlParams.has('pid')) {
   currentPostID = urlParams.get('pid');
 }
 
-//follow function 
+// Attach hover text swap on a .Followed button
+function AttachFollowHover(btn) {
+  btn.addEventListener('mouseenter', () => {
+    if (btn.classList.contains('Followed')) btn.textContent = 'Unfollow';
+  });
+  btn.addEventListener('mouseleave', () => {
+    if (btn.classList.contains('Followed')) btn.textContent = 'Following';
+  });
+}
+
+//follow function
 async function FollowHandler(followButton, uid){
   const formData = new FormData();
   formData.append('ReqType', 11);
@@ -84,6 +94,45 @@ async function savePost(post,postID){
 function renderMentions(text) {
   if (!text) return '';
   return text.replace(/@([\w]+)/g, '<a class="MentionLink" href="index.php?target=profile&username=$1">@$1</a>');
+}
+
+const VisibilityIcons = [
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+];
+const VisibilityTitles = ['Everyone', 'Followers only', 'People I follow', 'Mutual followers', 'Only me'];
+const VisibilityLabels = ['Everyone', 'Followers only', 'People I follow', 'Mutual followers', 'Only me'];
+
+function SetVisibility(val) {
+  const visibilityDropdown = document.getElementById('VisibilityDropdown');
+  const visibilityInput = document.getElementById('CPostVisibility');
+  const visibilityLabel = document.getElementById('VisibilityLabel');
+
+  val = parseInt(val, 10) || 0;
+  if (visibilityInput) visibilityInput.value = val;
+  if (visibilityLabel) visibilityLabel.textContent = VisibilityLabels[val] || 'Everyone';
+
+  const sourceIcon = visibilityDropdown
+    ? visibilityDropdown.querySelector(`.VisibilityOption[data-value="${val}"] svg`)
+    : null;
+  const buttonIcon = document.getElementById('VisibilitySelectorIcon');
+  if (sourceIcon && buttonIcon) {
+    const newIcon = sourceIcon.cloneNode(true);
+    newIcon.id = 'VisibilitySelectorIcon';
+    newIcon.classList.add('VisibilityIcon');
+    newIcon.setAttribute('width', '15');
+    newIcon.setAttribute('height', '15');
+    buttonIcon.replaceWith(newIcon);
+  }
+
+  if (visibilityDropdown) {
+    [...visibilityDropdown.getElementsByClassName('VisibilityOption')].forEach(option => {
+      option.classList.toggle('Active', parseInt(option.dataset.value, 10) === val);
+    });
+  }
 }
 
 // Creates HTML for a single post
@@ -152,7 +201,10 @@ export function createPostHTML(post) {
         <div class="FeedPostAuthorContainer">
           ${authorHeader}
         </div>
-        <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg"></div>
+        <div class="FeedPostHeaderRight">
+          ${post.Self && post.Visibility > 0 ? `<span class="VisibilityBadge" title="${VisibilityTitles[post.Visibility] || ''}">${VisibilityIcons[post.Visibility] || ''}${VisibilityTitles[post.Visibility] || ''}</span>` : ''}
+          <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg"></div>
+        </div>
     
 
 
@@ -451,9 +503,7 @@ export function attachPostInteractions(post) {
     followButton.addEventListener('click', () => {
       FollowHandler(followButton, uid);
     });
-
-
-    
+    AttachFollowHover(followButton);
   }
 
   likeButton.addEventListener('click', () => {
@@ -1392,8 +1442,11 @@ async function openEditModal(postID) {
     
     modal.querySelector('h1').textContent = 'Edit Post';
     form.querySelector('.PostSubmitBtn').value = 'Save Changes';
-    editIDField.value = postID; // Set the PostID
+    editIDField.value = postID;
     filesToDeleteField.value = '[]';
+    // Hide PostAs row — ownership is fixed, can't change who posted
+    const PostAsRowEl = document.getElementById('PostAsSelector')?.closest('.PostAsRow');
+    if (PostAsRowEl) PostAsRowEl.style.display = 'none';
     
     // 2. Fetch post data from new API
     const formData = new FormData();
@@ -1413,6 +1466,9 @@ async function openEditModal(postID) {
                 const encUID = mentionMap[username] || '';
                 return `<span class="ReplyTag MentionTag" contenteditable="false" mention-uid="${encUID}" mention-username="${username}">@${username}</span>`;
             });
+
+            // Populate visibility selector from saved value
+            SetVisibility(data.Visibility || 0);
 
             if (data.MediaFiles && data.MediaFiles.length > 0) {
                 overviewContainer.classList.remove('hidden');
@@ -1490,6 +1546,14 @@ function resetPostModal() {
     if (postAsDropdown) postAsDropdown.classList.add('hidden');
     const selfOption = document.querySelector('.PostAsOptionSelf');
     if (selfOption && window.SelectPostAsOption) window.SelectPostAsOption(selfOption);
+
+    // Restore PostAs row (hidden during edit)
+    const PostAsRowEl = document.getElementById('PostAsSelector')?.closest('.PostAsRow');
+    if (PostAsRowEl) PostAsRowEl.style.display = '';
+
+    // Reset visibility selector to "Everyone"
+    document.getElementById('VisibilityDropdown')?.classList.add('hidden');
+    SetVisibility(0);
 
     // Clear File Previews
     modal.querySelector('.UploadedFiles').innerHTML = '';
@@ -1923,6 +1987,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   postForm.addEventListener('submit', handlePostSubmit);
 
+  // ── Visibility selector ───────────────────────────────────────────────────
+  const VisibilitySelector = document.getElementById('VisibilitySelector');
+  const VisibilityDropdown = document.getElementById('VisibilityDropdown');
+  const VisibilityLabel    = document.getElementById('VisibilityLabel');
+  const VisibilityInput    = document.getElementById('CPostVisibility');
+
+  if (VisibilitySelector && VisibilityDropdown) {
+      VisibilitySelector.addEventListener('click', e => {
+          e.stopPropagation();
+          VisibilityDropdown.classList.toggle('hidden');
+      });
+
+      VisibilityDropdown.addEventListener('click', e => {
+          const Opt = e.target.closest('.VisibilityOption');
+          if (!Opt) return;
+          SetVisibility(Opt.dataset.value);
+          VisibilityDropdown.classList.add('hidden');
+      });
+
+      document.addEventListener('click', e => {
+          if (!VisibilitySelector.contains(e.target)) VisibilityDropdown.classList.add('hidden');
+      });
+  }
+
   // Enable @mention dropdown and plain-text paste in the create/edit post modal
   attachPlainTextPaste(createPostModal);
   attachMentionDropdown(createPostModal);
@@ -2050,7 +2138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     followButton.addEventListener('click', () => {
       FollowHandler(followButton, uid);
     });
-
+    AttachFollowHover(followButton);
   }
 
 

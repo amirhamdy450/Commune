@@ -151,14 +151,14 @@ async function LoadVerification() {
                 <p class="VerifReason">${r.Reason}</p>
             </div>
             <div class="VerifActions">
-                <button class="AdminBtn Success" onclick="ApproveVerif(${r.id})">Approve</button>
-                <button class="AdminBtn Danger"  onclick="RejectVerif(${r.id})">Reject</button>
+                <button class="AdminBtn Success VerifApprove" data-id="${r.id}">Approve</button>
+                <button class="AdminBtn Danger  VerifReject"  data-id="${r.id}">Reject</button>
             </div>
         </div>`;
     }).join('');
 }
 
-window.ApproveVerif = async function(id) {
+async function ApproveVerif(id) {
     const fd = new FormData();
     fd.append('ReqType', 3);
     fd.append('request_id', id);
@@ -167,9 +167,9 @@ window.ApproveVerif = async function(id) {
         document.getElementById('VerifCard-' + id)?.remove();
         CheckVerifEmpty();
     }
-};
+}
 
-window.RejectVerif = async function(id) {
+async function RejectVerif(id) {
     const fd = new FormData();
     fd.append('ReqType', 4);
     fd.append('request_id', id);
@@ -178,7 +178,14 @@ window.RejectVerif = async function(id) {
         document.getElementById('VerifCard-' + id)?.remove();
         CheckVerifEmpty();
     }
-};
+}
+
+document.getElementById('VerifList').addEventListener('click', e => {
+    const approve = e.target.closest('.VerifApprove');
+    const reject  = e.target.closest('.VerifReject');
+    if (approve) ApproveVerif(approve.dataset.id);
+    if (reject)  RejectVerif(reject.dataset.id);
+});
 
 function CheckVerifEmpty() {
     const list = document.getElementById('VerifList');

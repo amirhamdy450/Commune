@@ -212,16 +212,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createUserCardHTML(user) {
+        const verifiedBadge = user.IsBlueTick ? '<span class="BlueTick" title="Verified"></span>' : '';
+        const mutualBadge   = user.mutual_follow
+            ? '<span class="SearchMutualBadge">Follows you</span>'
+            : '';
         return `
-        <a class="UserCard Follower" href="index.php?target=profile&uid=${user.uid_encrypted}">
-            <div class="Info">
-                <div class="ProfilePictureContainer">
-                    <img src="${user.ProfilePic}" alt="Profile Picture">
+        <a class="SearchUserCard" href="index.php?target=profile&uid=${user.uid_encrypted}">
+            <img class="SearchUserAvatar" src="${user.ProfilePic}" alt="">
+            <div class="SearchUserInfo">
+                <div class="SearchUserNameRow">
+                    <span class="SearchUserName">${user.Fname} ${user.Lname}</span>
+                    ${verifiedBadge}
+                    ${mutualBadge}
                 </div>
-                <div class="ProfileInfo">
-                    <p class="UserName">${user.Fname} ${user.Lname}</p>
-                    <p class="UserUsername">@${user.Username}</p>
-                </div>
+                <span class="SearchUserHandle">@${user.Username}</span>
+                ${user.Bio ? `<span class="SearchUserBio">${user.Bio}</span>` : ''}
             </div>
         </a>`;
     }

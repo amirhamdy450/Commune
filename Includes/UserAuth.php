@@ -85,10 +85,12 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
 
         // Admin accounts are completely separate — redirect to dashboard and block access to the regular site
         if ((int)$User['Privilege'] >= PRIV_ADMIN) {
-            $CurrentFile = basename($_SERVER['SCRIPT_FILENAME']);
+            $CurrentFile   = basename($_SERVER['SCRIPT_FILENAME']);
             $IsAdminTarget = isset($_GET['target']) && $_GET['target'] === 'admin';
-            if ($CurrentFile !== 'Admin.php' && !$IsAdminTarget) {
-                header("Location: index.php?target=admin");
+            $IsApiCall     = $_SERVER['REQUEST_METHOD'] === 'POST';
+            if ($CurrentFile !== 'Admin.php' && !$IsAdminTarget && !$IsApiCall) {
+                $ProjectRoot = str_replace('\\', '/', str_ireplace(realpath($_SERVER['DOCUMENT_ROOT']), '', realpath(dirname(__DIR__))));
+                header("Location: " . $ProjectRoot . "/index.php?target=admin");
                 exit();
             }
         }
@@ -191,16 +193,14 @@ if (isset($_COOKIE['user_token']) && isset($_COOKIE['user_token2'])) {
        
     }else{
         $LoggedIn = false;
-       // header("Location: Includes/Access/Login.php");
-        include "Includes/Access/Login.php";
+        include dirname(__DIR__) . "/Includes/Access/Login.php";
         exit();
     }
 
 
 }else{
     $LoggedIn = false;
-   // header("Location: Includes/Access/Login.php");
-    include "Includes/Access/Login.php";
+    include dirname(__DIR__) . "/Includes/Access/Login.php";
     exit();
 }
 

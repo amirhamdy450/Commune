@@ -44,6 +44,9 @@ const TabContents = document.getElementsByClassName('TabContent');
         }
         Btn.disabled = false;
     });
+    // Hover: show "Unfollow" when already following
+    Btn.addEventListener('mouseenter', () => { if (Btn.classList.contains('Followed')) Btn.textContent = 'Unfollow'; });
+    Btn.addEventListener('mouseleave', () => { if (Btn.classList.contains('Followed')) Btn.textContent = 'Following'; });
 });
 
 // ── Manage Page / Edit Page modal ─────────────────────────────────────────
@@ -56,6 +59,20 @@ const EditPageError  = document.getElementById('EditPageError');
 
 let PendingLogo  = null;
 let PendingCover = null;
+
+const PageOwnerMoreBtn = document.getElementById('PageOwnerMoreBtn');
+const PageOwnerMenu    = document.getElementById('PageOwnerMenu');
+if (PageOwnerMoreBtn && PageOwnerMenu) {
+    PageOwnerMoreBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        PageOwnerMenu.classList.toggle('Open');
+    });
+    document.addEventListener('click', e => {
+        if (!PageOwnerMoreBtn.contains(e.target) && !PageOwnerMenu.contains(e.target)) {
+            PageOwnerMenu.classList.remove('Open');
+        }
+    });
+}
 
 if (ManageBtn && EditPageModal) {
     ManageBtn.addEventListener('click', () => EditPageModal.classList.remove('hidden'));
