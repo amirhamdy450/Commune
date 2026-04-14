@@ -142,8 +142,18 @@ h1,h2,h3,h4,h5,h6,p{
 }
 
 .Modal .ConfirmBox .BrandBtn {
-    padding: 10px 55px;
+    min-width: 170px;
+    min-height: 56px;
+    padding: 12px 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: center;
+    white-space: normal;
+    border-radius: 16px;
 }
 .Modal.Confirm form {
     display: flex;
@@ -158,9 +168,12 @@ h1,h2,h3,h4,h5,h6,p{
 }
 .Modal .ConfirmBox {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: stretch;
+    gap: 12px;
+    flex-wrap: nowrap;
     width: 100%;
-    max-width: 350px;
+    max-width: 360px;
     padding-top: 15px;
 }
 
@@ -168,6 +181,40 @@ h1,h2,h3,h4,h5,h6,p{
 h2.ModalTitle {
     font-size: 23px;
     font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+}
+
+.ModalHint {
+    margin: -2px 0 2px;
+    max-width: 360px;
+    font-size: 14px;
+    line-height: 1.55;
+    text-align: center;
+    color: #6b7280;
+}
+
+.Modal .ConfirmBox .Delete {
+    background: linear-gradient(180deg, #ff2323 0%, #eb1212 100%);
+    box-shadow: 0 12px 24px rgba(235, 18, 18, 0.18);
+}
+
+.Modal .ConfirmBox .Dark {
+    background: linear-gradient(180deg, #454545 0%, #2f2f2f 100%);
+    color: #fff;
+}
+
+@media (max-width: 480px) {
+    .Modal .ConfirmBox {
+        flex-direction: column;
+        align-items: stretch;
+        max-width: none;
+    }
+
+    .Modal .ConfirmBox .BrandBtn {
+        width: 100%;
+        min-width: 0;
+    }
 }
 
 body.ModalOpen {
@@ -1448,12 +1495,411 @@ body.ModalOpen {
 
 /* 1. Left Sidebar */
 .LeftSidebar {
-    width: 275px;
-    flex-shrink: 0; /* Prevent shrinking */
+    width: 240px;
+    flex-shrink: 0;
     position: sticky;
     top: 90px;
     height: fit-content;
     max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.LeftSidebar::-webkit-scrollbar { display: none; }
+
+@media (max-width: 1260px) {
+    .FlexContainer {
+        gap: 20px;
+        max-width: 1120px;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .LeftSidebar {
+        width: 220px;
+    }
+
+    .FeedContainer {
+        width: min(560px, 100%);
+    }
+
+    .RightSidebar {
+        width: 280px;
+    }
+}
+
+/* Mini profile card */
+.LeftBarProfileCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.15s;
+}
+
+.LeftBarProfileCard:hover {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.LeftBarProfileAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.LeftBarProfileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.LeftBarProfileName {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.LeftBarProfileHandle {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.LeftBarProfileStats {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.LeftBarProfileStats strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+/* Sections (Trending, Pages) */
+.LeftBarSection {
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+
+.LeftBarSectionTitle {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #9ca3af;
+    margin-bottom: 10px;
+}
+
+.LeftBarSectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.LeftBarSectionHeader .LeftBarSectionTitle {
+    margin-bottom: 0;
+}
+
+.LeftBarSectionAction {
+    border: none;
+    background: transparent;
+    color: var(--accent-color);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+}
+
+.LeftBarNavList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.LeftBarNavItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    text-decoration: none;
+    color: #1f2937;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.LeftBarNavItem:hover {
+    background: #f1f5f9;
+    border-color: #dbe4ef;
+    transform: translateY(-1px);
+}
+
+.LeftBarNavItem.Active {
+    background: rgba(14, 165, 233, 0.08);
+    border-color: rgba(14, 165, 233, 0.18);
+}
+
+.LeftBarNavIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-color);
+    flex-shrink: 0;
+    border: 1px solid #e5edf5;
+}
+
+.LeftBarNavIcon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.LeftBarNavBody {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.LeftBarNavLabel {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.LeftBarNavHint {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.LeftBarNavBadge {
+    margin-left: auto;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: #e8f3ff;
+    color: var(--accent-color);
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.LeftBarMiniBtn {
+    border: 1px solid #d7e3ef;
+    background: #f8fafc;
+    color: #1f2937;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.LeftBarMiniBtn:hover {
+    background: #eef6ff;
+    border-color: #bfd8ee;
+    transform: translateY(-1px);
+}
+
+.LeftBarMetrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.LeftBarMetric {
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.LeftBarMetricValue {
+    font-size: 18px;
+    line-height: 1.1;
+    font-weight: 800;
+    color: #111827;
+}
+
+.LeftBarMetricLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+}
+
+.LeftBarSectionText {
+    margin-top: 12px;
+    margin-bottom: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #6b7280;
+}
+
+/* Trending topics */
+.TrendingList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.TrendingTopic {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    transition: background 0.12s;
+}
+
+.TrendingTopic:hover { background: #f3f4f6; color: var(--accent-color); }
+
+.TrendingHash {
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+/* My Pages list */
+.LeftBarPageList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.LeftBarPageItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: 13px;
+    color: #374151;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    transition: background 0.12s, border-color 0.12s, transform 0.12s;
+}
+
+.LeftBarPageItem:hover {
+    background: #f1f5f9;
+    border-color: #dbe4ef;
+    transform: translateY(-1px);
+}
+
+.LeftBarPageLogo {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.LeftBarPageLogoPlaceholder {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--accent-color);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.LeftBarPageMeta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.LeftBarPageName {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.LeftBarPageHandle {
+    font-size: 11px;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.LeftBarEmptyState {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7fb 100%);
+    border: 1px dashed #c9d8e6;
+}
+
+.LeftBarEmptyState p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #6b7280;
+}
+
+.LeftBarEmptyTitle {
+    font-size: 14px;
+    font-weight: 800;
+    color: #111827;
+}
+
+/* Tablet: hide left sidebar sections */
+@media (max-width: 1100px) {
+    .LeftSidebar {
+        width: 0;
+        overflow: hidden;
+        padding: 0;
+    }
 }
 
 /* 2. Middle Feed */
@@ -1480,9 +1926,6 @@ body.ModalOpen {
 @media (max-width: 1100px) {
     .RightSidebar {
         display: none;
-    }
-    .LeftSidebar {
-        width: 80px; /* Shrink to icon-only mode? Or keep standard. Let's keep standard for now */
     }
     .FeedContainer {
         width: 550px;

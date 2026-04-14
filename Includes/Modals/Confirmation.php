@@ -5,6 +5,7 @@
 <div class="Modal Confirm  hidden">
     <div class="ModalContent">
         <h2 class="ModalTitle"></h2>
+        <p class="ModalHint hidden"></p>
 
         <form>
 

@@ -253,4 +253,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         die();
     }
+
+    // [ReqType 8] FETCH ACTIVITY (liked / commented / saved posts)
+    if ($ReqType == 8) {
+        $ActivityType = $_POST['ActivityType'] ?? 'liked'; // liked | commented | saved
+        $Limit = 20;
+
+        if ($ActivityType === 'liked') {
+            $sql = "SELECT p.id AS PID, p.Content, p.Date,
+                           u.Fname, u.Lname, u.ProfilePic, u.Username
+                    FROM likes lk
+                    INNER JOIN posts p ON p.id = lk.PostID
+                    INNER JOIN users u ON u.id = p.UID
+                    WHERE lk.UID = ? AND p.Status = 1
+                    ORDER BY lk.id DESC
+                    LIMIT $Limit";
+        } else if ($ActivityType === 'commented') {
+            $sql = "SELECT DISTINCT p.id AS PID, p.Content, p.Date,
+                           u.Fname, u.Lname, u.ProfilePic, u.Username
+                    FROM comments c
+                    INNER JOIN posts p ON p.id = c.PostID
+                    INNER JOIN users u ON u.id = p.UID
+                    WHERE c.UID = ? AND p.Status = 1
+                    ORDER BY c.Date DESC
+                    LIMIT $Limit";
+        } else { // saved
+            $sql = "SELECT p.id AS PID, p.Content, p.Date,
+                           u.Fname, u.Lname, u.ProfilePic, u.Username
+                    FROM saved_posts sp
+                    INNER JOIN posts p ON p.id = sp.PostID
+                    INNER JOIN users u ON u.id = p.UID
+                    WHERE sp.UID = ? AND p.Status = 1
+                    ORDER BY sp.id DESC
+                    LIMIT $Limit";
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$UID]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $posts = [];
+        foreach ($rows as $row) {
+            $params = ['Timestamp' => strtotime($row['Date'])];
+            $posts[] = [
+                'pid'       => Encrypt($row['PID'], 'Positioned', $params),
+                'content'   => $row['Content'],
+                'date'      => $row['Date'],
+                'fname'     => $row['Fname'],
+                'lname'     => $row['Lname'],
+                'username'  => $row['Username'],
+                'pic'       => $row['ProfilePic']
+                    ? 'MediaFolders/profile_pictures/' . $row['ProfilePic']
+                    : 'Imgs/Icons/unknown.png',
+            ];
+        }
+
+        echo json_encode(['success' => true, 'posts' => $posts]);
+        die();
+    }
 }

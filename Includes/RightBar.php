@@ -1,14 +1,6 @@
 <?php
-    // Fetch 5 Random Users NOT followed by current user
-    $sqlSug = "SELECT id, Fname, Lname, Username, ProfilePic, IsBlueTick
-               FROM users
-               WHERE id != ?
-               AND id NOT IN (SELECT UserID FROM followers WHERE FollowerID = ?)
-               ORDER BY RAND() LIMIT 5";
-    
-    $stmtSug = $pdo->prepare($sqlSug);
-    $stmtSug->execute([$UID, $UID]);
-    $suggestions = $stmtSug->fetchAll(PDO::FETCH_ASSOC);
+    // Smart Who to Follow — friends-of-friends + liked authors, fallback to random
+    $suggestions = GetSmartWhoToFollow($pdo, $UID, 5);
 ?>
 
 <div class="RightSidebar">

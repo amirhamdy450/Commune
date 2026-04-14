@@ -181,6 +181,8 @@ body{
 .ProfileActions {
     display: flex;
     gap: 10px;
+    position: relative;
+    align-items: center;
 }
 .EditProfileBtn {
     padding: 10px 25px;
@@ -238,18 +240,158 @@ body{
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 10px;
-    /* border: 1px solid; */
-    border-radius: 200px;
-    border: 2px solid #a29f9f;
+    width: 54px;
+    height: 54px;
+    padding: 0;
+    border-radius: 18px;
+    border: 1px solid #d8e1ea;
+    background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 .ProfileHeader .ActionBtn:hover{
-    background: #f0f0f0;
+    background: linear-gradient(180deg, #ffffff 0%, #eef6fc 100%);
+    border-color: #bfd4e8;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+    transform: translateY(-1px);
+}
+
+.ProfileHeader .ActionBtn:active {
+    transform: translateY(0) scale(0.97);
 }
 
 .ProfileHeader .ActionBtn img{
-    width: 25px;
-    height: 25px;
+    width: 22px;
+    height: 22px;
+    opacity: 0.85;
+}
+
+.ProfileHeader .ProfileActionBtn.Copied {
+    border-color: #86d7af;
+    background: linear-gradient(180deg, #ffffff 0%, #effcf4 100%);
+    box-shadow: 0 0 0 8px rgba(53, 179, 101, 0.12), 0 14px 28px rgba(53, 179, 101, 0.16);
+    animation: profileCopyPulse 0.65s ease;
+}
+
+.ActionMenu.ProfileContext {
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 220px;
+    z-index: 150;
+    border-radius: 20px;
+    border: 1px solid rgba(225, 232, 240, 0.95);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 22px 44px rgba(15, 23, 42, 0.16), 0 6px 18px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(14px);
+    overflow: visible;
+    transform-origin: top right;
+    animation: profileMenuIn 0.22s cubic-bezier(.21,1.02,.34,1);
+}
+
+.ActionMenu.ProfileContext::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 18px;
+    width: 16px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid rgba(225, 232, 240, 0.95);
+    border-left: 1px solid rgba(225, 232, 240, 0.95);
+    transform: rotate(45deg);
+    border-top-left-radius: 4px;
+}
+
+.ActionMenu.ProfileContext .ActionOption {
+    padding: 16px 18px;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #17202a;
+    transition: transform 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.ActionMenu.ProfileContext .ActionOption + .ActionOption {
+    border-top: 1px solid #eef2f6;
+}
+
+.ActionMenu.ProfileContext .ActionOption svg {
+    width: 18px;
+    height: 18px;
+    color: #6b7a8c;
+    flex-shrink: 0;
+    transition: color 0.16s ease, transform 0.16s ease;
+}
+
+.ActionMenu.ProfileContext .ActionOption:hover {
+    background: #f7fafc;
+    transform: translateX(2px);
+}
+
+.ActionMenu.ProfileContext .ActionOption:hover svg {
+    color: var(--accent-color);
+    transform: scale(1.06);
+}
+
+.ActionMenu.ProfileContext .ActionOption.Delete {
+    color: #e3344f;
+}
+
+.ActionMenu.ProfileContext .ActionOption.Delete svg {
+    color: #ef4d67;
+}
+
+.ActionMenu.ProfileContext .ActionOption.Delete:hover {
+    background: #fff3f5;
+}
+
+.ActionMenu.ProfileContext .ActionOption.Delete:hover svg {
+    color: #e3344f;
+}
+
+.ActionMenu.ProfileContext .ActionOption.Success {
+    background: linear-gradient(180deg, #f1fcf5 0%, #e8f9ef 100%);
+    color: #1f8f54;
+    pointer-events: none;
+}
+
+.ActionMenu.ProfileContext .ActionOption.Success svg {
+    color: #1f8f54;
+    animation: profileCopyCheck 0.28s ease;
+}
+
+@keyframes profileMenuIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes profileCopyPulse {
+    0% {
+        transform: scale(1);
+    }
+    40% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes profileCopyCheck {
+    from {
+        transform: scale(0.65);
+        opacity: 0.35;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 

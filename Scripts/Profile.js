@@ -445,6 +445,124 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
         window.addEventListener('scroll', checkAndLoadPosts);
         setTimeout(checkAndLoadPosts, 500); // Initial load delay
     }
+
+    const profileActionBtn = document.querySelector('.ProfileActionBtn');
+    const profileActions   = document.querySelector('.ProfileActions');
+    let profileActionMenu  = null;
+
+    function closeProfileActionMenu() {
+        if (profileActionMenu) {
+            profileActionMenu.remove();
+            profileActionMenu = null;
+        }
+    }
+
+    async function copyCurrentProfileLink() {
+        const shareLink = window.location.href;
+        try {
+            await navigator.clipboard.writeText(shareLink);
+            return true;
+        } catch (_error) {
+            window.prompt('Copy this profile link:', shareLink);
+            return false;
+        }
+    }
+
+    function markCopySuccess(copyOption) {
+        if (!copyOption) return;
+
+        copyOption.classList.add('Success');
+        copyOption.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+            Link Copied
+        `;
+
+        profileActionBtn.classList.add('Copied');
+        setTimeout(() => profileActionBtn.classList.remove('Copied'), 650);
+        setTimeout(() => closeProfileActionMenu(), 950);
+    }
+
+    if (profileActionBtn && profileActions) {
+        profileActionBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            if (profileActionMenu) {
+                closeProfileActionMenu();
+                return;
+            }
+
+            profileActionMenu = document.createElement('div');
+            profileActionMenu.className = 'ActionMenu ProfileContext';
+            profileActionMenu.innerHTML = `
+                <div class="ActionOption" data-action="copy-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M8 12.5 15.5 5a3 3 0 1 1 4.2 4.2l-8.3 8.3a5 5 0 0 1-7.1-7.1l7.9-7.9"></path>
+                    </svg>
+                    Copy Profile Link
+                </div>
+                <div class="ActionOption Delete" data-action="block-user">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="8"></circle>
+                        <path d="M8.5 8.5 15.5 15.5"></path>
+                    </svg>
+                    Block User
+                </div>
+            `;
+
+            profileActionMenu.addEventListener('click', async (evt) => {
+                evt.stopPropagation();
+
+                const option = evt.target.closest('.ActionOption');
+                if (!option) return;
+
+                const action = option.dataset.action;
+                const profileUID = profileActionBtn.dataset.uid;
+                const profileName = profileActionBtn.dataset.name || 'this user';
+
+                if (action === 'copy-link') {
+                    const copied = await copyCurrentProfileLink();
+                    if (copied) {
+                        markCopySuccess(option);
+                    } else {
+                        closeProfileActionMenu();
+                    }
+                    return;
+                }
+
+                if (action === 'block-user') {
+                    closeProfileActionMenu();
+                    ShowConfirmModal({
+                        Title: `Block ${profileName}?`,
+                        ConfirmText: 'Block',
+                        onConfirm: async () => {
+                            const formData = new FormData();
+                            formData.append('ReqType', 13);
+                            formData.append('BlockedUID', profileUID);
+
+                            const data = await Submit('POST', 'Origin/Operations/Feed.php', formData);
+                            if (data.success) {
+                                window.location.href = 'index.php';
+                            } else {
+                                alert(data.message || 'Could not block this user.');
+                            }
+                        },
+                        Action: 'Close'
+                    });
+                }
+            });
+
+            profileActions.appendChild(profileActionMenu);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!profileActions.contains(e.target)) {
+                closeProfileActionMenu();
+            }
+        });
+    }
+
     function clearFormErrors(form) {
         const target = form || editProfileForm;
         target.querySelectorAll(".TextField.Error").forEach(field => {

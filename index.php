@@ -13,6 +13,7 @@ if (isset($_GET['pid'])) {
 include $PATH.'Includes/RouteController.php';
 include $PATH.'Includes/UserAuth.php';
 include_once $PATH.'Includes/Encryption.php';
+include_once $PATH.'Includes/FeedAlgorithm.php';
 $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
 
@@ -47,42 +48,14 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
 
     <div class="FlexContainer">
 
+        <?php include 'Includes/LeftBar.php'; ?>
+
         <div class="FeedContainer">
             <?php
 
-            $sql = "SELECT
-                posts.id AS PID,
-                posts.*,
-                users.*,
-                CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
-                CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
-                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved,
-                pg.Name AS PageName,
-                pg.Handle AS PageHandle,
-                pg.Logo AS PageLogo,
-                pg.IsVerified AS PageIsVerified
-                FROM posts
-                INNER JOIN users ON posts.UID = users.id
-                LEFT JOIN pages pg ON posts.OrgID = pg.id
-                LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
-                LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
-                LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
-                LEFT JOIN followers f2 ON f2.UserID = ? AND f2.FollowerID = users.id
-                LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
-                WHERE posts.Status = 1 AND b.id IS NULL
-                AND (
-                    posts.UID = ?
-                    OR posts.OrgID IS NOT NULL
-                    OR posts.Visibility = 0
-                    OR (posts.Visibility = 1 AND f.UserID IS NOT NULL)
-                    OR (posts.Visibility = 2 AND f2.UserID IS NOT NULL)
-                    OR (posts.Visibility = 3 AND f.UserID IS NOT NULL AND f2.UserID IS NOT NULL)
-                )
-                ORDER BY posts.Date DESC
-                LIMIT 5";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$UID, $UID, $UID, $UID, $UID, $UID]);
-            $FeedPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Personalized feed — served from cache if fresh, rebuilt if stale
+            $FeedResult = GetPersonalizedFeed($pdo, $UID, 0);
+            $FeedPosts  = $FeedResult['posts'];
 
             // Set logged-in user's profile pic once — used by CreatePost modal
             $PostProfilePic = (isset($User['ProfilePic']) && !empty($User['ProfilePic']))
@@ -185,11 +158,19 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                         foreach ($Media as $document) {
                             if (in_array(strtolower($document), ['.', '..'])) continue;
                             $DocumentPath = $MediaFolder . '/' . $document;
-                            echo '<a class="FeedPostLink" href="' . APP_URL . '/' . $DocumentPath . '">
-                            <div class="UploadedFile">
-                                <img src="Imgs/Icons/Document.svg" >
-                                <p>' . $document . ' </p>
-                            </div>
+                            $DocExt = strtoupper(pathinfo($document, PATHINFO_EXTENSION));
+                            $DocName = htmlspecialchars(pathinfo($document, PATHINFO_FILENAME));
+                            echo '<a class="FeedPostLink" href="' . APP_URL . '/' . $DocumentPath . '" target="_blank" rel="noopener">
+                                <div class="UploadedFile">
+                                    <div class="UploadedFileIcon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                    </div>
+                                    <div class="UploadedFileBody">
+                                        <div class="UploadedFileName">' . $DocName . '</div>
+                                        <div class="UploadedFileExt">' . $DocExt . ' Document</div>
+                                    </div>
+                                    <svg class="UploadedFileArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                </div>
                             </a>';
                         }
                     }

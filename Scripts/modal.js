@@ -5,10 +5,21 @@ function ShowConfirmModal(Options){
 
   CurrentConfirmModalFunction = Options.onConfirm;
   let ModalTitle = modal.getElementsByClassName('ModalTitle')[0];
+  let ModalHint = modal.getElementsByClassName('ModalHint')[0];
   let ConfirmBtn = modal.getElementsByClassName('ConfirmBtn')[0];
   const cancelBtnAlt = modal.getElementsByClassName('ModalCancelBtn')[0];
   if(ModalTitle){
     ModalTitle.innerHTML = Options.Title;
+  }
+
+  if (ModalHint) {
+    if (Options.Hint) {
+      ModalHint.textContent = Options.Hint;
+      ModalHint.classList.remove('hidden');
+    } else {
+      ModalHint.textContent = '';
+      ModalHint.classList.add('hidden');
+    }
   }
 
   if(ConfirmBtn){
@@ -54,6 +65,10 @@ function ShowConfirmModal(Options){
   function CancelConfirmModal() {
     CurrentConfirmModalFunction = null;
     //reset modal content
+    if (ModalHint) {
+      ModalHint.textContent = '';
+      ModalHint.classList.add('hidden');
+    }
     modal.classList.add('hidden');
     document.body.classList.remove("ModalOpen");
 

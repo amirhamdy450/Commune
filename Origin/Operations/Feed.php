@@ -4,6 +4,7 @@ $PATH="../../";
 require_once $PATH."Includes/Config.php";
 require_once $PATH.'Includes/UserAuth.php';  //include validation to get user data
 require_once $PATH.'Includes/Encryption.php';
+require_once $PATH.'Includes/FeedAlgorithm.php';
 include_once $PATH.'Origin/Validation.php';
 
 
@@ -377,12 +378,15 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
               
                 CreateNotification($PostOwnerUID, $UID, 1, $FeedPostID);
 
+                // Liking changes affinity — invalidate this user's feed cache
+                InvalidateFeedCache($pdo, [$UID]);
+
                 echo json_encode([
                     'success' => true,
                     'message' => "Like Added",
                     'liked'=> true,
                     'Insertion'=> 1     // this will make the client-side know if its a normal insertion or is it deletion
-    
+
                 ]);
 
 
@@ -396,10 +400,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             if($stmt->execute([$FeedPostID,$UID])){ //execute the query and if successful we will do another query inside the posts table
 
                 //decrement the likes count  in the posts table
-                
+
                 $sql='UPDATE posts SET LikeCounter=LikeCounter-1 WHERE id=?';
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$FeedPostID]);
+
+                // Unlike changes affinity — invalidate this user's feed cache
+                InvalidateFeedCache($pdo, [$UID]);
 
                 echo json_encode([
                     'success' => true,
@@ -407,7 +414,6 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                     'liked'=> false,
                     'Insertion'=> -1  // this will make the client-side know if its a normal insertion or is it deletion
 
-    
                 ]);
 
 
@@ -571,125 +577,58 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         }
 
 
-    } else if ($_POST["ReqType"] == 5) { //fetch new posts to feed
-        $EncFeedPostAtr=$_POST['LastFeedPostPID']; //Enc stands for encrypted and atr stands for atribute
+    } else if ($_POST["ReqType"] == 5) { // Fetch next page of personalized feed
+        $FeedOffset = isset($_POST['FeedOffset']) ? max(0, (int)$_POST['FeedOffset']) : 0;
 
-        $FeedPostID=(int)Decrypt($EncFeedPostAtr,"Positioned"); //the position after I is the id , retrieve it and convert it to integer
-
-        //check if search filter is set
-        if (isset($_POST['Search'])) {
-            $SearchTerm = '%' . $_POST['Search'] . '%';
-        }
-
-
-        $sql = "SELECT
-                posts.id AS PID,
-                posts.*,
-                users.*,
-                CASE WHEN likes.UID IS NOT NULL THEN TRUE ELSE FALSE END AS liked,
-                CASE WHEN f.UserID IS NOT NULL THEN TRUE ELSE FALSE END AS following,
-                CASE WHEN sp.PostID IS NOT NULL THEN TRUE ELSE FALSE END AS saved,
-                pg.Name AS PageName,
-                pg.Handle AS PageHandle,
-                pg.Logo AS PageLogo,
-                pg.IsVerified AS PageIsVerified
-                FROM posts
-                INNER JOIN users ON posts.UID = users.id
-                LEFT JOIN pages pg ON posts.OrgID = pg.id
-                LEFT JOIN blocked_users b ON posts.UID = b.BlockedUID AND b.BlockerUID = ?
-                LEFT JOIN likes ON posts.id = likes.PostID AND likes.UID = ?
-                LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
-                LEFT JOIN followers f2 ON f2.UserID = ? AND f2.FollowerID = users.id
-                LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
-                WHERE posts.id < ? AND posts.Status = 1 AND b.id IS NULL
-                AND (
-                    posts.UID = ?
-                    OR posts.OrgID IS NOT NULL
-                    OR posts.Visibility = 0
-                    OR (posts.Visibility = 1 AND f.UserID IS NOT NULL)
-                    OR (posts.Visibility = 2 AND f2.UserID IS NOT NULL)
-                    OR (posts.Visibility = 3 AND f.UserID IS NOT NULL AND f2.UserID IS NOT NULL)
-                )
-                ORDER BY posts.Date DESC
-                LIMIT 5";
-        $stmt = $pdo->prepare($sql);
-
-        if($stmt->execute([$UID, $UID, $UID, $UID, $UID, $FeedPostID, $UID])){
-
-        $NewPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $FeedResult = GetPersonalizedFeed($pdo, $UID, $FeedOffset);
+        $NewPosts   = $FeedResult['posts'];
 
         $response = [];
-
         foreach ($NewPosts as $FeedPost) {
-            //convert Date to a Unix timestamp
-            $timestamp = strtotime($FeedPost['Date']);
-           /*  $FeedPostID = 'D'.$timestamp.'I'.$FeedPost['PID']; */
-            $encryptedFeedPostID = Encrypt($FeedPost['PID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
-
-           /*  $UserID = 'D'.$timestamp.'I'.$FeedPost['UID']; */
-            $encryptedUserID = Encrypt($FeedPost['UID'],"Positioned",["Timestamp"=>$timestamp]); // Makes it JSON-safe
-
+            $timestamp           = strtotime($FeedPost['Date']);
+            $encryptedFeedPostID = Encrypt($FeedPost['PID'], "Positioned", ["Timestamp" => $timestamp]);
+            $encryptedUserID     = Encrypt($FeedPost['UID'], "Positioned", ["Timestamp" => $timestamp]);
 
             $PostProfilePic = (isset($FeedPost['ProfilePic']) && !empty($FeedPost['ProfilePic']))
-                    ? 'MediaFolders/profile_pictures/' . htmlspecialchars($FeedPost['ProfilePic'])
-                    : 'Imgs/Icons/unknown.png';
+                ? 'MediaFolders/profile_pictures/' . htmlspecialchars($FeedPost['ProfilePic'])
+                : 'Imgs/Icons/unknown.png';
 
-
-            $MediaFolder = $PATH.$FeedPost['MediaFolder'];
+            $MediaFolder = $PATH . $FeedPost['MediaFolder'];
             $media = [];
-            if (is_dir($MediaFolder)) {
-                $MediaFiles = scandir($MediaFolder);
-               // echo $MediaFiles.'\n';
-                foreach ($MediaFiles as $file) {
-                    if (in_array(strtolower($file), ['.', '..'])) { //this to ignore dots that are treated as files in scandir , (.) represents current directory and (..) represents parent directory
-
-                        continue;  //skip this iteration
-                    }
-
-                    $filePath = $FeedPost['MediaFolder'] . '/' . $file;
-
-                    $media[] = [
-                        'name'=>$file,
-                        'path' => $filePath,
-                    ];
-                    
+            if (!empty($FeedPost['MediaFolder']) && is_dir($MediaFolder)) {
+                foreach (scandir($MediaFolder) as $file) {
+                    if (in_array(strtolower($file), ['.', '..'])) continue;
+                    $media[] = ['name' => $file, 'path' => $FeedPost['MediaFolder'] . '/' . $file];
                 }
-            }/* else{
-                echo "Media Folder Not Found\n";
-            } */
-        
-            // Add post details to the response array
+            }
+
             $response[] = [
-                'PID' => $encryptedFeedPostID,
-                'UID' => $encryptedUserID,
-                'name' => $FeedPost['Fname'] . ' ' . $FeedPost['Lname'],
-                'Username' => $FeedPost['Username'],
-                'Date' => $timestamp,
-                'Content' => $FeedPost['Content'],
-                'LikeCounter' => $FeedPost['LikeCounter'],
-                'CommentCounter' => $FeedPost['CommentCounter'],
-                'MediaFolder' => $media,
-                'MediaType'=> (int)$FeedPost['Type'],
-                'CurrentUserPrivilege'=> (int)$User['Privilege'],
-                'liked'=>$FeedPost['liked'],
-                'following'=>$FeedPost['following'],
-                'Self' => (int)($FeedPost['UID'] == $UID), //identify if the post belongs to the user
-                'saved'=>(int)$FeedPost['saved'],
-                'ProfilePic' => $PostProfilePic,
-                'IsBlueTick' => (int)$FeedPost['IsBlueTick'],
-                'PageName' => $FeedPost['PageName'] ?? null,
-                'PageHandle' => $FeedPost['PageHandle'] ?? null,
-                'PageLogo' => $FeedPost['PageLogo'] ? 'MediaFolders/page_logos/' . $FeedPost['PageLogo'] : null,
-                'PageIsVerified' => (int)($FeedPost['PageIsVerified'] ?? 0),
-                'Visibility' => (int)($FeedPost['Visibility'] ?? 0)
+                'PID'              => $encryptedFeedPostID,
+                'UID'              => $encryptedUserID,
+                'name'             => $FeedPost['Fname'] . ' ' . $FeedPost['Lname'],
+                'Username'         => $FeedPost['Username'],
+                'Date'             => $timestamp,
+                'Content'          => $FeedPost['Content'],
+                'LikeCounter'      => $FeedPost['LikeCounter'],
+                'CommentCounter'   => $FeedPost['CommentCounter'],
+                'MediaFolder'      => $media,
+                'MediaType'        => (int)$FeedPost['Type'],
+                'CurrentUserPrivilege' => (int)$User['Privilege'],
+                'liked'            => $FeedPost['liked'],
+                'following'        => $FeedPost['following'],
+                'Self'             => (int)($FeedPost['UID'] == $UID),
+                'saved'            => (int)$FeedPost['saved'],
+                'ProfilePic'       => $PostProfilePic,
+                'IsBlueTick'       => (int)$FeedPost['IsBlueTick'],
+                'PageName'         => $FeedPost['PageName'] ?? null,
+                'PageHandle'       => $FeedPost['PageHandle'] ?? null,
+                'PageLogo'         => $FeedPost['PageLogo'] ? 'MediaFolders/page_logos/' . $FeedPost['PageLogo'] : null,
+                'PageIsVerified'   => (int)($FeedPost['PageIsVerified'] ?? 0),
+                'Visibility'       => (int)($FeedPost['Visibility'] ?? 0)
             ];
-
-
         }
-
 
         echo json_encode($response);
-        }
 
     } else if($_POST["ReqType"] == 6){ //delete a post
         $EncFeedPostAtr=$_POST['FeedPostID']; //Enc stands for encrypted and atr stands for atribute
@@ -1071,6 +1010,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 // Decrement counters
                 $pdo->prepare("UPDATE users SET Followers=Followers-1 WHERE id=?")->execute([$TargetUserID]);
                 $pdo->prepare("UPDATE users SET Following=Following-1 WHERE id=?")->execute([$UID]);
+                // Unfollow changes both users' feeds — invalidate both
+                InvalidateFeedCache($pdo, [$UID, $TargetUserID]);
                 echo json_encode([
                     'success' => true,
                     'message' => "Unfollowed",
@@ -1085,6 +1026,8 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 $pdo->prepare("UPDATE users SET Followers=Followers+1 WHERE id=?")->execute([$TargetUserID]);
                 $pdo->prepare("UPDATE users SET Following=Following+1 WHERE id=?")->execute([$UID]);
                 CreateNotification($TargetUserID, $UID, 4);
+                // Follow changes both users' feeds — invalidate both
+                InvalidateFeedCache($pdo, [$UID, $TargetUserID]);
                 echo json_encode([
                     'success' => true,
                     'message' => "Followed",
@@ -1513,6 +1456,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => 'Error deleting reply']);
         }
+    } else if ($_POST["ReqType"] == 18) { // Record post view
+        $EncPostID = $_POST["FeedPostID"] ?? "";
+        $PostID = (int)Decrypt($EncPostID, "Positioned");
+        if ($PostID > 0) {
+            $pdo->prepare("INSERT IGNORE INTO post_views (PostID, UID, ViewedAt) VALUES (?, ?, NOW())")->execute([$PostID, $UID]);
+        }
+        echo json_encode(["success" => true]);
     }
     
 

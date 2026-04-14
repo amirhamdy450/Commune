@@ -408,12 +408,20 @@ function generateMediaContent(post) {
         mediaContent += `<img src="${image.path}" alt="">`;
       });
     } else if (parseInt(post.MediaType) === 3) {
-      post.MediaFolder.forEach(document => {
+      post.MediaFolder.forEach(doc => {
+        const ext = doc.name.split('.').pop().toUpperCase();
+        const nameNoExt = doc.name.replace(/\.[^/.]+$/, '');
         mediaContent += `
-          <a href="${document.path}" class="FeedPostLink">
+          <a href="${doc.path}" class="FeedPostLink" target="_blank" rel="noopener">
             <div class="UploadedFile">
-              <img src="Imgs/Icons/Document.svg">
-              ${document.name}
+              <div class="UploadedFileIcon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+              </div>
+              <div class="UploadedFileBody">
+                <div class="UploadedFileName">${nameNoExt}</div>
+                <div class="UploadedFileExt">${ext} Document</div>
+              </div>
+              <svg class="UploadedFileArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </div>
           </a>`;
       });
@@ -427,6 +435,7 @@ function generateMediaContent(post) {
 function fetchMorePosts() {
   let isFetching = false;
   let noMorePosts = false;
+  let feedOffset = document.getElementsByClassName('FeedPost').length; // start after server-rendered posts
   const loader = document.getElementsByClassName('FeedLoader')[0];
   const feedContainer = document.getElementsByClassName('FeedContainer')[0];
 
@@ -442,10 +451,9 @@ function fetchMorePosts() {
           isFetching = false;
           return;
         }
-        const lastPostPID = allFeedPosts[allFeedPosts.length - 1].getAttribute('pid');
         const formData = new FormData();
         formData.append('ReqType', 5);
-        formData.append('LastFeedPostPID', lastPostPID);
+        formData.append('FeedOffset', feedOffset);
 
         fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: formData })
           .then(response => response.json())
@@ -457,6 +465,7 @@ function fetchMorePosts() {
                 const newPostElement = feedContainer.lastElementChild;
                 attachPostInteractions(newPostElement);
               });
+              feedOffset += data.length;
               feedContainer.appendChild(loader);
             } else {
               noMorePosts = true;
@@ -1549,7 +1558,11 @@ function resetPostModal() {
 
     // Restore PostAs row (hidden during edit)
     const PostAsRowEl = document.getElementById('PostAsSelector')?.closest('.PostAsRow');
-    if (PostAsRowEl) PostAsRowEl.style.display = '';
+    if (typeof window.SyncPostAsVisibility === 'function') {
+        window.SyncPostAsVisibility();
+    } else if (PostAsRowEl) {
+        PostAsRowEl.style.display = '';
+    }
 
     // Reset visibility selector to "Everyone"
     document.getElementById('VisibilityDropdown')?.classList.add('hidden');
@@ -2079,9 +2092,55 @@ document.addEventListener('DOMContentLoaded', () => {
     el.textContent = TimeAgo(ts);
   });
 
-  // Scroll event for infinite loading
-  if( document.body.classList.contains('FetchPostsOnScroll')) {
-    window.addEventListener('scroll', fetchMorePosts());
+  // Post view tracking — scroll-position based, no browser observers needed.
+  // A post counts as "viewed" when it has been at least 50% in the viewport for 1.5 seconds.
+  if (document.body.classList.contains('FetchPostsOnScroll')) {
+    const ViewedPIDs   = new Set(); // already recorded
+    const ViewTimers   = new Map(); // pid -> setTimeout handle
+
+    function CheckPostsInView() {
+      const VH = window.innerHeight;
+      const Posts = document.getElementsByClassName('FeedPost');
+      for (let i = 0; i < Posts.length; i++) {
+        const post = Posts[i];
+        const pid  = post.getAttribute('pid');
+        if (!pid || ViewedPIDs.has(pid)) continue;
+
+        const rect    = post.getBoundingClientRect();
+        const visible = Math.min(rect.bottom, VH) - Math.max(rect.top, 0);
+        const ratio   = visible / rect.height;
+
+        if (ratio >= 0.5) {
+          // Post is sufficiently visible — start a timer if not already started
+          if (!ViewTimers.has(pid)) {
+            ViewTimers.set(pid, setTimeout(() => {
+              if (ViewedPIDs.has(pid)) return;
+              ViewedPIDs.add(pid);
+              ViewTimers.delete(pid);
+              const fd = new FormData();
+              fd.append('ReqType', 18);
+              fd.append('FeedPostID', pid);
+              fetch('Origin/Operations/Feed.php', { method: 'POST', headers: { 'X-CSRF-Token': CsrfToken }, body: fd }).catch(() => {});
+            }, 1500)); // 1.5 seconds dwell = counts as a view
+          }
+        } else {
+          // Post scrolled out before timer fired — cancel it
+          if (ViewTimers.has(pid)) {
+            clearTimeout(ViewTimers.get(pid));
+            ViewTimers.delete(pid);
+          }
+        }
+      }
+    }
+
+    const ScrollHandler = fetchMorePosts();
+    window.addEventListener('scroll', () => {
+      ScrollHandler();
+      CheckPostsInView();
+    });
+
+    // Check on page load for posts already in view
+    CheckPostsInView();
   }
 
 
@@ -2133,12 +2192,14 @@ document.addEventListener('DOMContentLoaded', () => {
   //check if the body has an id of VProfile
   if(document.body.id === 'VProfile'){
     const followButton= document.getElementsByClassName('FollowBtn')[0];
-    const uid= followButton.getAttribute('uid');
+    if (followButton) {
+      const uid= followButton.getAttribute('uid');
 
-    followButton.addEventListener('click', () => {
-      FollowHandler(followButton, uid);
-    });
-    AttachFollowHover(followButton);
+      followButton.addEventListener('click', () => {
+        FollowHandler(followButton, uid);
+      });
+      AttachFollowHover(followButton);
+    }
   }
 
 

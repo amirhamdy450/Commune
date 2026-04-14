@@ -1,4 +1,4 @@
-import { Submit, PopulateFieldError } from "./Forms.js";
+import { Submit } from "./Forms.js";
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Load Data if needed
             if (targetId === 'SecurityTab') loadActiveSessions();
             if (targetId === 'PrivacyTab') loadBlockedUsers();
+            if (targetId === 'ActivityTab') loadActivity('liked');
         });
     });
 
@@ -187,7 +188,63 @@ async function loadActiveSessions() {
         }
     }
 
-    // 6. Delete Account
+    // 6. Activity Tab
+    const ActivityBtns = document.getElementsByClassName('ActivityTabBtn');
+    const ActivityPanels = document.getElementsByClassName('ActivityPanel');
+    const ActivityLoaded = {};
+
+    for (let i = 0; i < ActivityBtns.length; i++) {
+        ActivityBtns[i].addEventListener('click', function() {
+            for (let j = 0; j < ActivityBtns.length; j++) ActivityBtns[j].classList.remove('Active');
+            for (let j = 0; j < ActivityPanels.length; j++) ActivityPanels[j].classList.remove('Active');
+            this.classList.add('Active');
+            const ActivityType = this.getAttribute('data-activity').replace('Tab', '').toLowerCase();
+            document.getElementById(this.getAttribute('data-activity')).classList.add('Active');
+            if (!ActivityLoaded[ActivityType]) loadActivity(ActivityType);
+        });
+    }
+
+    async function loadActivity(Type) {
+        const PanelMap = { liked: 'LikedTab', commented: 'CommentedTab', saved: 'SavedTab' };
+        const Panel = document.getElementById(PanelMap[Type]);
+        Panel.innerHTML = '<div class="Loader"></div>';
+
+        const formData = new FormData();
+        formData.append('ReqType', 8);
+        formData.append('ActivityType', Type);
+        const data = await Submit('POST', 'Origin/Operations/Settings.php', formData);
+
+        if (!data.success || data.posts.length === 0) {
+            const Labels = { liked: 'liked', commented: 'commented on', saved: 'saved' };
+            Panel.innerHTML = `
+                <div class="ActivityEmpty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    No posts ${Labels[Type]} yet.
+                </div>`;
+            ActivityLoaded[Type] = true;
+            return;
+        }
+
+        let html = '';
+        data.posts.forEach(post => {
+            const snippet = post.content.length > 80 ? post.content.substring(0, 80) + '…' : post.content;
+            const date = new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            html += `
+                <a href="index.php?target=post&pid=${encodeURIComponent(post.pid)}" class="ActivityPostItem">
+                    <img src="${post.pic}" class="ActivityPostAvatar" alt="">
+                    <div class="ActivityPostMeta">
+                        <div class="ActivityPostAuthor">${post.fname} ${post.lname} <span style="color:#94a3b8;font-weight:400">@${post.username}</span></div>
+                        <div class="ActivityPostText">${snippet}</div>
+                        <div class="ActivityPostDate">${date}</div>
+                    </div>
+                </a>`;
+        });
+
+        Panel.innerHTML = html;
+        ActivityLoaded[Type] = true;
+    }
+
+    // 7. Delete Account
     const deleteBtn = document.getElementById('DeleteAccountBtn');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', () => {
@@ -195,6 +252,7 @@ async function loadActiveSessions() {
             if (typeof ShowConfirmModal === 'function') {
                 ShowConfirmModal({
                     Title: "Delete your account?",
+                    Hint: "Your account will be permanently deleted along with your posts, saved items, and profile data.",
                     ConfirmText: "Permanently Delete",
                     Action: "Close", // We handle redirect manually
                     onConfirm: async () => {

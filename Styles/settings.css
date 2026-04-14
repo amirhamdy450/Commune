@@ -52,14 +52,15 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
-.SettingsNavItem img {
-    width: 20px;
-    height: 20px;
-    opacity: 0.6;
+.SettingsNavItem svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    stroke: #94a3b8;
+    transition: stroke 0.2s;
 }
-.SettingsNavItem.Active img {
-    opacity: 1;
-    filter: invert(35%) sepia(93%) saturate(1352%) hue-rotate(203deg) brightness(89%) contrast(89%); /* Matches accent color roughly */
+.SettingsNavItem.Active svg {
+    stroke: var(--accent-color);
 }
 
 /* Content Area (Right) */
@@ -195,18 +196,61 @@
 /* Danger Zone */
 .DangerZone {
     margin-top: 40px;
-    border-top: 1px solid #ffcccc;
-    padding-top: 20px;
+    border: 1px solid #ffd8dd;
+    background: linear-gradient(180deg, #fffafa 0%, #fff5f6 100%);
+    border-radius: 18px;
+    padding: 22px 22px 20px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
 }
 .DangerZone h3 {
-    color: #f4212e;
+    color: #d9293e;
+    font-size: 20px;
+    margin: 0;
+}
+
+.DangerZone .SubText {
+    max-width: 560px;
+    margin: 0;
+    color: #6f4450;
+    line-height: 1.6;
+}
+
+.DangerZoneBadge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #fff0f2;
+    border: 1px solid #ffc9d0;
+    color: #d9293e;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.DangerZoneActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 2px;
 }
 
 #DeleteAccountBtn {
     max-width: 300px;
+    min-height: 46px;
+    padding: 12px 22px;
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgba(228, 54, 78, 0.15);
+}
+
+#DeleteAccountBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(228, 54, 78, 0.2);
 }
 
 .CurrentSessionBadge {
@@ -247,8 +291,17 @@
 }
 
 .VerifPendingIcon {
-    font-size: 28px;
-    line-height: 1;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.VerifPendingIcon svg {
+    width: 28px;
+    height: 28px;
+    stroke: #b45309;
 }
 
 .VerifSettingsTitle {
@@ -273,6 +326,130 @@
     font-size: 14px;
     font-weight: 600;
 }
+
+/* Activity Tab */
+.ActivityTabBar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #eff3f4;
+    padding-bottom: 0;
+}
+
+.ActivityTabBtn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #536471;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.ActivityTabBtn svg {
+    width: 15px;
+    height: 15px;
+    stroke: #94a3b8;
+    transition: stroke 0.15s;
+}
+
+.ActivityTabBtn:hover {
+    color: #0f1419;
+}
+
+.ActivityTabBtn.Active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+    font-weight: 600;
+}
+
+.ActivityTabBtn.Active svg {
+    stroke: var(--accent-color);
+}
+
+.ActivityPanel {
+    display: none;
+}
+
+.ActivityPanel.Active {
+    display: block;
+}
+
+.ActivityPostItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+    text-decoration: none;
+    color: inherit;
+}
+
+.ActivityPostItem:last-child {
+    border-bottom: none;
+}
+
+.ActivityPostItem:hover .ActivityPostText {
+    color: var(--accent-color);
+}
+
+.ActivityPostAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.ActivityPostMeta {
+    flex: 1;
+    min-width: 0;
+}
+
+.ActivityPostAuthor {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f1419;
+    margin-bottom: 2px;
+}
+
+.ActivityPostText {
+    font-size: 13px;
+    color: #536471;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.15s;
+}
+
+.ActivityPostDate {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+.ActivityEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 40px 20px;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.ActivityEmpty svg {
+    width: 36px;
+    height: 36px;
+    stroke: #cbd5e1;
+}
+
 @media (max-width: 750px) {
     .SettingsContainer {
         margin: 70px 10px 80px;
@@ -291,5 +468,17 @@
     }
     .SettingsContent {
         padding: 16px;
+    }
+    .DangerZone {
+        padding: 18px 16px;
+        border-radius: 15px;
+    }
+    .DangerZoneActions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    #DeleteAccountBtn {
+        max-width: none;
+        width: 100%;
     }
 }

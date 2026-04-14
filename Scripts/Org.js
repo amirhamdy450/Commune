@@ -34,6 +34,13 @@ function OpenCreatePageModal() {
 
 window.OpenCreatePageModal = OpenCreatePageModal;
 
+document.addEventListener('click', e => {
+    const Trigger = e.target.closest('[data-open-create-page]');
+    if (!Trigger) return;
+    e.preventDefault();
+    OpenCreatePageModal();
+});
+
 CreatePageClose.addEventListener('click', () => CreatePageModal.classList.add('hidden'));
 CreatePageModal.addEventListener('click', e => {
     if (e.target === CreatePageModal) CreatePageModal.classList.add('hidden');
@@ -123,35 +130,75 @@ const PostAsDropdown = document.getElementById('PostAsDropdown');
 const PostAsPageID   = document.getElementById('CPostAsPageID');
 const PostAsLabel    = document.getElementById('PostAsLabel');
 const PostAsAvatar   = document.getElementById('PostAsAvatar');
+const PostAsRow      = PostAsSelector ? PostAsSelector.closest('.PostAsRow') : null;
 
 let PostAsPagesLoaded = false;
+let PostAsPageCount   = 0;
+
+function SyncPostAsVisibility() {
+    if (!PostAsRow) return;
+
+    const EditID = document.getElementById('CPostEditID');
+    const IsEditing = !!(EditID && EditID.value);
+
+    if (IsEditing) {
+        PostAsRow.style.display = 'none';
+        return;
+    }
+
+    PostAsRow.style.display = PostAsPageCount > 0 ? '' : 'none';
+}
+
+async function EnsurePostAsPagesLoaded() {
+    if (!PostAsDropdown || PostAsPagesLoaded) {
+        SyncPostAsVisibility();
+        return PostAsPageCount;
+    }
+
+    try {
+        const Data = await Post(3);
+        const Pages = (Data && Data.success && Array.isArray(Data.pages)) ? Data.pages : [];
+
+        if (Pages.length > 0) {
+            Pages.forEach(Page => {
+                const Opt = document.createElement('div');
+                Opt.className = 'PostAsOption';
+                Opt.dataset.pageid = Page.EncID;
+                Opt.dataset.label  = 'Posting as ' + Page.Name;
+                Opt.innerHTML = Page.Logo
+                    ? `<img src="${Page.Logo}" class="PostAsImg" alt=""><span>${Page.Name}</span>`
+                    : `<div class="PostAsLogoPlaceholder">${Page.Name.charAt(0).toUpperCase()}</div><span>${Page.Name}</span>`;
+                PostAsDropdown.appendChild(Opt);
+            });
+        }
+
+        PostAsPageCount = Pages.length;
+    } catch (_error) {
+        PostAsPageCount = 0;
+    }
+
+    PostAsPagesLoaded = true;
+    SyncPostAsVisibility();
+    return PostAsPageCount;
+}
 
 // On mobile, move PostAsDropdown to body to escape overflow:auto clipping (iOS WebKit bug)
 if (PostAsDropdown && window.innerWidth <= 750) {
     document.body.appendChild(PostAsDropdown);
 }
 
+if (PostAsRow) {
+    PostAsRow.style.display = 'none';
+    EnsurePostAsPagesLoaded();
+}
+
 if (PostAsSelector) {
     PostAsSelector.addEventListener('click', async () => {
+        const Count = await EnsurePostAsPagesLoaded();
+        if (Count === 0) return;
+
         const IsOpen = !PostAsDropdown.classList.contains('hidden');
         if (IsOpen) { PostAsDropdown.classList.add('hidden'); return; }
-
-        if (!PostAsPagesLoaded) {
-            const Data = await Post(3);
-            if (Data.success && Data.pages.length > 0) {
-                Data.pages.forEach(Page => {
-                    const Opt = document.createElement('div');
-                    Opt.className = 'PostAsOption';
-                    Opt.dataset.pageid = Page.EncID;
-                    Opt.dataset.label  = 'Posting as ' + Page.Name;
-                    Opt.innerHTML = Page.Logo
-                        ? `<img src="${Page.Logo}" class="PostAsImg" alt=""><span>${Page.Name}</span>`
-                        : `<div class="PostAsLogoPlaceholder">${Page.Name.charAt(0).toUpperCase()}</div><span>${Page.Name}</span>`;
-                    PostAsDropdown.appendChild(Opt);
-                });
-            }
-            PostAsPagesLoaded = true;
-        }
 
         // Position fixed below the selector (works after body move on mobile)
         const Rect = PostAsSelector.getBoundingClientRect();
@@ -198,3 +245,5 @@ function SelectPostAsOption(Opt) {
 }
 
 window.SelectPostAsOption = SelectPostAsOption;
+window.SyncPostAsVisibility = SyncPostAsVisibility;
+window.EnsurePostAsPagesLoaded = EnsurePostAsPagesLoaded;

@@ -215,7 +215,13 @@
                             <?php else: ?>
                                 <button class="BrandBtn FollowBtn" uid="<?php echo $EncUserID; ?>">Follow</button>
                             <?php endif; ?>
-                         <div class="ActionBtn"><img src="Imgs/Icons/3-dots.svg"></div>
+                         <div
+                            class="ActionBtn ProfileActionBtn"
+                            data-uid="<?php echo htmlspecialchars($EncUserID, ENT_QUOTES); ?>"
+                            data-username="<?php echo htmlspecialchars($ProfileUser['Username'], ENT_QUOTES); ?>"
+                            data-name="<?php echo htmlspecialchars($ProfileUser['Fname'].' '.$ProfileUser['Lname'], ENT_QUOTES); ?>"
+                            title="Profile actions"
+                         ><img src="Imgs/Icons/3-dots.svg" alt="Profile actions"></div>
 
                         <?php endif; ?>
 
