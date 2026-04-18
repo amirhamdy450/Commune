@@ -116,6 +116,7 @@ function GetFromFeedCache(PDO $pdo, int $UID, int $offset): ?array {
                  LEFT JOIN followers f ON f.UserID = users.id AND f.FollowerID = ?
                  LEFT JOIN saved_posts sp ON posts.id = sp.PostID AND sp.UID = ?
                  WHERE posts.id IN ($placeholders)
+                   AND posts.Status = 1
                  ORDER BY FIELD(posts.id, $orderList)";
 
     $params = [$UID, $UID, $UID, ...$cachedIDs];

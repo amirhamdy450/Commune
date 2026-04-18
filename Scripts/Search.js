@@ -1,5 +1,5 @@
 import { Submit } from "./Forms.js";
-import { createPostHTML, attachPostInteractions } from "./Feed.js";
+import { createPostHTML, attachPostInteractions } from "./Components/PostCard.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchQuery = document.body.dataset.searchQuery;

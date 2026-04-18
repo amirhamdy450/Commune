@@ -1,5 +1,5 @@
 import { Submit } from "./Forms.js";
-import { createPostHTML, attachPostInteractions } from "./Feed.js";
+import { createPostHTML, attachPostInteractions } from "./Components/PostCard.js";
 
 function hasReachedBottom(threshold = 150) {
     const { scrollTop, scrollHeight, clientHeight } = document.documentElement;

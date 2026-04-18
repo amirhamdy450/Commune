@@ -1,4 +1,5 @@
 import { Submit } from "./Forms.js";
+import { confirmAccountDeletion, confirmDestructiveAction } from "./Components/ConfirmActions.js";
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -117,10 +118,9 @@ async function loadActiveSessions() {
             // 2. --- THIS WAS MISSING: Attach Revoke Listeners ---
             container.querySelectorAll('.RevokeBtn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    ShowConfirmModal({
+                    confirmDestructiveAction({
                         Title: "Revoke this session?",
                         ConfirmText: "Revoke",
-                        Action: "Close",
                         onConfirm: async () => {
                             btn.textContent = '...';
                             btn.disabled = true;
@@ -131,7 +131,7 @@ async function loadActiveSessions() {
 
                             await Submit('POST', 'Origin/Operations/Settings.php', formData);
                             loadActiveSessions();
-                        }
+                                                }
                     });
                 });
             });
@@ -250,11 +250,7 @@ async function loadActiveSessions() {
         deleteBtn.addEventListener('click', () => {
             // Assuming ShowConfirmModal is globally available from modal.js
             if (typeof ShowConfirmModal === 'function') {
-                ShowConfirmModal({
-                    Title: "Delete your account?",
-                    Hint: "Your account will be permanently deleted along with your posts, saved items, and profile data.",
-                    ConfirmText: "Permanently Delete",
-                    Action: "Close", // We handle redirect manually
+                confirmAccountDeletion({
                     onConfirm: async () => {
                         const formData = new FormData();
                         formData.append('ReqType', 7);
@@ -280,3 +276,9 @@ async function loadActiveSessions() {
     }
 
 });
+
+
+
+
+
+

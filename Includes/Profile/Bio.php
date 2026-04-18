@@ -1,4 +1,5 @@
 <?php
+include_once $PATH . 'Includes/Components/EmptyState.php';
 
 if($ProfileUser['Bio']){
     echo "
@@ -12,13 +13,7 @@ if($ProfileUser['Bio']){
         <p class='BioText'>" . nl2br(htmlspecialchars($ProfileUser['Bio'])) . "</p>
     </div>";
 }else{
-    echo "
-        <div class='ProfileEmptyState'>
-            <img src='Imgs/Icons/no-bio.svg' alt=''>
-            <h3>No bio yet</h3>
-            <p>This user hasn't written anything about themselves.</p>
-        </div>
-    ";
+    RenderEmptyState('Imgs/Icons/no-bio.svg', 'No bio yet', 'This user hasn\'t written anything about themselves.');
 }
 
 

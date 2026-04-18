@@ -1,13 +1,6 @@
-import { Submit } from './Forms.js';
-import { attachPostInteractions, attachCommentInteractions, createPostHTML } from './Feed.js';
-
-function Post(ReqType, Extra = {}, Files = null) {
-    const Fd = new FormData();
-    Fd.append('ReqType', ReqType);
-    Object.entries(Extra).forEach(([K, V]) => Fd.append(K, V));
-    if (Files) Object.entries(Files).forEach(([K, F]) => { if (F) Fd.append(K, F); });
-    return Submit('POST', 'Origin/Operations/Org.php', Fd);
-}
+import { attachPostInteractions, createPostHTML } from './Components/PostCard.js';
+import { attachCommentInteractions } from './Components/CommentThread.js';
+import { toggleFollowPage, checkPageHandleAvailability, updatePage, fetchMorePagePosts } from './Api/OrgApi.js';
 
 // ── Attach interactions to all server-rendered posts ─────────────────────
 [...document.getElementsByClassName('FeedPost')].forEach(Post => attachPostInteractions(Post));
@@ -34,7 +27,7 @@ const TabContents = document.getElementsByClassName('TabContent');
         const Following = Btn.classList.contains('Followed');
         Btn.disabled    = true;
 
-        const Data = await Post(4, { PageID, Action: Following ? 0 : 1 });
+        const Data = await toggleFollowPage(PageID, Following ? 0 : 1);
 
         if (Data.success) {
             Btn.classList.toggle('Followed', !Following);
@@ -114,7 +107,7 @@ if (ManageBtn && EditPageModal) {
         if (Val.length < 2) { Hint.textContent = 'Only letters, numbers and underscores.'; Hint.className = 'CreatePageHint'; return; }
         Hint.textContent = 'Checking…'; Hint.className = 'CreatePageHint';
         HandleDebounce = setTimeout(async () => {
-            const Data = await Post(2, { Handle: Val });
+            const Data = await checkPageHandleAvailability(Val);
             if (Data.available) { Hint.textContent = '@' + Val + ' is available'; Hint.className = 'CreatePageHint Available'; }
             else { Hint.textContent = '@' + Val + ' is taken'; Hint.className = 'CreatePageHint Taken'; }
         }, 400);
@@ -136,7 +129,7 @@ if (ManageBtn && EditPageModal) {
         EditPageSubmit.classList.add('hidden');
         EditPageLoader.classList.remove('hidden');
 
-        const Data = await Post(5, { PageID, Name, Handle, Category, Website, Bio }, { Logo: PendingLogo, Cover: PendingCover });
+        const Data = await updatePage(PageID, { Name, Handle, Category, Website, Bio }, { Logo: PendingLogo, Cover: PendingCover });
 
         EditPageSubmit.classList.remove('hidden');
         EditPageLoader.classList.add('hidden');
@@ -183,7 +176,7 @@ if (PagePostsContainer && window.PageContext) {
         const Loader = document.querySelector('.FeedLoader');
         if (Loader) Loader.classList.remove('hidden');
 
-        const Data = await Post(6, { PageID: window.PageContext.PageID, LastPostID: LastPID });
+        const Data = await fetchMorePagePosts(window.PageContext.PageID, LastPID);
 
         if (Loader) Loader.classList.add('hidden');
         PageScrollLoading = false;

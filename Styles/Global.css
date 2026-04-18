@@ -637,132 +637,305 @@ body.ModalOpen {
 .CPost {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 0;
     width: 100%;
-    max-width: 685px;
-    align-items: center;
-    background: #f5f5f5;
-    /* max-height: 500px; */
-    padding: 20px;
-    /* margin: 0 auto; */
+    max-width: 620px;
+    background: #ffffff;
+    max-height: 85vh;
+    overflow-y: auto;
     border-radius: 20px;
     position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #e2e8f0 transparent;
 }
 
-
-.CPostContainer .ModalCancel {
-    position: absolute;
-    top: 27px;
-    right: 20px;
-    cursor: pointer;
-    width: 20px;
-    height: 25px;
-}
-.CPostContainer .ModalCancel:before {
-  content: '';
-  background-color: #2f2f2f;
-  display: block;
-  width: 3px;
-  height: 20px;
-  transform: rotate(-45deg);
-  position: absolute;
-  top: 0;
-  right: 6px;
-}
-
-.CPostContainer .ModalCancel:after {
-  content: '';
-  background-color: #2f2f2f;
-  display: block;
-  width: 3px;
-  height: 20px;
-  transform: rotate(45deg);
-  position: absolute;
-  top: 0;
-  right: 6px;
-}
-
-.FileUpload {
-    padding: 12px 10px;
-    display: flex;
-    border-radius: 10px;
-    width: 100%;
-    max-width: 520px;
-    /* justify-content: space-between; */
-    gap: 8px;
-    position: relative;
-}
-
-.FileUpload  input {
-    opacity: 0;
-    padding: 0;
-    width: 0;
-    height: 0;
-}
-
-.FileUpload label {
-    max-width: 150px;
-    padding: 10px 15px;
-    border-radius: 10px;
-    background: #ffffff;
-    font-size: 15px;
-    text-align: center;
-    cursor: pointer;
+/* ── Header ──────────────────────────────────────────────── */
+.CPostHeader {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #e0e0e0;
-    border-radius: 25px;
-    /* box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px; */
-    /* box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px; */
-    /* box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px; */
-    box-shadow: rgba(50, 50, 93, 0.25) 0px 7px 5px -5px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
-    /* box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px; */
-    /* box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 4px, rgba(0, 0, 0, 0.3) 0px 4px 4px -1px, rgba(0, 0, 0, 0.2) 0px -2px 1px inset; */
-}
-.FileUpload label:hover {
-    background: #f0f0f0;
-    transition: all 0.2s ease-in-out;
-    transform: scale(1.05);
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    position: relative;
 }
 
-
-.FileUpload label img {
-    width: 25px;
-    height: 25px;
+.CPostHeader h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
 }
 
-.UploadOverview {
+.CPostContainer .ModalCancel {
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.CPostContainer .ModalCancel:hover {
+    background: #e5e7eb;
+}
+
+.CPostContainer .ModalCancel:before {
+    content: '';
+    background-color: #6b7280;
+    display: block;
+    width: 2px;
+    height: 14px;
+    transform: rotate(-45deg);
+    position: absolute;
+    top: 7px;
+    left: 13px;
+}
+
+.CPostContainer .ModalCancel:after {
+    content: '';
+    background-color: #6b7280;
+    display: block;
+    width: 2px;
+    height: 14px;
+    transform: rotate(45deg);
+    position: absolute;
+    top: 7px;
+    left: 13px;
+}
+
+/* ── PostAs row (below header) ───────────────────────────── */
+.CPost > .PostAsRow {
+    padding: 10px 16px 0;
+}
+
+/* ── Upload validation error ─────────────────────────────── */
+.UploadError {
+    margin: 0 16px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #b91c1c;
+    font-weight: 500;
+}
+
+/* ── Content area ─────────────────────────────────────────── */
+#CPostContent {
     width: 100%;
+    font-size: 18px;
+    padding: 16px 20px;
+    border: none;
+    min-height: 160px;
+    max-height: 320px;
+    overflow-y: auto;
+    outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    caret-color: #5a5a5a;
+    color: #111827;
+    line-height: 1.6;
+    scrollbar-width: thin;
+}
+
+#CPostContent:empty::before {
+    content: attr(placeholder);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+/* ── Upload preview ───────────────────────────────────────── */
+.UploadOverview {
+    padding: 0 16px 8px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .CPost .UploadedFiles {
     display: flex;
-    gap: 15px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
+/* Image thumbnail grid */
+.CPost .ImagePreviewGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0;
+}
 
+.CPost .ImagePreviewThumb {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.CPost .ImagePreviewThumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.CPost .ImagePreviewThumb .RemoveUploadedFile {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.CPost .ImagePreviewThumb .RemoveUploadedFile:hover {
+    background: rgba(239,68,68,0.85);
+}
+
+/* Document chip */
 .CPost .UploadedFile {
-    padding: 12px 10px;
-    /* max-width: 224px; */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 7px 10px;
+    max-width: 220px;
+    transition: background 0.15s;
+}
+
+.CPost .UploadedFile.hidden {
+    display: none;
 }
 
 .CPost .UploadedFile .FileName {
     display: flex;
     align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.CPost .UploadedFile .FileName img {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+
+.CPost .UploadedFile .FileName p {
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 130px;
+    margin: 0;
+}
+
+.CPost .UploadedFile .RemoveUploadedFile {
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+}
+
+.CPost .UploadedFile .RemoveUploadedFile:hover {
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+.CPostFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 14px;
+    border-top: 1px solid #f0f0f0;
     gap: 10px;
 }
 
+.CPostTools {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    flex-wrap: wrap;
+}
 
-.CPost .UploadedFile .RemoveUploadedFile{
+.CPostActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* ── Upload buttons in footer ─────────────────────────────── */
+.FileUpload {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.FileUpload input {
+    opacity: 0;
+    padding: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.FileUpload label {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: transparent;
     cursor: pointer;
-    font-weight: 100;
-    color: #9f3535;
-    /* margin-left: 8px; */
-    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.FileUpload label:hover {
+    background: #f3f4f6;
+}
+
+.FileUpload label img {
+    width: 22px;
+    height: 22px;
+    opacity: 0.6;
+}
+
+.FileUpload label:hover img {
+    opacity: 1;
 }
 
 
@@ -806,52 +979,12 @@ body.ModalOpen {
 
 
 
-.PostArea {
-    width: 100%;
-    background: white;
-    border: 1px #d4d4d4 solid;
-    border-radius: 20px;
-    position: relative;
-    padding: 10px;
-        transition: border-color cubic-bezier(0.4, 0, 0.2, 1) 150ms;
-
-    /* height: 387px; */
-}
-
-.PostArea:focus-within {
-    border: 0.1pc solid #bcbcbc;
-}
-
-.PostArea:focus-within {
-    border: 0.1pc solid #9ab5d7;
-}
-#CPostContent {
-    width: 100%;
-    font-size: 24px;
-    padding: 20px;
-    max-width: 620px;
-    border: none;
-    border-radius: 15px;
-    height: 230px;
-    overflow-y: auto;
-    outline: none;
-    white-space: pre-wrap;
-    word-break: break-word;
-    caret-color: #5a5a5a;
-}
-/* Placeholder for contenteditable — mirrors the old textarea ::placeholder */
-#CPostContent:empty::before {
-    content: attr(placeholder);
-    color: #a9a9a9;
-    word-spacing: 2px;
-    pointer-events: none;
-}
 .PostSubmitBtn {
-    width: 100%;
-    max-width: 215px;
-    padding: 18px;
-    font-size: 16px;
+    padding: 9px 22px;
+    font-size: 14px;
     font-weight: 600;
+    border-radius: 20px;
+    white-space: nowrap;
 }
 
 /* textfields */
@@ -1291,7 +1424,6 @@ body.ModalOpen {
 
 /* ── Post-as switcher ────────────────────────────────────────────────────── */
 .PostAsRow {
-    padding: 0 20px 10px;
     position: relative;
 }
 
@@ -1382,7 +1514,6 @@ body.ModalOpen {
 
 /* ── Visibility selector ─────────────────────────────────────────────────── */
 .VisibilityRow {
-    padding: 0 20px 8px;
     position: relative;
 }
 
@@ -1421,7 +1552,8 @@ body.ModalOpen {
     min-width: 200px;
     z-index: 200;
     overflow: hidden;
-    margin-top: 4px;
+    bottom: calc(100% + 6px);
+    left: 0;
 }
 
 .VisibilityOption {
@@ -2191,40 +2323,101 @@ body.ModalOpen {
 /* Right Sidebar Components */
 .SidebarSection {
     background: #fff;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-    margin-bottom: 20px;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
     border: 1px solid #f0f0f0;
 }
-.SidebarSection h3 { 
-    font-size: 17px; 
-    font-weight: 800; 
-    margin-bottom: 15px; 
-    padding-bottom: 10px; 
-    border-bottom: 1px solid #eee; 
-    color: #1a1a1a;
+
+.SidebarSection h3 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #9ca3af;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.SuggestionList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .SuggestionItem {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
+    gap: 8px;
 }
-.SugUser { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #333; }
-.SugUser img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-.SugInfo .Name { font-size: 14px; font-weight: 600; }
-.SugInfo .Handle { font-size: 12px; color: #888; }
+
+.SugUser {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #111827;
+    min-width: 0;
+}
+
+.SugUser img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.SugInfo {
+    min-width: 0;
+}
+
+.SugInfo .Name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.SugInfo .Handle {
+    font-size: 12px;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 .FollowBtn.Small {
-    padding: 6px 15px;
-    font-size: 13px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
     border-radius: 20px;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
-.SidebarFooter { font-size: 12px; color: #999; padding: 0 10px; line-height: 1.6; text-align: center;}
-.SidebarFooter a { color: #999; text-decoration: none; margin: 0 5px;}
+.SidebarFooter {
+    font-size: 11px;
+    color: #9ca3af;
+    padding: 4px 4px 0;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.SidebarFooter a {
+    color: #9ca3af;
+    text-decoration: none;
+    margin: 0 3px;
+}
+
 .SidebarFooter a:hover { text-decoration: underline; }
 
 /* --- BLUE TICK VERIFICATION BADGE --- */
@@ -2254,19 +2447,16 @@ body.ModalOpen {
         max-width: 100%;
         width: 100%;
         border-radius: 22px 22px 0 0;
-        padding: 18px 16px;
         max-height: 92vh;
         overflow-y: auto;
-        padding-bottom: env(safe-area-inset-bottom, 16px);
     }
 
-    .CPost h1 {
-        font-size: 18px;
+    .CPostHeader h1 {
+        font-size: 15px;
     }
 
-    .PostSubmitBtn {
-        max-width: 100%;
-        padding: 14px;
+    .CPostFooter {
+        padding-bottom: env(safe-area-inset-bottom, 14px);
     }
 
     /* Generic modals (edit profile, confirm, etc.) */

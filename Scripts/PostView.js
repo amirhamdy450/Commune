@@ -1,5 +1,9 @@
-import { Submit } from "./Forms.js"; 
-import { createPostHTML, createCommentHTML, attachPostInteractions, attachCommentInteractions, attachPlainTextPaste, attachMentionDropdown } from "./Feed.js";
+import * as FeedApi from "./Api/FeedApi.js";
+import { createCommentHTML } from "./Components/CommentRenderer.js";
+import { createPostHTML, attachPostInteractions } from "./Components/PostCard.js";
+import { attachCommentInteractions, attachPlainTextPaste } from "./Components/CommentThread.js";
+import { attachMentionDropdown } from "./Components/MentionDropdown.js";
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const dataDiv = document.getElementById('PageData');
@@ -123,13 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const content = input.innerHTML.replace(/<[^>]*>/g, '').trim();
                     if (!content) return;
 
-                    const formData = new FormData();
-                    formData.append('ReqType', 3);
-                    formData.append('FeedPostID', postData.PID); // PID is encrypted
-                    formData.append('CommentContent', content);
-
                     try {
-                        const res = await Submit('POST', 'Origin/Operations/Feed.php', formData);
+                        const res = await FeedApi.createComment(postData.PID, content);
                         if (res.success && res.comment) {
                             input.innerHTML = '';
                             input.classList.remove('has-content');

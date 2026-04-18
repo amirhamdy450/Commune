@@ -1,5 +1,8 @@
 import { Submit, ValidateName, ValidateDate, PopulateFieldError } from "./Forms.js";
-import { createPostHTML, attachPostInteractions } from "./Feed.js";
+import * as FeedApi from "./Api/FeedApi.js";
+import { createPostHTML, attachPostInteractions } from "./Components/PostCard.js";
+import { mountActionMenu } from "./Components/ActionMenu.js";
+import { confirmBlock } from "./Components/ConfirmActions.js";
 document.addEventListener('DOMContentLoaded', () => {
 
 //TABS
@@ -493,9 +496,7 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
                 return;
             }
 
-            profileActionMenu = document.createElement('div');
-            profileActionMenu.className = 'ActionMenu ProfileContext';
-            profileActionMenu.innerHTML = `
+            const menuMarkup = `
                 <div class="ActionOption" data-action="copy-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M8 12.5 15.5 5a3 3 0 1 1 4.2 4.2l-8.3 8.3a5 5 0 0 1-7.1-7.1l7.9-7.9"></path>
@@ -511,7 +512,13 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
                 </div>
             `;
 
-            profileActionMenu.addEventListener('click', async (evt) => {
+            ({ menu: profileActionMenu } = mountActionMenu({
+                selector: '.ProfileContext',
+                className: 'ActionMenu ProfileContext',
+                html: menuMarkup,
+                parent: profileActions,
+                onClose: () => { profileActionMenu = null; },
+                onClick: async (evt) => {
                 evt.stopPropagation();
 
                 const option = evt.target.closest('.ActionOption');
@@ -533,27 +540,20 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
 
                 if (action === 'block-user') {
                     closeProfileActionMenu();
-                    ShowConfirmModal({
-                        Title: `Block ${profileName}?`,
-                        ConfirmText: 'Block',
+                    confirmBlock({
+                        Name: profileName,
                         onConfirm: async () => {
-                            const formData = new FormData();
-                            formData.append('ReqType', 13);
-                            formData.append('BlockedUID', profileUID);
-
-                            const data = await Submit('POST', 'Origin/Operations/Feed.php', formData);
+                            const data = await FeedApi.blockUser(profileUID);
                             if (data.success) {
                                 window.location.href = 'index.php';
                             } else {
                                 alert(data.message || 'Could not block this user.');
                             }
-                        },
-                        Action: 'Close'
+                        }
                     });
                 }
-            });
-
-            profileActions.appendChild(profileActionMenu);
+                }
+            }));
         });
 
         document.addEventListener('click', (e) => {
@@ -580,3 +580,8 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
 
 
 });
+
+
+
+
+
