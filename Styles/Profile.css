@@ -410,29 +410,35 @@ body{
 }
 .NavItem {
     font-size: 17px;
-    font-weight: 600; /* Slightly less bold */
+    font-weight: 600;
     color: #657786;
     text-decoration: none;
-    padding: 8px 18px; /* Slightly smaller padding */
-    border-radius: 20px; /* Slightly less rounded */
-    transition: background-color 0.3s ease, color 0.3s ease;
+    padding: 8px 18px;
+    border-radius: 20px;
+    transition: background-color 0.18s ease, color 0.18s ease;
 }
 
 .NavItem:hover {
-    background-color: #e6ecf0; /* Lighter hover background */
+    background-color: #e6ecf0;
     color: #333;
 }
 
 .NavItem.Active {
-    /* background-color: var(--brand-color); */
     background-color: var(--accent-color);
     color: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 3px 10px rgba(61, 153, 223, 0.25);
+    animation: navItemPop 0.28s cubic-bezier(.21, 1.02, .34, 1);
 }
 
 .NavItem.Active:hover {
     background-color: var(--accent-color-hover);
     color: #fff;
+}
+
+@keyframes navItemPop {
+    0%   { transform: scale(0.88); opacity: 0.5; }
+    60%  { transform: scale(1.06); opacity: 1; }
+    100% { transform: scale(1); }
 }
 
 /* Profile Content */

@@ -3,11 +3,26 @@ import { createCommentHTML } from "./Components/CommentRenderer.js";
 import { createPostHTML, attachPostInteractions } from "./Components/PostCard.js";
 import { attachCommentInteractions, attachPlainTextPaste } from "./Components/CommentThread.js";
 import { attachMentionDropdown } from "./Components/MentionDropdown.js";
+import { initPostEditorModal, openEditPostModal } from "./Components/PostEditorModal.js";
+import { showInfoBox } from "./Utilities.js";
 
 
 document.addEventListener('DOMContentLoaded', () => {
     const dataDiv = document.getElementById('PageData');
     const container = document.getElementById('SinglePostContainer');
+
+    const createPostModal = document.getElementsByClassName('CPostContainer')[0];
+    initPostEditorModal({
+        modal: createPostModal,
+        onToggleModal: (modal, open) => {
+            modal.classList.toggle('hidden', !open);
+            document.body.classList.toggle('ModalOpen', open);
+        },
+        showInfoBox,
+        createPostHTML,
+        attachPostInteractions: (postEl) => attachPostInteractions(postEl, { onEditPost: (pid) => openEditPostModal(pid) }),
+        attachPlainTextPaste,
+    });
 
     if (dataDiv && container) {
         const isRestricted = dataDiv.getAttribute('data-restricted') === '1';
@@ -79,9 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 postElement.insertAdjacentHTML('beforeend', inlineHTML);
 
                 // 4. Attach Listeners
-                
+
                 // A. Post Interactions (Like, Share, etc.)
-                attachPostInteractions(postElement);
+                attachPostInteractions(postElement, { onEditPost: (pid) => openEditPostModal(pid) });
                 
                 // B. Override the Comment Button on the card to focus the input instead of opening modal
                 if(commentBtn) {
@@ -123,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const input = form.querySelector('.CommentInput');
-                    // Read from contenteditable div — strip HTML tags to get plain text
                     const content = input.innerHTML.replace(/<[^>]*>/g, '').trim();
                     if (!content) return;
 
@@ -133,18 +147,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             input.innerHTML = '';
                             input.classList.remove('has-content');
 
-                            // Remove empty state if present
-                            const commentsContainer = postElement.querySelector('.ModalCommentsContainer');
+                            // Always look up live DOM — postElement ref may be stale after an edit
+                            const livePost = container.querySelector(`.FeedPost[PID="${postData.PID}"]`);
+                            const commentsContainer = livePost && livePost.querySelector('.ModalCommentsContainer');
+                            if (!commentsContainer) return;
+
                             const noComments = commentsContainer.querySelector('.NoComments');
                             if (noComments) noComments.remove();
 
-                            // Live-insert the new comment at the top
                             commentsContainer.insertAdjacentHTML('afterbegin', createCommentHTML(res.comment));
 
-                            // Attach interactions to the newly inserted comment
-                            attachCommentInteractions(inlineCommentsContainer);
+                            const liveInline = livePost.querySelector('.PostCommentsInline');
+                            attachCommentInteractions(liveInline || inlineCommentsContainer);
                         } else if (res.success) {
-                            // Fallback: fetch failed but comment was saved — reload as last resort
                             window.location.reload();
                         }
                     } catch (err) {

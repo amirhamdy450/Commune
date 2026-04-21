@@ -77,11 +77,23 @@ async function blockUser(uid, postElement) {
   }
 }
 
-async function savePost(post, postID) {
+async function savePost(post, postID, optionEl) {
   const data = await FeedApi.toggleSavePost(postID);
   if (data.success) {
-    showInfoBox(data.message, 1);
     post.setAttribute('Saved', data.Saved ? '1' : '0');
+    if (optionEl) {
+      const wasSaved = !data.Saved;
+      optionEl.classList.add('SaveSuccess');
+      optionEl.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        ${wasSaved ? 'Removed!' : 'Saved!'}`;
+      setTimeout(() => {
+        const menu = document.querySelector('.ActionMenu.PostContext');
+        if (menu) menu.remove();
+      }, 700);
+    }
   }
 }
 
@@ -187,7 +199,13 @@ export function attachPostInteractions(post, { onCommentClick, onDeletePost, onE
   const actionButton = post.getElementsByClassName('ActionBtn')[0];
 
   if (followButton) {
-    followButton.addEventListener('click', () => FollowHandler(followButton, uid));
+    followButton.addEventListener('click', () => {
+      followButton.classList.remove('FollowPop');
+      void followButton.offsetWidth;
+      followButton.classList.add('FollowPop');
+      followButton.addEventListener('animationend', () => followButton.classList.remove('FollowPop'), { once: true });
+      FollowHandler(followButton, uid);
+    });
     AttachFollowHover(followButton);
   }
 
@@ -304,7 +322,7 @@ export function attachPostInteractions(post, { onCommentClick, onDeletePost, onE
           if (action === 'hide') {
             post.style.display = 'none';
           } else if (action === 'save') {
-            savePost(post, postId);
+            savePost(post, postId, target);
           } else if (action === 'block') {
             const PostAuthor = post.getElementsByClassName('FeedPostAuthor')[0];
             const Name = PostAuthor ? PostAuthor.getElementsByTagName('p')[0].innerText : '';

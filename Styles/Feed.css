@@ -125,35 +125,54 @@
 }
 
 
-.FollowBtn.BrandBtn{
+.FollowBtn.BrandBtn {
     background-color: #3d99df;
     padding: 8px 20px;
-
     font-weight: 600;
-
-
-
+    transition: background-color 0.22s ease, transform 0.18s ease, box-shadow 0.22s ease, opacity 0.15s ease;
 }
 .FollowBtn.BrandBtn:hover {
     background-color: #2c74aa;
+    box-shadow: 0 4px 12px rgba(61, 153, 223, 0.35);
+    transform: translateY(-1px);
+}
+.FollowBtn.BrandBtn:active {
+    transform: scale(0.93);
+    opacity: 0.85;
+}
+
+.FollowBtn.BrandBtn.FollowPop {
+    animation: followPop 0.42s cubic-bezier(.21, 1.02, .34, 1);
+}
+
+@keyframes followPop {
+    0%   { transform: scale(0.93); }
+    55%  { transform: scale(1.1); }
+    80%  { transform: scale(0.97); }
+    100% { transform: scale(1); }
 }
 
 .BrandBtn.Followed {
     background: white;
     color: #3d99df;
-    border: 2px solid;
+    border: 2px solid #3d99df;
     font-weight: 600;
+    transition: background 0.22s ease, color 0.22s ease, border-color 0.22s ease, transform 0.18s ease, box-shadow 0.22s ease;
+}
+.BrandBtn.Followed:hover {
+    background: #fff5f5;
+    color: #e22121;
+    border-color: #e22121;
+    box-shadow: 0 4px 12px rgba(226, 33, 33, 0.15);
+    transform: translateY(-1px);
+}
+.BrandBtn.Followed:active {
+    transform: scale(0.93);
 }
 
-.BrandBtn.Followed:hover {
-    /* background-color: #052a3f; */
-    background: white;
-    color: #e22121;
-}
 .BrandBtn.Unfollow {
     background-color: #d21526;
     padding: 8px 20px;
-
     font-weight: 600;
 }
 
@@ -161,13 +180,11 @@
     background-color: #a81926;
 }
 
-
-.FeedPostHeader .FollowBtn.BrandBtn ,
+.FeedPostHeader .FollowBtn.BrandBtn,
 .FeedPostHeader .BrandBtn.Followed {
     margin-left: 2px;
     padding: 2px 12px;
     font-weight: 500;
-    /* font-size: 13px; */
 }
 
 
@@ -293,6 +310,19 @@
 .ActionMenu.PostContext {
     transform-origin: top right;
     animation: postMenuIn 0.2s cubic-bezier(.21, 1.02, .34, 1);
+}
+
+.ActionMenu.PostContext .ActionOption.SaveSuccess {
+    background: linear-gradient(180deg, #f1fcf5 0%, #e8f9ef 100%);
+    color: #1f8f54;
+    pointer-events: none;
+}
+
+.ActionMenu.PostContext .ActionOption.SaveSuccess svg {
+    color: #1f8f54;
+    width: 18px;
+    height: 18px;
+    animation: shareCopyCheck 0.28s ease;
 }
 
 @keyframes postMenuIn {
@@ -815,14 +845,20 @@ form.CreateModalComment.CreateCommentReply div {
 
 
 
-.CommentInput[contenteditable]:not(.has-content)::before { /* for replies */
-    content: attr(placeholder);
-    color: #a9a9a9; /* A light grey color is a good choice for placeholders */
-    font-size: 16px;
+.CommentInput[contenteditable] {
+    caret-color: #5a5a5a;
 }
 
-.CommentInput[contenteditable] { /* for replies */
-    caret-color: #5a5a5a;
+.CommentInput[contenteditable]:not(.has-content)::before {
+    content: attr(placeholder);
+    color: #a9a9a9;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.CreateCommentReply .CommentInput[contenteditable]:not(.has-content):focus::before,
+.PostCommentsInline .CommentInput[contenteditable]:not(.has-content):focus::before {
+    content: none;
 }
 
 .ReplyTag {

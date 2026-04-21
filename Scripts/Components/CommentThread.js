@@ -129,6 +129,13 @@ function mountCommentMenu({ type, id, element, isSelf }) {
 }
 
 function attachReplyFormSubmission(createReplyFormEl, commentID, parentComment) {
+  const commentInputEl = createReplyFormEl.getElementsByClassName('CommentInput')[0];
+  commentInputEl.addEventListener('input', () => {
+    const hasText = commentInputEl.innerHTML.replace(/<[^>]*>/g, '').trim() !== ''
+      || commentInputEl.getElementsByClassName('ReplyTag').length > 0;
+    commentInputEl.classList.toggle('has-content', hasText);
+  });
+
   createReplyFormEl.addEventListener('submit', async (e) => {
     e.preventDefault();
 

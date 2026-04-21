@@ -50,8 +50,15 @@ function updatePostInDOM(pid, postData) {
   const temp = document.createElement('div');
   temp.innerHTML = createPostHTML(postData);
   const newElement = temp.firstElementChild;
-  // Ensure the guard is clear so attach() always wires listeners on the fresh element
   delete newElement.dataset.interactionsAttached;
+
+  const isSinglePostView = oldElement.closest('#SinglePostContainer') !== null;
+  if (isSinglePostView) {
+    if (oldElement.classList.contains('Opened')) newElement.classList.add('Opened');
+    const inlineSection = oldElement.querySelector('.PostCommentsInline');
+    if (inlineSection) newElement.appendChild(inlineSection);
+  }
+
   oldElement.replaceWith(newElement);
   attach(newElement);
 }
