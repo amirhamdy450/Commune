@@ -153,16 +153,16 @@ http://localhost/commune/
     <td><strong>Home Feed</strong></td>
   </tr>
   <tr>
-    <td><img src="./screenshots/login.png" width="400"/></td>
-    <td><img src="./screenshots/feed.png" width="400"/></td>
+    <td><img src="Screenshots/login.png" width="400"/></td>
+    <td><img src="Screenshots/feed.png" width="400"/></td>
   </tr>
   <tr>
     <td><strong>User Profile</strong></td>
     <td><strong>Post Detail</strong></td>
   </tr>
   <tr>
-    <td><img src="./screenshots/profile.png" width="400"/></td>
-    <td><img src="./screenshots/post.png" width="400"/></td>
+    <td><img src="Screenshots/profile.png" width="400"/></td>
+    <td><img src="Screenshots/post.png" width="400"/></td>
   </tr>
 </table>
 
