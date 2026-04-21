@@ -1,4 +1,4 @@
-# 📱 [Commune]
+# [Commune]
 
 > Interactive Social Media Platform It is designed around the core mechanics of a modern community product: personalized feeds, profile systems, page/org presence, media posts, moderation workflows, privacy controls, and account security. 
 
