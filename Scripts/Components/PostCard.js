@@ -191,28 +191,41 @@ export function attachPostInteractions(post, { onCommentClick, onDeletePost, onE
     AttachFollowHover(followButton);
   }
 
+  const likeIcon0 = likeButton.getElementsByTagName('img')[0];
+  if (likeIcon0 && likeIcon0.src.endsWith('liked.svg')) likeButton.classList.add('Liked');
+
   let likeInFlight = false;
   likeButton.addEventListener('click', () => {
     if (likeInFlight) return;
     likeInFlight = true;
     const likeIcon = likeButton.getElementsByTagName('img')[0];
-    const isLiked = likeIcon.src.includes('liked.svg');
+    const isLiked = likeIcon.src.endsWith('liked.svg');
     // Optimistic update
     likeIcon.src = isLiked ? 'Imgs/Icons/like.svg' : 'Imgs/Icons/liked.svg';
     const likesCountElement = post.getElementsByClassName('PostLikesCNT')[0];
     likesCountElement.innerHTML = parseInt(likesCountElement.innerHTML) + (isLiked ? -1 : 1);
 
+    if (!isLiked) {
+      likeButton.classList.remove('Liked', 'Liking');
+      void likeButton.offsetWidth; // reflow to restart animation
+      likeButton.classList.add('Liked', 'Liking');
+      likeButton.addEventListener('animationend', () => likeButton.classList.remove('Liking'), { once: true });
+    } else {
+      likeButton.classList.remove('Liked', 'Liking');
+    }
+
     FeedApi.likePost(postId)
       .then(data => {
         if (!data.success) {
-          // Revert on failure
           likeIcon.src = isLiked ? 'Imgs/Icons/liked.svg' : 'Imgs/Icons/like.svg';
           likesCountElement.innerHTML = parseInt(likesCountElement.innerHTML) + (isLiked ? 1 : -1);
+          likeButton.classList.toggle('Liked', isLiked);
         }
       })
       .catch(() => {
         likeIcon.src = isLiked ? 'Imgs/Icons/liked.svg' : 'Imgs/Icons/like.svg';
         likesCountElement.innerHTML = parseInt(likesCountElement.innerHTML) + (isLiked ? 1 : -1);
+        likeButton.classList.toggle('Liked', isLiked);
       })
       .finally(() => { likeInFlight = false; });
   });
@@ -224,14 +237,21 @@ export function attachPostInteractions(post, { onCommentClick, onDeletePost, onE
   });
 
   shareButton.addEventListener('click', async () => {
+    if (shareButton.classList.contains('Copied')) return;
     const Url = window.location.href.split('?')[0];
     const ShareLink = `${Url}?target=post&pid=${encodeURIComponent(postId)}`;
     try {
       await navigator.clipboard.writeText(ShareLink);
-      shareButton.innerHTML = `<img src="Imgs/Icons/Checkmark.svg" alt=""> Copied !`;
+      shareButton.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:18px;height:18px;">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        Copied!`;
+      shareButton.classList.add('Copied');
       setTimeout(() => {
         shareButton.innerHTML = `<img src="Imgs/Icons/share.svg" alt=""> Share`;
-      }, 2000);
+        shareButton.classList.remove('Copied');
+      }, 1800);
     } catch (error) {
       showInfoBox('Failed to copy link. Please try again.', 2);
     }

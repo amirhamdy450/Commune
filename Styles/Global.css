@@ -120,7 +120,12 @@ h1,h2,h3,h4,h5,h6,p{
     z-index: 1000;
     align-items: center;
     backdrop-filter: blur(2px);
-    /* overflow: hidden; */
+    animation: modalBackdropIn 0.22s ease;
+}
+
+@keyframes modalBackdropIn {
+    from { opacity: 0; backdrop-filter: blur(0px); }
+    to   { opacity: 1; backdrop-filter: blur(2px); }
 }
 
 .ModalContent {
@@ -135,6 +140,12 @@ h1,h2,h3,h4,h5,h6,p{
     padding: 20px;
     border-radius: 10px;
     position: relative;
+    animation: modalContentIn 0.28s cubic-bezier(.21, 1.02, .34, 1);
+}
+
+@keyframes modalContentIn {
+    from { opacity: 0; transform: scale(0.93) translateY(10px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0); }
 }
 
 .Modal.Confirm{
@@ -2449,6 +2460,7 @@ body.ModalOpen {
         border-radius: 22px 22px 0 0;
         max-height: 92vh;
         overflow-y: auto;
+        animation: sheetSlideUp 0.32s cubic-bezier(.21, 1.02, .34, 1);
     }
 
     .CPostHeader h1 {
@@ -2472,6 +2484,12 @@ body.ModalOpen {
         max-height: 90vh;
         overflow-y: auto;
         padding-bottom: env(safe-area-inset-bottom, 16px);
+        animation: sheetSlideUp 0.32s cubic-bezier(.21, 1.02, .34, 1);
+    }
+
+    @keyframes sheetSlideUp {
+        from { transform: translateY(60px); opacity: 0; }
+        to   { transform: translateY(0);   opacity: 1; }
     }
 
     /* Keep confirm dialogs centered */
