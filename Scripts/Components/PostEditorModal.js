@@ -46,16 +46,28 @@ function updatePostInDOM(pid, postData) {
   const oldElement = document.querySelector(`.FeedPost[PID="${pid}"]`);
   if (!oldElement) return;
 
-  oldElement.outerHTML = createPostHTML(postData);
-  attachPostInteractions(document.querySelector(`.FeedPost[PID="${pid}"]`));
+  const attach = state.attachPostInteractions || attachPostInteractions;
+  const temp = document.createElement('div');
+  temp.innerHTML = createPostHTML(postData);
+  const newElement = temp.firstElementChild;
+  // Ensure the guard is clear so attach() always wires listeners on the fresh element
+  delete newElement.dataset.interactionsAttached;
+  oldElement.replaceWith(newElement);
+  attach(newElement);
 }
 
 function prependPostToFeed(postData) {
   const container = document.getElementsByClassName('FeedContainer')[0];
   if (!container) return;
 
+  const emptyState = document.getElementById('FeedEmptyState');
+  if (emptyState) emptyState.remove();
+
+  const attach = state.attachPostInteractions || attachPostInteractions;
   container.insertAdjacentHTML('afterbegin', createPostHTML(postData));
-  attachPostInteractions(container.firstElementChild);
+  const newPost = container.firstElementChild;
+  delete newPost.dataset.interactionsAttached;
+  attach(newPost);
 }
 
 function deleteUploadedFiles(button, type = 1) {
@@ -199,10 +211,17 @@ function handlePostFileUpload(inputElement, allowedExtensions, otherInput, type)
   const incoming = [...inputElement.files];
   const errors = [];
   const dataTransfer = new DataTransfer();
+  const existingKeys = new Set(
+    state.validSelectedFiles.map(file => `${file.name}::${file.size}::${file.lastModified}`)
+  );
 
   state.validSelectedFiles.forEach(file => dataTransfer.items.add(file));
 
   for (const file of incoming) {
+    const fileKey = `${file.name}::${file.size}::${file.lastModified}`;
+    if (existingKeys.has(fileKey)) {
+      continue;
+    }
     if (dataTransfer.files.length >= MAX_FILE_COUNT) {
       errors.push(`Max ${MAX_FILE_COUNT} files allowed — "${file.name}" skipped.`);
       break;
@@ -221,6 +240,7 @@ function handlePostFileUpload(inputElement, allowedExtensions, otherInput, type)
 
     dataTransfer.items.add(file);
     state.validSelectedFiles.push(file);
+    existingKeys.add(fileKey);
   }
 
   if (errors.length > 0) {
@@ -445,6 +465,14 @@ async function handlePostSubmit(event) {
 }
 
 export function initPostEditorModal(options) {
+  if (options?.modal?.dataset.postEditorInitialized === '1') {
+    state = {
+      ...state,
+      ...options,
+    };
+    return;
+  }
+
   state = {
     ...options,
     validSelectedFiles: [],
@@ -454,6 +482,24 @@ export function initPostEditorModal(options) {
 
   const { modal, onToggleModal, attachPlainTextPaste } = state;
   if (!modal) return;
+  modal.dataset.postEditorInitialized = '1';
+
+  const cancelBtn = modal.getElementsByClassName('ModalCancel')[0];
+  const cancelBtnAlt = modal.getElementsByClassName('ModalCancelBtn')[0];
+  if (cancelBtn && !cancelBtn.dataset.boundPostEditorCancel) {
+    cancelBtn.dataset.boundPostEditorCancel = '1';
+    cancelBtn.addEventListener('click', () => {
+      resetPostEditorModal();
+      onToggleModal(modal, false);
+    });
+  }
+  if (cancelBtnAlt && !cancelBtnAlt.dataset.boundPostEditorCancel) {
+    cancelBtnAlt.dataset.boundPostEditorCancel = '1';
+    cancelBtnAlt.addEventListener('click', () => {
+      resetPostEditorModal();
+      onToggleModal(modal, false);
+    });
+  }
 
   [...document.getElementsByClassName('CreatePostBtn')].forEach(button => {
     button.addEventListener('click', () => {

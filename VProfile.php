@@ -286,6 +286,6 @@
 </body>
 
 <script src="Scripts/modal.js"></script>
-<script src="Scripts/Feed.js" type="module"></script>
-<script src="Scripts/Profile.js" type="module"></script>
+<script type="module" src="Scripts/Org.js"></script>
+<script type="module" src="Scripts/Profile.js"></script>
 </html>

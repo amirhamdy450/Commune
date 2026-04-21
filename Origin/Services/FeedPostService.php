@@ -218,10 +218,12 @@ if (!function_exists('FeedBlockUser')) {
         $stmt->execute([$ViewerUID, $BlockedUID]);
 
         if ($stmt->fetch()) {
+            InvalidateFeedCache($pdo, [$ViewerUID]);
             return ['success' => true, 'message' => 'User is already blocked.'];
         }
 
         $pdo->prepare('INSERT INTO blocked_users (BlockerUID, BlockedUID) VALUES (?, ?)')->execute([$ViewerUID, $BlockedUID]);
+        InvalidateFeedCache($pdo, [$ViewerUID]);
         return ['success' => true, 'message' => 'User blocked.'];
     }
 }
@@ -345,11 +347,11 @@ if (!function_exists('FeedMoveUploadedImages')) {
             if ($ScaleSupportedExtension && $Width >= 1920 && $Height >= 900) {
                 if ($Width > $Height) {
                     $NewHeight = 900;
-                    $NewWidth = ($NewHeight * $Width) / $Height;
+                    $NewWidth = (int) round(($NewHeight * $Width) / $Height);
                     $Image = imagescale($Image, $NewWidth, $NewHeight);
                 } else {
                     $NewWidth = 900;
-                    $NewHeight = ($NewWidth * $Height) / $Width;
+                    $NewHeight = (int) round(($NewWidth * $Height) / $Width);
                     $Image = imagescale($Image, $NewWidth, $NewHeight);
                 }
 

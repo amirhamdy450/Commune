@@ -73,7 +73,7 @@ export async function FollowHandler(followButton, uid) {
 async function blockUser(uid, postElement) {
   const data = await FeedApi.blockUser(uid);
   if (data.success) {
-    postElement.remove();
+    document.querySelectorAll(`.FeedPost[UID="${uid}"]`).forEach(post => post.remove());
   }
 }
 
@@ -175,6 +175,9 @@ export function createPostHTML(post) {
 // onDeletePost: optional callback invoked when the user confirms a post deletion (receives postId).
 // onEditPost: optional callback invoked when the user chooses to edit a post (receives postId). Falls back to window.openEditPostModal if not provided.
 export function attachPostInteractions(post, { onCommentClick, onDeletePost, onEditPost } = {}) {
+  if (post.dataset.interactionsAttached) return;
+  post.dataset.interactionsAttached = '1';
+
   const postId = post.getAttribute('PID');
   const uid = post.getAttribute('UID');
   const followButton = post.getElementsByClassName('FollowBtn')[0];
@@ -188,19 +191,30 @@ export function attachPostInteractions(post, { onCommentClick, onDeletePost, onE
     AttachFollowHover(followButton);
   }
 
+  let likeInFlight = false;
   likeButton.addEventListener('click', () => {
+    if (likeInFlight) return;
+    likeInFlight = true;
+    const likeIcon = likeButton.getElementsByTagName('img')[0];
+    const isLiked = likeIcon.src.includes('liked.svg');
+    // Optimistic update
+    likeIcon.src = isLiked ? 'Imgs/Icons/like.svg' : 'Imgs/Icons/liked.svg';
+    const likesCountElement = post.getElementsByClassName('PostLikesCNT')[0];
+    likesCountElement.innerHTML = parseInt(likesCountElement.innerHTML) + (isLiked ? -1 : 1);
+
     FeedApi.likePost(postId)
       .then(data => {
-        if (data.success) {
-          const likesCountElement = post.getElementsByClassName('PostLikesCNT')[0];
-          let likesCount = parseInt(likesCountElement.innerHTML);
-          likesCount += parseInt(data.Insertion);
-          likesCountElement.innerHTML = likesCount;
-          const likeIcon = likeButton.getElementsByTagName('img')[0];
-          likeIcon.src = data.liked ? 'Imgs/Icons/liked.svg' : 'Imgs/Icons/like.svg';
+        if (!data.success) {
+          // Revert on failure
+          likeIcon.src = isLiked ? 'Imgs/Icons/liked.svg' : 'Imgs/Icons/like.svg';
+          likesCountElement.innerHTML = parseInt(likesCountElement.innerHTML) + (isLiked ? 1 : -1);
         }
       })
-      .catch(error => console.error('Error:', error));
+      .catch(() => {
+        likeIcon.src = isLiked ? 'Imgs/Icons/liked.svg' : 'Imgs/Icons/like.svg';
+        likesCountElement.innerHTML = parseInt(likesCountElement.innerHTML) + (isLiked ? 1 : -1);
+      })
+      .finally(() => { likeInFlight = false; });
   });
 
   commentButton.addEventListener('click', () => {

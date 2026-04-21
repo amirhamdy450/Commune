@@ -731,7 +731,7 @@ body.ModalOpen {
     font-size: 18px;
     padding: 16px 20px;
     border: none;
-    min-height: 160px;
+    min-height: 200px;
     max-height: 320px;
     overflow-y: auto;
     outline: none;

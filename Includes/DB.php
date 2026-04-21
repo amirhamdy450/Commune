@@ -12,8 +12,12 @@ $DBpassword = DB_Password;
 $DBName = DB_Name;
 
 try {
-  $pdo = new PDO("mysql:host=$DBservername;dbname=$DBName", $DBusername, $DBpassword, 
-    array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+  $pdo = new PDO(
+    "mysql:host=$DBservername;dbname=$DBName;charset=utf8mb4",
+    $DBusername,
+    $DBpassword,
+    array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4")
+  );
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   //echo "Connected successfully";
 } catch(PDOException $e) {

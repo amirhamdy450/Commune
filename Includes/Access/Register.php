@@ -112,9 +112,13 @@ include_once $PATH."Includes/DB.php";
 
                 <!-- Navigation Buttons -->
                 <div class="FormNavigation">
-                    <button type="button" class="BrandBtn Dark hidden" id="BackBtn" >Back</button>
+                    <button type="button" class="BrandBtn Dark hidden" id="BackBtn">Back</button>
                     <button type="button" class="BrandBtn" id="NextBtn">Next</button>
-                    <input type="submit" name="Register" value="Register" class="BrandBtn hidden" id="SubmitBtn" >
+                    <input type="submit" name="Register" value="Register" class="BrandBtn hidden" id="SubmitBtn">
+                </div>
+                <div class="AuthLoader hidden" id="RegisterLoader">
+                    <div class="Loader"></div>
+                    <span id="RegisterLoaderMsg">Creating your account…</span>
                 </div>
 
                 <p class="SecondaryAction">Already have an account? <a href="<?php echo $PATH ?>index.php">Login</a></p>

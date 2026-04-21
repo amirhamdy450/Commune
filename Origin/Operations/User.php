@@ -388,10 +388,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
                 'MediaFolder' => $media,
                 'MediaType' => (int)$FeedPost['Type'],
                 'CurrentUserPrivilege' => (int)$User['Privilege'],
-                'liked' => $FeedPost['liked'],
-                'ProfilePic' => $PostProfilePic,
+                'liked' => (bool)$FeedPost['liked'],
+                'following' => false,
                 'Self' => ($FeedPost['UID'] == $UID) ? 1 : 0,
-                'IsBlueTick' => (int)$FeedPost['IsBlueTick']
+                'saved' => 0,
+                'ProfilePic' => $PostProfilePic,
+                'IsBlueTick' => (int)$FeedPost['IsBlueTick'],
+                'Visibility' => (int)($FeedPost['Visibility'] ?? 0),
             ];
         }
 

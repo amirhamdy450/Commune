@@ -219,7 +219,7 @@ if ($ReqType === 2) {
         SELECT id, Fname, Lname, Username, Email, ProfilePic,
                Privilege, IsBlueTick, IsBanned,
                Followers, Following,
-               (SELECT COUNT(*) FROM posts WHERE UID = users.id) AS PostCount
+               (SELECT COUNT(*) FROM posts WHERE UID = users.id AND Status = 1) AS PostCount
         FROM users
         WHERE Fname LIKE ? OR Lname LIKE ? OR Username LIKE ? OR Email LIKE ?
         ORDER BY Username ASC
@@ -431,7 +431,7 @@ if ($ReqType === 5) {
         echo json_encode(['success' => false, 'message' => 'A reason is required.']);
         die();
     }
-    $row = $pdo->prepare("SELECT u.id, u.Email, CONCAT(u.Fname,' ',u.Lname) AS Name, p.Content FROM posts p INNER JOIN users u ON p.UID = u.id WHERE p.id = ?");
+    $row = $pdo->prepare("SELECT u.id, u.Email, CONCAT(u.Fname,' ',u.Lname) AS Name, p.Content FROM posts p INNER JOIN users u ON p.UID = u.id WHERE p.id = ? AND p.Status = 1");
     $row->execute([$PostID]);
     $Author = $row->fetch(PDO::FETCH_ASSOC);
     if ($Author) {
@@ -439,7 +439,7 @@ if ($ReqType === 5) {
             ->execute([$Author['id'], 'Your post was removed by a moderator: ' . $Reason]);
         SendContentRemovedEmail($Author['Email'], $Author['Name'], 'post', $Author['Content'], $Reason);
     }
-    $pdo->prepare("DELETE FROM posts WHERE id = ?")->execute([$PostID]);
+    $pdo->prepare("UPDATE posts SET Status = 0 WHERE id = ?")->execute([$PostID]);
     echo json_encode(['success' => true]);
     die();
 }
@@ -474,19 +474,19 @@ if ($ReqType === 6) {
 if ($ReqType === 7) {
     $stats = [];
     $stats['TotalUsers']    = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-    $stats['TotalPosts']    = $pdo->query("SELECT COUNT(*) FROM posts")->fetchColumn();
+    $stats['TotalPosts']    = $pdo->query("SELECT COUNT(*) FROM posts WHERE Status = 1")->fetchColumn();
     $stats['TotalComments'] = $pdo->query("SELECT COUNT(*) FROM comments")->fetchColumn();
-    $stats['TotalLikes']    = $pdo->query("SELECT SUM(LikeCounter) FROM posts")->fetchColumn() ?? 0;
+    $stats['TotalLikes']    = $pdo->query("SELECT SUM(LikeCounter) FROM posts WHERE Status = 1")->fetchColumn() ?? 0;
     $stats['VerifiedUsers'] = $pdo->query("SELECT COUNT(*) FROM users WHERE IsBlueTick = 1")->fetchColumn();
     $stats['BannedUsers']   = $pdo->query("SELECT COUNT(*) FROM users WHERE IsBanned = 1")->fetchColumn();
     $stats['PendingVerifications'] = $pdo->query("SELECT COUNT(*) FROM verification_requests WHERE Status = 0")->fetchColumn();
-    $stats['NewPostsToday'] = $pdo->query("SELECT COUNT(*) FROM posts WHERE DATE(Date) = CURDATE()")->fetchColumn();
+    $stats['NewPostsToday'] = $pdo->query("SELECT COUNT(*) FROM posts WHERE Status = 1 AND DATE(Date) = CURDATE()")->fetchColumn();
 
     // Posts per day for the last 14 days
     $trend = $pdo->query("
         SELECT DATE(Date) AS Day, COUNT(*) AS Count
         FROM posts
-        WHERE Date >= DATE_SUB(CURDATE(), INTERVAL 13 DAY)
+        WHERE Status = 1 AND Date >= DATE_SUB(CURDATE(), INTERVAL 13 DAY)
         GROUP BY DATE(Date)
         ORDER BY Day ASC
     ")->fetchAll(PDO::FETCH_ASSOC);
@@ -506,7 +506,8 @@ if ($ReqType === 8) {
                u.Username, u.ProfilePic
         FROM posts p
         INNER JOIN users u ON p.UID = u.id
-        WHERE p.Content LIKE ? OR u.Username LIKE ? OR u.Fname LIKE ? OR u.Lname LIKE ?
+        WHERE p.Status = 1
+          AND (p.Content LIKE ? OR u.Username LIKE ? OR u.Fname LIKE ? OR u.Lname LIKE ?)
         ORDER BY p.Date DESC
         LIMIT 30
     ");
@@ -552,7 +553,8 @@ if ($ReqType === 10) {
         FROM comments c
         INNER JOIN users u ON c.UID = u.id
         INNER JOIN posts p ON c.PostID = p.id
-        WHERE c.comment LIKE ? OR u.Username LIKE ? OR u.Fname LIKE ? OR u.Lname LIKE ?
+        WHERE p.Status = 1
+          AND (c.comment LIKE ? OR u.Username LIKE ? OR u.Fname LIKE ? OR u.Lname LIKE ?)
         ORDER BY c.Date DESC
         LIMIT 30
     ");
@@ -591,7 +593,7 @@ if ($ReqType === 11) {
     $stmt = $pdo->prepare("
         SELECT id, Content, Date, Type, MediaFolder
         FROM posts
-        WHERE UID = ? AND (? = '' OR Content LIKE ?)
+        WHERE UID = ? AND (? = '' OR Content LIKE ?) AND Status = 1
         ORDER BY Date DESC
         LIMIT 20
     ");

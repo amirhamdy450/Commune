@@ -65,7 +65,11 @@ if (!empty($token)) {
                         </div>
                     </div>  
 
-                    <input type="submit" name="Reset" value="Save New Password" class="BrandBtn">
+                    <input type="submit" name="Reset" value="Save New Password" class="BrandBtn" id="ResetSubmitBtn">
+                    <div class="AuthLoader hidden" id="ResetLoader">
+                        <div class="Loader"></div>
+                        <span>Saving new password…</span>
+                    </div>
                 </form>
             <?php else: ?>
                 <div class="AuthBoxMessage">

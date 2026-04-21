@@ -19,6 +19,7 @@ const PageHandleHint   = document.getElementById('PageHandleHint');
 
 // ── Open / close ──────────────────────────────────────────────────────────
 function OpenCreatePageModal() {
+    if (!CreatePageModal || !PageNameInput || !PageHandleInput || !CreatePageError || !PageHandleHint) return;
     PageNameInput.value   = '';
     PageHandleInput.value = '';
     document.getElementById('PageCategoryInput').value = '';
@@ -41,34 +42,39 @@ document.addEventListener('click', e => {
     OpenCreatePageModal();
 });
 
-CreatePageClose.addEventListener('click', () => CreatePageModal.classList.add('hidden'));
-CreatePageModal.addEventListener('click', e => {
-    if (e.target === CreatePageModal) CreatePageModal.classList.add('hidden');
-});
+if (CreatePageClose && CreatePageModal) {
+    CreatePageClose.addEventListener('click', () => CreatePageModal.classList.add('hidden'));
+    CreatePageModal.addEventListener('click', e => {
+        if (e.target === CreatePageModal) CreatePageModal.classList.add('hidden');
+    });
+}
 
 // ── Auto-generate handle from name ────────────────────────────────────────
 let HandleManuallyEdited = false;
 
-PageNameInput.addEventListener('input', () => {
-    if (!HandleManuallyEdited) {
-        PageHandleInput.value = PageNameInput.value
-            .toLowerCase()
-            .replace(/\s+/g, '_')
-            .replace(/[^a-z0-9_]/g, '')
-            .slice(0, 50);
-        CheckHandle();
-    }
-});
+if (PageNameInput && PageHandleInput) {
+    PageNameInput.addEventListener('input', () => {
+        if (!HandleManuallyEdited) {
+            PageHandleInput.value = PageNameInput.value
+                .toLowerCase()
+                .replace(/\s+/g, '_')
+                .replace(/[^a-z0-9_]/g, '')
+                .slice(0, 50);
+            CheckHandle();
+        }
+    });
 
-PageHandleInput.addEventListener('input', () => {
-    HandleManuallyEdited = true;
-    CheckHandle();
-});
+    PageHandleInput.addEventListener('input', () => {
+        HandleManuallyEdited = true;
+        CheckHandle();
+    });
+}
 
 // ── Handle availability check ─────────────────────────────────────────────
 let HandleDebounce = null;
 
 function CheckHandle() {
+    if (!PageHandleInput || !PageHandleHint) return;
     const Val = PageHandleInput.value.trim();
     clearTimeout(HandleDebounce);
     if (Val.length < 2) {
@@ -91,35 +97,38 @@ function CheckHandle() {
 }
 
 // ── Submit ────────────────────────────────────────────────────────────────
-CreatePageSubmit.addEventListener('click', async () => {
-    const Name     = PageNameInput.value.trim();
-    const Handle   = PageHandleInput.value.trim();
-    const Category = document.getElementById('PageCategoryInput').value;
-    const Website  = document.getElementById('PageWebsiteInput').value.trim();
-    const Bio      = document.getElementById('PageBioInput').value.trim();
+if (CreatePageSubmit && PageNameInput && PageHandleInput && CreatePageError && CreatePageLoader && CreatePageModal) {
+    CreatePageSubmit.addEventListener('click', async () => {
+        const Name     = PageNameInput.value.trim();
+        const Handle   = PageHandleInput.value.trim();
+        const Category = document.getElementById('PageCategoryInput').value;
+        const Website  = document.getElementById('PageWebsiteInput').value.trim();
+        const Bio      = document.getElementById('PageBioInput').value.trim();
 
-    CreatePageError.classList.add('hidden');
+        CreatePageError.classList.add('hidden');
 
-    if (!Name)   { ShowError('Page name is required.');  return; }
-    if (!Handle) { ShowError('Handle is required.');     return; }
+        if (!Name)   { ShowError('Page name is required.');  return; }
+        if (!Handle) { ShowError('Handle is required.');     return; }
 
-    CreatePageSubmit.classList.add('hidden');
-    CreatePageLoader.classList.remove('hidden');
+        CreatePageSubmit.classList.add('hidden');
+        CreatePageLoader.classList.remove('hidden');
 
-    const Data = await Post(1, { Name, Handle, Category, Website, Bio });
+        const Data = await Post(1, { Name, Handle, Category, Website, Bio });
 
-    CreatePageSubmit.classList.remove('hidden');
-    CreatePageLoader.classList.add('hidden');
+        CreatePageSubmit.classList.remove('hidden');
+        CreatePageLoader.classList.add('hidden');
 
-    if (Data.success) {
-        CreatePageModal.classList.add('hidden');
-        window.location.href = 'index.php?target=page&handle=' + Data.handle;
-    } else {
-        ShowError(Data.message || 'Something went wrong. Please try again.');
-    }
-});
+        if (Data.success) {
+            CreatePageModal.classList.add('hidden');
+            window.location.href = 'index.php?target=page&handle=' + Data.handle;
+        } else {
+            ShowError(Data.message || 'Something went wrong. Please try again.');
+        }
+    });
+}
 
 function ShowError(Msg) {
+    if (!CreatePageError) return;
     CreatePageError.textContent = Msg;
     CreatePageError.classList.remove('hidden');
 }

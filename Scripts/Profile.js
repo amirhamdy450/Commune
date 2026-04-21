@@ -1,9 +1,56 @@
 import { Submit, ValidateName, ValidateDate, PopulateFieldError } from "./Forms.js";
 import * as FeedApi from "./Api/FeedApi.js";
-import { createPostHTML, attachPostInteractions } from "./Components/PostCard.js";
+import { createPostHTML, attachPostInteractions, FollowHandler, AttachFollowHover } from "./Components/PostCard.js";
 import { mountActionMenu } from "./Components/ActionMenu.js";
 import { confirmBlock } from "./Components/ConfirmActions.js";
+import { initPostEditorModal, openEditPostModal, resetPostEditorModal } from "./Components/PostEditorModal.js";
+import { attachPlainTextPaste } from "./Components/CommentThread.js";
+import { showInfoBox } from "./Utilities.js";
+import { initCommentSection, onCommentClick } from "./Components/CommentSection.js";
 document.addEventListener('DOMContentLoaded', () => {
+
+if (document.body.id === 'VProfile') {
+    const followButton = document.getElementsByClassName('FollowBtn')[0];
+    if (followButton) {
+        const uid = followButton.getAttribute('uid');
+        followButton.addEventListener('click', () => FollowHandler(followButton, uid));
+        AttachFollowHover(followButton);
+    }
+}
+
+// ── Post editor modal (edit + create) ────────────────────────────────────
+const createPostModal = document.getElementsByClassName('CPostContainer')[0];
+if (createPostModal) {
+    initPostEditorModal({
+        modal: createPostModal,
+        onToggleModal: (modal, open) => {
+            modal.classList.toggle('hidden', !open);
+            document.body.classList.toggle('ModalOpen', open);
+        },
+        attachPlainTextPaste,
+        showInfoBox,
+        createPostHTML,
+        attachPostInteractions: (postEl) => attachProfilePostInteractions(postEl),
+    });
+}
+
+initCommentSection();
+
+function attachProfilePostInteractions(postEl) {
+    attachPostInteractions(postEl, {
+        onCommentClick,
+        onEditPost: (pid) => openEditPostModal(pid),
+        onDeletePost: async (pid) => {
+            const data = await FeedApi.deletePost(pid);
+            if (data.success) {
+                postEl.remove();
+                showInfoBox('Post deleted.', 1);
+            } else {
+                showInfoBox(data.message || 'Failed to delete post.', 2);
+            }
+        },
+    });
+}
 
 //TABS
 
@@ -377,6 +424,11 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
     const profileLoader = document.getElementById('ProfilePostLoader');
     const targetUIDInput = document.getElementById('UserProfileID');
 
+    // Attach interactions to server-rendered posts
+    [...(profilePostsContainer ? profilePostsContainer.getElementsByClassName('FeedPost') : [])].forEach(post => {
+        attachProfilePostInteractions(post);
+    });
+
     if (profilePostsContainer && profileLoader && targetUIDInput) {
 
         // If no posts were server-rendered, mark as done immediately — don't try to fetch
@@ -422,9 +474,9 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
                                 data.forEach(post => {
                                     const postHTML = createPostHTML(post);
                                     profileLoader.insertAdjacentHTML('beforebegin', postHTML);
-                                    
+
                                     const newPostElement = profileLoader.previousElementSibling;
-                                    attachPostInteractions(newPostElement);
+                                    attachProfilePostInteractions(newPostElement);
                                 });
                                 
                                 setTimeout(checkAndLoadPosts, 200);
@@ -580,8 +632,6 @@ const Tabs=TabsNav.getElementsByClassName("NavItem");
 
 
 });
-
-
 
 
 

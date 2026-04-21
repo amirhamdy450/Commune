@@ -61,8 +61,14 @@ if(!isset($PATH)){
 
 
                <a href="index.php?redirect=forgot-password" class="FormLink" id="ForgetPassLink">Forgot your password?</a>
-                <input type="submit" name="Login" value="Login" class="BrandBtn">
 
+                <div class="FormResponse" id="LoginFormResponse"></div>
+
+                <input type="submit" name="Login" value="Login" class="BrandBtn" id="LoginSubmitBtn">
+                <div class="AuthLoader hidden" id="LoginLoader">
+                    <div class="Loader"></div>
+                    <span>Logging in…</span>
+                </div>
 
                 <p class="SecondaryAction">Don't have an account ? <a href="<?php echo $PATH ?>index.php?redirect=reg">Register</a></p>
             </form>

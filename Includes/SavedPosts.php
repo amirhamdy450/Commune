@@ -52,7 +52,11 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                     RenderPostCard($PostViewModel);
                 }
             } else {
-                echo '<p style="font-style:italic; color:gray; text-align:center; margin-top:20px;">You haven\'t saved any posts yet.</p>';
+                echo '<div class="FeedEmptyState" id="SavedEmptyState">
+                    <img src="Imgs/Icons/no-saved.svg" alt="">
+                    <h3>No saved posts yet</h3>
+                    <p>Bookmark posts you want to come back to and they\'ll appear here.</p>
+                </div>';
             }
             ?>
             <div class="FeedLoader hidden" id="SavedPostsLoader">

@@ -40,13 +40,21 @@ $DocumentExtensions = '.pdf, .doc, .docx, .txt ,.xls,.xlsx,.ppt,.pptx';
                 ? 'MediaFolders/profile_pictures/' . htmlspecialchars($User['ProfilePic'])
                 : 'Imgs/Icons/unknown.png';
 
-            foreach ($FeedPosts as $FeedPost) {
-                $PostViewModel = BuildPostCardViewModel($FeedPost, $UID);
-                RenderPostCard($PostViewModel);
+            if (!empty($FeedPosts)) {
+                foreach ($FeedPosts as $FeedPost) {
+                    $PostViewModel = BuildPostCardViewModel($FeedPost, $UID);
+                    RenderPostCard($PostViewModel);
+                }
+            } else {
+                echo '<div class="FeedEmptyState" id="FeedEmptyState">
+                    <img src="Imgs/Icons/no-posts.svg" alt="">
+                    <h3>Nothing here yet</h3>
+                    <p>Follow people or pages to start seeing posts in your feed.</p>
+                </div>';
             }
             ?>
 
-            <div class="FeedLoader">
+            <div class="FeedLoader hidden">
                 <div class="Loader"></div>
             </div>
         </div>

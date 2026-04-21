@@ -1,67 +1,57 @@
 import { Submit } from "./Forms.js";
 import { createPostHTML, attachPostInteractions } from "./Components/PostCard.js";
 
-function hasReachedBottom(threshold = 150) {
+function HasReachedBottom(Threshold = 100) {
     const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-    return scrollTop + clientHeight >= scrollHeight - threshold;
+    return scrollTop + clientHeight >= scrollHeight - Threshold;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    let isFetching = false;
-    let noMorePosts = false;
-    const container = document.getElementById('SavedPostsContainer');
-    const loader = document.getElementById('SavedPostsLoader');
+    let IsFetching = false;
+    let NoMorePosts = false;
+    const Container = document.getElementById('SavedPostsContainer');
+    const Loader = document.getElementById('SavedPostsLoader');
 
-    const loadMoreSavedPosts = () => {
-        if (isFetching || noMorePosts) return;
+    // If the page loaded with no posts, nothing more to fetch
+    if (Container.getElementsByClassName('FeedPost').length === 0) {
+        NoMorePosts = true;
+    }
 
-        if (hasReachedBottom(100)) {
-            isFetching = true;
-            loader.classList.remove('hidden');
+    const LoadMoreSavedPosts = () => {
+        if (IsFetching || NoMorePosts || !HasReachedBottom()) return;
 
-            setTimeout(() => {
-                const posts = container.getElementsByClassName('FeedPost');
-                if (posts.length === 0) {
-                    isFetching = false;
-                    return;
-                }
+        const Posts = Container.getElementsByClassName('FeedPost');
+        if (Posts.length === 0) return;
 
-                const lastPost = posts[posts.length - 1];
-                const lastPostID = lastPost.getAttribute('PID');
+        IsFetching = true;
+        Loader.classList.remove('hidden');
 
-                const formData = new FormData();
-                formData.append('ReqType', 8); // Assuming ReqType 8 in User.php
-                formData.append('LastPostID', lastPostID);
+        const LastPostID = Posts[Posts.length - 1].getAttribute('PID');
+        const PostFormData = new FormData();
+        PostFormData.append('ReqType', 8);
+        PostFormData.append('LastPostID', LastPostID);
 
-                Submit('POST', 'Origin/Operations/User.php', formData)
-                    .then(data => {
-                        if (data && data.length > 0) {
-                            data.forEach(post => {
-                                const postHTML = createPostHTML(post);
-                                loader.insertAdjacentHTML('beforebegin', postHTML);
-                                const newPostElement = loader.previousElementSibling;
-                                attachPostInteractions(newPostElement);
-                            });
-
-                            setTimeout(loadMoreSavedPosts, 100);
-                        } else {
-                            noMorePosts = true;
-                            if (!container.querySelector('.NoMorePosts')) {
-                                loader.insertAdjacentHTML('beforebegin', '<p class="NoMorePosts">No more saved posts.</p>');
-                            }
-                        }
-                    })
-                    .catch(err => console.error("Fetch Error:", err))
-                    .finally(() => {
-                        isFetching = false;
-                        loader.classList.add('hidden');
+        Submit('POST', 'Origin/Operations/User.php', PostFormData)
+            .then(Data => {
+                if (Data && Data.length > 0) {
+                    Data.forEach(Post => {
+                        Loader.insertAdjacentHTML('beforebegin', createPostHTML(Post));
+                        attachPostInteractions(Loader.previousElementSibling);
                     });
-            }, 500);
-        }
+                } else {
+                    NoMorePosts = true;
+                    const Msg = document.createElement('div');
+                    Msg.className = 'NoMorePosts';
+                    Msg.innerHTML = '<img src="Imgs/Icons/no-saved.svg" alt=""><p>You\'ve seen all your saved posts!</p>';
+                    Loader.insertAdjacentElement('beforebegin', Msg);
+                }
+            })
+            .catch(Err => console.error('Fetch Error:', Err))
+            .finally(() => {
+                IsFetching = false;
+                Loader.classList.add('hidden');
+            });
     };
 
-    window.addEventListener('scroll', loadMoreSavedPosts);
-    
-    // Initial check
-    setTimeout(loadMoreSavedPosts, 500);
+    window.addEventListener('scroll', LoadMoreSavedPosts);
 });

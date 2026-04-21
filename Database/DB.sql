@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 28, 2026 at 11:30 PM
+-- Generation Time: Apr 21, 2026 at 02:02 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `commune`
+-- Database: `commune_demo`
 --
 
 -- --------------------------------------------------------
@@ -105,6 +105,32 @@ CREATE TABLE `countries` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `email_verifications`
+--
+
+CREATE TABLE `email_verifications` (
+  `id` int NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `expires` bigint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `feed_cache`
+--
+
+CREATE TABLE `feed_cache` (
+  `UID` int NOT NULL,
+  `PostID` int NOT NULL,
+  `Score` float NOT NULL DEFAULT '0',
+  `CachedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `followers`
 --
 
@@ -137,11 +163,59 @@ CREATE TABLE `notifications` (
   `id` int NOT NULL,
   `ToUID` int NOT NULL COMMENT 'The user receiving the notification',
   `FromUID` int DEFAULT NULL COMMENT 'The actor. NULL = System Notification',
-  `Type` int NOT NULL COMMENT '1=Like, 2=Comment, 3=Reply, 4=Follow, 7=Mention, 10=System, 11=Security',
+  `Type` int NOT NULL COMMENT '1=Like, 2=Comment, 3=Reply, 4=Follow, 10=System, 11=Security',
   `ReferenceID` int DEFAULT NULL COMMENT 'ID of Post/Comment. NULL for general alerts',
-  `MetaInfo` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Custom text or JSON for system messages',
+  `MetaInfo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Custom text or JSON for system messages',
   `IsRead` tinyint(1) NOT NULL DEFAULT '0',
   `Date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pages`
+--
+
+CREATE TABLE `pages` (
+  `id` int NOT NULL,
+  `OwnerUID` int NOT NULL,
+  `Name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `Handle` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `Bio` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `Category` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `Website` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `Logo` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `CoverPhoto` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `IsVerified` tinyint NOT NULL DEFAULT '0',
+  `Followers` int NOT NULL DEFAULT '0',
+  `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `page_followers`
+--
+
+CREATE TABLE `page_followers` (
+  `id` int NOT NULL,
+  `PageID` int NOT NULL,
+  `UID` int NOT NULL,
+  `FollowedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `page_members`
+--
+
+CREATE TABLE `page_members` (
+  `id` int NOT NULL,
+  `PageID` int NOT NULL,
+  `UID` int NOT NULL,
+  `Role` enum('owner','admin','editor','analyst') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'editor',
+  `JoinedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -160,39 +234,6 @@ CREATE TABLE `password_reset_tokens` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `email_verifications`
---
-
-CREATE TABLE `email_verifications` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `email` varchar(100) NOT NULL,
-  `token` varchar(255) NOT NULL,
-  `expires` bigint NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `email_verif_email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `verification_requests`
---
-
-CREATE TABLE `verification_requests` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `UID` int NOT NULL,
-  `Reason` text NOT NULL,
-  `Status` tinyint NOT NULL DEFAULT '0' COMMENT '0=pending, 1=approved, 2=rejected',
-  `SubmittedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `ReviewedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_verif_uid` (`UID`),
-  CONSTRAINT `fk_verif_uid` FOREIGN KEY (`UID`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `posts`
 --
 
@@ -206,8 +247,21 @@ CREATE TABLE `posts` (
   `Date` datetime NOT NULL,
   `Status` int NOT NULL,
   `UID` int NOT NULL,
-  `OrgID` int DEFAULT NULL COMMENT 'NULL = personal post, set = posted as/by a page'
+  `OrgID` int DEFAULT NULL COMMENT 'NULL = personal post, set = posted as organization',
+  `Visibility` tinyint NOT NULL DEFAULT '0' COMMENT '0=everyone,1=followers only,2=people I follow,3=mutual,4=only me'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `post_views`
+--
+
+CREATE TABLE `post_views` (
+  `PostID` int NOT NULL,
+  `UID` int NOT NULL,
+  `ViewedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -233,8 +287,8 @@ CREATE TABLE `tokens` (
   `UID` int NOT NULL,
   `Token` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `Token_2` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `IP` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `UserAgent` text COLLATE utf8mb4_general_ci NOT NULL,
+  `IP` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `UserAgent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `UpdatedOn` bigint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -259,14 +313,14 @@ CREATE TABLE `topic_cache` (
 
 CREATE TABLE `users` (
   `id` int NOT NULL,
-  `Fname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `Lname` varchar(40) COLLATE utf8mb4_general_ci NOT NULL,
-  `Username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `Email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `Password` varchar(120) COLLATE utf8mb4_general_ci NOT NULL,
+  `Fname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `Lname` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `Username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `Email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `Password` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `BirthDay` date DEFAULT NULL,
   `Gender` tinyint NOT NULL,
-  `Bio` text COLLATE utf8mb4_general_ci,
+  `Bio` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `CountryID` int NOT NULL,
   `ProfilePic` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `CoverPhoto` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -278,86 +332,40 @@ CREATE TABLE `users` (
   `IsBanned` tinyint NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Table structure for table `pages`
--- Represents any page entity: business, brand, fan page, local shop, community, etc.
---
-
-CREATE TABLE `pages` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `OwnerUID` int NOT NULL COMMENT 'User who created and owns the page',
-  `Name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `Handle` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Unique @handle e.g. acme',
-  `Bio` text COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `Category` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Business, Brand, Community, Local Business, etc.',
-  `Website` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `Logo` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `CoverPhoto` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `IsVerified` tinyint NOT NULL DEFAULT '0',
-  `Followers` int NOT NULL DEFAULT '0',
-  `CreatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_handle` (`Handle`),
-  KEY `idx_page_owner` (`OwnerUID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `page_members`
---
-
-CREATE TABLE `page_members` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `PageID` int NOT NULL,
-  `UID` int NOT NULL,
-  `Role` enum('owner','admin','editor','analyst') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'editor',
-  `JoinedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_page_member` (`PageID`,`UID`),
-  KEY `idx_pagemem_page` (`PageID`),
-  KEY `idx_pagemem_user` (`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `page_followers`
---
-
-CREATE TABLE `page_followers` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `PageID` int NOT NULL,
-  `UID` int NOT NULL,
-  `FollowedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_page_follow` (`PageID`,`UID`),
-  KEY `idx_pagefol_page` (`PageID`),
-  KEY `idx_pagefol_user` (`UID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `user_bans`
--- Type: 0=Warning, 1=Temporary Ban, 2=Permanent Ban
 --
 
 CREATE TABLE `user_bans` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL,
   `UID` int NOT NULL,
-  `Type` tinyint NOT NULL DEFAULT '1' COMMENT '0=Warning, 1=TempBan, 2=PermanentBan',
-  `Reason` varchar(500) COLLATE utf8mb4_general_ci NOT NULL,
+  `Type` tinyint NOT NULL DEFAULT '1',
+  `Reason` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `IssuedBy` int NOT NULL,
   `StartDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `EndDate` datetime DEFAULT NULL COMMENT 'NULL = permanent, only applies to TempBan',
+  `EndDate` datetime DEFAULT NULL,
   `IsActive` tinyint NOT NULL DEFAULT '1',
   `RefPosts` json DEFAULT NULL COMMENT 'Array of post IDs referenced in this action',
-  `RefComments` json DEFAULT NULL COMMENT 'Array of comment IDs referenced in this action',
-  PRIMARY KEY (`id`),
-  KEY `UID` (`UID`),
-  KEY `IsActive` (`IsActive`)
+  `RefComments` json DEFAULT NULL COMMENT 'Array of comment IDs referenced in this action'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `verification_requests`
+--
+
+CREATE TABLE `verification_requests` (
+  `id` int NOT NULL,
+  `UID` int NOT NULL,
+  `PageID` int DEFAULT NULL COMMENT 'NULL = user request, set = page request',
+  `Reason` text NOT NULL,
+  `Status` tinyint NOT NULL DEFAULT '0' COMMENT '0=pending, 1=approved, 2=rejected',
+  `SubmittedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ReviewedAt` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Indexes for dumped tables
@@ -412,6 +420,21 @@ ALTER TABLE `countries`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `email_verifications`
+--
+ALTER TABLE `email_verifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `email_verif_email` (`email`);
+
+--
+-- Indexes for table `feed_cache`
+--
+ALTER TABLE `feed_cache`
+  ADD PRIMARY KEY (`UID`,`PostID`),
+  ADD KEY `idx_uid_score` (`UID`,`Score` DESC),
+  ADD KEY `idx_uid_cachedat` (`UID`,`CachedAt`);
+
+--
 -- Indexes for table `followers`
 --
 ALTER TABLE `followers`
@@ -436,6 +459,32 @@ ALTER TABLE `notifications`
   ADD KEY `idx_notif_from` (`FromUID`);
 
 --
+-- Indexes for table `pages`
+--
+ALTER TABLE `pages`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_handle` (`Handle`),
+  ADD KEY `idx_org_owner` (`OwnerUID`);
+
+--
+-- Indexes for table `page_followers`
+--
+ALTER TABLE `page_followers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_org_follow` (`PageID`,`UID`),
+  ADD KEY `idx_orgfol_org` (`PageID`),
+  ADD KEY `idx_orgfol_user` (`UID`);
+
+--
+-- Indexes for table `page_members`
+--
+ALTER TABLE `page_members`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_org_member` (`PageID`,`UID`),
+  ADD KEY `idx_orgmem_org` (`PageID`),
+  ADD KEY `idx_orgmem_user` (`UID`);
+
+--
 -- Indexes for table `password_reset_tokens`
 --
 ALTER TABLE `password_reset_tokens`
@@ -450,6 +499,13 @@ ALTER TABLE `posts`
   ADD KEY `commune_posts_UID` (`UID`),
   ADD KEY `idx_posts_org` (`OrgID`);
 ALTER TABLE `posts` ADD FULLTEXT KEY `ft_content` (`Content`);
+
+--
+-- Indexes for table `post_views`
+--
+ALTER TABLE `post_views`
+  ADD PRIMARY KEY (`PostID`,`UID`),
+  ADD KEY `idx_uid` (`UID`);
 
 --
 -- Indexes for table `saved_posts`
@@ -480,6 +536,21 @@ ALTER TABLE `topic_cache`
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD KEY `commune_users_CountryID` (`CountryID`);
+
+--
+-- Indexes for table `user_bans`
+--
+ALTER TABLE `user_bans`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `UID` (`UID`),
+  ADD KEY `IsActive` (`IsActive`);
+
+--
+-- Indexes for table `verification_requests`
+--
+ALTER TABLE `verification_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `UID` (`UID`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -522,6 +593,12 @@ ALTER TABLE `countries`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `email_verifications`
+--
+ALTER TABLE `email_verifications`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `followers`
 --
 ALTER TABLE `followers`
@@ -537,6 +614,24 @@ ALTER TABLE `likes`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `pages`
+--
+ALTER TABLE `pages`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `page_followers`
+--
+ALTER TABLE `page_followers`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `page_members`
+--
+ALTER TABLE `page_members`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -573,6 +668,18 @@ ALTER TABLE `topic_cache`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `user_bans`
+--
+ALTER TABLE `user_bans`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `verification_requests`
+--
+ALTER TABLE `verification_requests`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -660,6 +767,12 @@ ALTER TABLE `tokens`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `commune_users_CountryID` FOREIGN KEY (`CountryID`) REFERENCES `countries` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Constraints for table `verification_requests`
+--
+ALTER TABLE `verification_requests`
+  ADD CONSTRAINT `verification_requests_ibfk_1` FOREIGN KEY (`UID`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -23,13 +23,13 @@ $stmtMyPages->execute([$UID]);
 $MyPages = $stmtMyPages->fetchAll(PDO::FETCH_ASSOC);
 
 // Trending topics — top keywords from posts in the last 48 hours by engagement
-$sqlTrending = "SELECT Content FROM posts
-                WHERE Status = 1 AND Date >= DATE_SUB(NOW(), INTERVAL 48 HOUR)
-                ORDER BY (LikeCounter * 3 + CommentCounter * 2) DESC
-                LIMIT 80";
+$sqlTrending = "SELECT Content, UID, LikeCounter, CommentCounter FROM posts
+                WHERE Status = 1 AND Date >= DATE_SUB(NOW(), INTERVAL 72 HOUR)
+                ORDER BY Date DESC
+                LIMIT 150";
 $stmtTrending = $pdo->prepare($sqlTrending);
 $stmtTrending->execute();
-$trendingPosts = $stmtTrending->fetchAll(PDO::FETCH_COLUMN);
+$trendingPosts = $stmtTrending->fetchAll(PDO::FETCH_ASSOC);
 
 // Extract meaningful words (3+ chars, skip stop words)
 $StopWords = ['the','is','a','an','and','or','but','for','of','at','by','to','in','on',
@@ -41,17 +41,56 @@ $StopWords = ['the','is','a','an','and','or','but','for','of','at','by','to','in
               'are','our','your','their','been','has','about','also','than','even','some',
               'all','out','up','one','two','three','first','last','after','before'];
 
-$WordCount = [];
-foreach ($trendingPosts as $content) {
+$TopicStats = [];
+foreach ($trendingPosts as $post) {
+    $content = $post['Content'] ?? '';
+    $authorId = (int)($post['UID'] ?? 0);
+    $engagementWeight = 1 + min(3, ((int)($post['LikeCounter'] ?? 0) + (int)($post['CommentCounter'] ?? 0)) / 10);
+
     $words = preg_split('/\s+/', strtolower(preg_replace('/[^a-zA-Z0-9\s]/u', '', $content)));
+    $words = array_unique(array_filter($words));
+
     foreach ($words as $word) {
         $word = trim($word);
-        if (strlen($word) < 3 || in_array($word, $StopWords)) continue;
-        $WordCount[$word] = ($WordCount[$word] ?? 0) + 1;
+        if (strlen($word) < 3 || is_numeric($word) || in_array($word, $StopWords, true)) continue;
+
+        if (!isset($TopicStats[$word])) {
+            $TopicStats[$word] = [
+                'posts' => 0,
+                'authors' => [],
+                'score' => 0,
+            ];
+        }
+
+        $TopicStats[$word]['posts']++;
+        $TopicStats[$word]['authors'][$authorId] = true;
+        $TopicStats[$word]['score'] += $engagementWeight;
     }
 }
-arsort($WordCount);
-$TrendingTopics = array_slice(array_keys($WordCount), 0, 6);
+
+$FilteredTopics = [];
+foreach ($TopicStats as $word => $stats) {
+    $authorCount = count($stats['authors']);
+    if ($stats['posts'] < 3 || $authorCount < 2) continue;
+
+    $FilteredTopics[$word] = [
+        'posts' => $stats['posts'],
+        'authors' => $authorCount,
+        'score' => $stats['score'],
+    ];
+}
+
+uasort($FilteredTopics, function ($a, $b) {
+    if ($a['score'] === $b['score']) {
+        if ($a['posts'] === $b['posts']) {
+            return $b['authors'] <=> $a['authors'];
+        }
+        return $b['posts'] <=> $a['posts'];
+    }
+    return $b['score'] <=> $a['score'];
+});
+
+$TrendingTopics = array_slice(array_keys($FilteredTopics), 0, 6);
 ?>
 
 <div class="LeftSidebar">

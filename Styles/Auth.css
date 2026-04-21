@@ -252,7 +252,7 @@
     padding: 12px 30px;
 }
 
-/* Make FormResponse success message look nice */
+/* Form response states */
 .FormResponse.Success {
     background: #e6f7ec;
     border: 1px solid #b7e1c7;
@@ -260,6 +260,32 @@
     padding: 12px 15px;
     border-radius: 8px;
     font-size: 15px;
+}
+
+.FormResponse.Error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+/* Inline loader for auth forms */
+.AuthLoader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.AuthLoader .Loader {
+    width: 22px;
+    height: 22px;
+    border-width: 3px;
+    flex-shrink: 0;
 }
 
 

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Stacked bookmark cards background -->
+  <rect x="58" y="56" width="76" height="96" rx="10" fill="#dce5f0" opacity="0.45"/>
+  <rect x="50" y="46" width="76" height="96" rx="10" fill="#ffffff" stroke="#d8e3ef" stroke-width="1.8"/>
+
+  <!-- Bookmark ribbon shape on front card -->
+  <path d="M68 52 H108 Q112 52 112 56 V118 L88 106 L64 118 V56 Q64 52 68 52 Z" fill="#edf3f9" stroke="#d8e3ef" stroke-width="1.5"/>
+
+  <!-- Plus cross inside bookmark -->
+  <rect x="85" y="72" width="6" height="20" rx="3" fill="#b0c6e0"/>
+  <rect x="78" y="79" width="20" height="6" rx="3" fill="#b0c6e0"/>
+
+  <!-- Sparkle top-right -->
+  <circle cx="138" cy="52" r="18" fill="#2c79e8" opacity="0.08"/>
+  <circle cx="138" cy="52" r="12" fill="#2c79e8" opacity="0.13"/>
+  <!-- Star/sparkle shape -->
+  <g transform="translate(138,52)" stroke="#2c79e8" stroke-width="2" stroke-linecap="round">
+    <line x1="0" y1="-7" x2="0" y2="7"/>
+    <line x1="-7" y1="0" x2="7" y2="0"/>
+    <line x1="-4.5" y1="-4.5" x2="4.5" y2="4.5"/>
+    <line x1="4.5" y1="-4.5" x2="-4.5" y2="4.5"/>
+  </g>
+</svg>

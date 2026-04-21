@@ -512,7 +512,26 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 
         echo json_encode(['status' => true, 'message' => 'If your email is pending verification, a new link has been sent.']);
         die();
-    }
 
+    }else if($_POST['ReqType'] == 7){ // Check email availability during registration
+
+        $Email = trim($_POST['email'] ?? '');
+
+        if (!ValidateEmail($Email)) {
+            echo json_encode(['available' => false, 'message' => 'Please enter a valid email address.']);
+            die();
+        }
+
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE Email = ?");
+        $stmt->execute([$Email]);
+        $exists = (int)$stmt->fetchColumn() > 0;
+
+        if ($exists) {
+            echo json_encode(['available' => false, 'message' => 'An account with this email already exists.']);
+        } else {
+            echo json_encode(['available' => true]);
+        }
+        die();
+    }
 
 }
